@@ -20,5 +20,7 @@ jobs:
             git config --global --add safe.directory /home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html
             cd applications/zeyjsvrczr/public_html
             git init
-            git remote add origin git@github.com:chienyiyeh/focus-hd.git || true
-            git pull origin main
+            git remote remove origin || true
+            git remote add origin https://github.com/chienyiyeh/focus-hd.git
+            git fetch origin
+            git reset --hard origin/main
