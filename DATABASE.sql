@@ -36,10 +36,12 @@ CREATE TABLE IF NOT EXISTS cards (
   
   -- 新增欄位（完整版）
   project VARCHAR(50) DEFAULT NULL COMMENT '專案類型: seo/product/client/family/sop/finance/other',
+  priority VARCHAR(32) DEFAULT NULL COMMENT '四象限優先級',
   source_link TEXT DEFAULT NULL COMMENT '來源連結',
   summary TEXT DEFAULT NULL COMMENT '一句摘要',
   next_step TEXT DEFAULT NULL COMMENT '下一步行動',
   body TEXT DEFAULT NULL COMMENT '詳細內容',
+  checklist JSON DEFAULT NULL COMMENT '待辦清單(JSON陣列)',
   
   -- 樣式
   bgcolor VARCHAR(20) DEFAULT NULL COMMENT '背景顏色',
