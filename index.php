@@ -1317,6 +1317,11 @@ const DEFAULT_PROJECTS = {
   family: { label: '家庭', bg: '#FCE4EC', color: '#C2185B', default: true }
 };
 
+// 舊專案名稱顯示修正（不影響 project key）
+const PROJECT_LABEL_MIGRATION = {
+  '筆記': '商品頁'
+};
+
 // 專案資料（優先從資料庫載入，失敗則使用預設）
 let ALL_PROJECTS = { ...DEFAULT_PROJECTS };
 let PROJECT_LABELS = {};
@@ -1705,11 +1710,15 @@ function getAllProjects() {
   return ALL_PROJECTS;
 }
 
+function normalizeProjectLabel(label) {
+  return PROJECT_LABEL_MIGRATION[label] || label;
+}
+
 // 更新專案標籤
 function updateProjectLabels() {
   PROJECT_LABELS = {};
   Object.keys(ALL_PROJECTS).forEach(key => {
-    PROJECT_LABELS[key] = ALL_PROJECTS[key].label;
+    PROJECT_LABELS[key] = normalizeProjectLabel(ALL_PROJECTS[key].label);
   });
 }
 
@@ -2014,7 +2023,7 @@ function renderProjectList() {
       <div class="project-info">
         <div class="project-color-preview" style="background: ${proj.bg}; color: ${proj.color};">●</div>
         <div>
-          <div class="project-name">${proj.label}</div>
+          <div class="project-name">${normalizeProjectLabel(proj.label)}</div>
           ${proj.default ? '<div class="project-default">預設類型</div>' : ''}
         </div>
       </div>
@@ -2171,7 +2180,7 @@ function renderProjectSelect() {
   Object.keys(allProjects).forEach(key => {
     const option = document.createElement('option');
     option.value = key;
-    option.textContent = allProjects[key].label;
+    option.textContent = normalizeProjectLabel(allProjects[key].label);
     select.appendChild(option);
   });
 }
