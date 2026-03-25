@@ -2444,12 +2444,13 @@ function buildCard(card, col) {
   
   // 待办清单显示
   let checklistHTML = '';
-  if (card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0) {
-    const completed = card.checklist.filter(item => item.checked).length;
-    const total = card.checklist.length;
+  const checklistItems = normalizeChecklistItems(card.checklist);
+  if (checklistItems.length > 0) {
+    const completed = checklistItems.filter(item => item.checked).length;
+    const total = checklistItems.length;
     checklistHTML = '<div class="card-checklist">';
     checklistHTML += `<div class="card-checklist-header">✓ 待辦清單 <span class="card-checklist-progress">${completed}/${total}</span></div>`;
-    card.checklist.forEach((item, idx) => {
+    checklistItems.forEach((item, idx) => {
       checklistHTML += `<div class="card-checklist-item${item.checked ? ' checked' : ''}">`;
       checklistHTML += `<input type="checkbox" class="card-checklist-toggle" data-card-id="${card.id}" data-item-index="${idx}" data-col="${col}" ${item.checked ? 'checked' : ''}>`;
       checklistHTML += `<label>${escHtml(item.text)}</label>`;
@@ -2995,14 +2996,29 @@ function getChecklistData(containerId = 'checklist-container') {
   return items.length > 0 ? items : null;
 }
 
+function normalizeChecklistItems(checklist) {
+  if (!checklist) return [];
+  const list = Array.isArray(checklist) ? checklist : (() => {
+    if (typeof checklist === 'string') {
+      try { return JSON.parse(checklist); } catch (e) { return []; }
+    }
+    return [];
+  })();
+  return list.filter(item => item && typeof item.text === 'string' && item.text.trim() !== '').map(item => ({
+    text: item.text.trim(),
+    checked: !!item.checked
+  }));
+}
+
 // 在编辑界面渲染待办清单
 function renderChecklistEdit(checklist, containerId = 'checklist-container') {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
   
-  if (checklist && Array.isArray(checklist)) {
-    checklist.forEach(item => {
+  const normalizedChecklist = normalizeChecklistItems(checklist);
+  if (normalizedChecklist.length > 0) {
+    normalizedChecklist.forEach(item => {
       addChecklistItem(item.text, item.checked, containerId);
     });
   }
@@ -3011,10 +3027,12 @@ function renderChecklistEdit(checklist, containerId = 'checklist-container') {
 // 在卡片上切换待办项的勾选状态
 async function toggleChecklistItem(cardId, itemIndex, col) {
   const card = state[col].find(c => c.id === cardId);
-  if (!card || !card.checklist || !card.checklist[itemIndex]) return;
+  const checklist = normalizeChecklistItems(card?.checklist);
+  if (!card || !checklist[itemIndex]) return;
   
   // 切换状态
-  card.checklist[itemIndex].checked = !card.checklist[itemIndex].checked;
+  checklist[itemIndex].checked = !checklist[itemIndex].checked;
+  card.checklist = checklist;
   
   // 保存到服务器
   await saveCardToAPI({
@@ -3022,6 +3040,7 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
     col: col,
     title: card.title,
     project: card.project,
+    priority: card.priority || null,
     sourceLink: card.sourceLink,
     summary: card.summary,
     nextStep: card.nextStep,
@@ -3029,7 +3048,7 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
     bgcolor: card.bgcolor,
     textcolor: card.textcolor,
     isPrivate: card.isPrivate ? 1 : 0,
-    checklist: card.checklist
+    checklist: checklist
   });
   
   // 重新渲染
