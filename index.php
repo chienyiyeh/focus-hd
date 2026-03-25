@@ -1326,6 +1326,7 @@ let currentFocusCardId = null; // 当前专注的卡片ID
 let quill = null;
 let isDBMode = false; // 追蹤是否成功使用資料庫
 let currentEditingCard = null; // 当前正在编辑的卡片
+let sidebarChecklistAutosaveTimer = null;
 
 // ==========================================
 // 侧边编辑栏相关函数
@@ -1376,6 +1377,7 @@ function openSidebar(cardId, col) {
 
 // 关闭侧边编辑栏
 async function closeSidebar() {
+  clearTimeout(sidebarChecklistAutosaveTimer);
   // 关闭前先静默保存
   await silentSaveSidebar();
   
@@ -3074,7 +3076,11 @@ function handleChecklistClick(event) {
   if (addBtn) {
     event.preventDefault();
     event.stopPropagation();
-    addChecklistItem('', false, addBtn.dataset.checklistContainer || 'checklist-container');
+    const containerId = addBtn.dataset.checklistContainer || 'checklist-container';
+    addChecklistItem('', false, containerId);
+    if (containerId === 'sidebar-checklist-container') {
+      scheduleSidebarChecklistAutosave();
+    }
     return;
   }
 
@@ -3083,6 +3089,9 @@ function handleChecklistClick(event) {
     event.preventDefault();
     event.stopPropagation();
     deleteChecklistItem(deleteBtn.dataset.checklistId);
+    if (deleteBtn.closest('#sidebar-checklist-container')) {
+      scheduleSidebarChecklistAutosave();
+    }
   }
 }
 
@@ -3103,7 +3112,13 @@ function handleChecklistChange(event) {
   if (!target) return;
 
   const checkbox = target.closest('.card-checklist-toggle');
-  if (!checkbox) return;
+  if (!checkbox) {
+    const sidebarCheckbox = target.closest('#sidebar-checklist-container .checklist-item input[type="checkbox"]');
+    if (sidebarCheckbox) {
+      scheduleSidebarChecklistAutosave();
+    }
+    return;
+  }
 
   event.stopPropagation();
   const cardId = Number(checkbox.dataset.cardId);
@@ -3114,9 +3129,28 @@ function handleChecklistChange(event) {
   toggleChecklistItem(cardId, itemIndex, col);
 }
 
+function handleChecklistInput(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  const sidebarTextInput = target.closest('#sidebar-checklist-container .checklist-item input[type="text"]');
+  if (!sidebarTextInput) return;
+
+  scheduleSidebarChecklistAutosave();
+}
+
+function scheduleSidebarChecklistAutosave(delay = 300) {
+  if (!currentEditingCard) return;
+  clearTimeout(sidebarChecklistAutosaveTimer);
+  sidebarChecklistAutosaveTimer = setTimeout(() => {
+    silentSaveSidebar();
+  }, delay);
+}
+
 document.addEventListener('click', handleChecklistClick);
 document.addEventListener('touchstart', handleChecklistTouchStart, { passive: false });
 document.addEventListener('change', handleChecklistChange);
+document.addEventListener('input', handleChecklistInput);
 
 // ==========================================
 // 通知功能
