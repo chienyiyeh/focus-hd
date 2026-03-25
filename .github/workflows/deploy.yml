@@ -17,5 +17,5 @@ jobs:
           password: ${{ secrets.SERVER_PASS }}
           port: 22
           script: |
-            cd public_html
+            cd applications/zeyjsvrczr/public_html
             git pull origin main
