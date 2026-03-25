@@ -153,6 +153,25 @@ function normalizeChecklist($rawChecklist) {
     return !empty($normalized) ? json_encode($normalized, JSON_UNESCAPED_UNICODE) : null;
 }
 
+/**
+ * 正規化 priority 欄位，僅允許四象限值
+ */
+function normalizePriority($rawPriority) {
+    if ($rawPriority === null || $rawPriority === '') {
+        return null;
+    }
+
+    $priority = cleanInput($rawPriority);
+    $allowedPriorities = [
+        'urgent_important',
+        'important_not_urgent',
+        'urgent_not_important',
+        'not_urgent_not_important'
+    ];
+
+    return in_array($priority, $allowedPriorities, true) ? $priority : null;
+}
+
 // ============================================
 // 新增/更新卡片
 // ============================================
@@ -167,7 +186,7 @@ function handleSave($userId) {
     $col = cleanInput($input['col'] ?? 'lib');
     $title = cleanInput($input['title'] ?? '');
     $project = cleanInput($input['project'] ?? null);
-    $priority = cleanInput($input['priority'] ?? null);
+    $priority = normalizePriority($input['priority'] ?? null);
     $sourceLink = cleanInput($input['sourceLink'] ?? null);
     $summary = cleanInput($input['summary'] ?? null);
     $nextStep = cleanInput($input['nextStep'] ?? null);
