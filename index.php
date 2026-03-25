@@ -1326,6 +1326,7 @@ let currentFocusCardId = null; // 当前专注的卡片ID
 let quill = null;
 let isDBMode = false; // 追蹤是否成功使用資料庫
 let currentEditingCard = null; // 当前正在编辑的卡片
+let suppressSidebarAutosaveUntil = 0; // checklist 互動期間，暫停 blur 自動儲存
 
 // ==========================================
 // 侧边编辑栏相关函数
@@ -1418,6 +1419,7 @@ function enableSidebarAutoSave() {
 // 侧边栏静默保存
 async function silentSaveSidebar() {
   if (!currentEditingCard) return;
+  if (Date.now() < suppressSidebarAutosaveUntil) return;
   
   const title = document.getElementById('sidebar-input-title')?.value.trim();
   if (!title) return;
@@ -3075,6 +3077,20 @@ function handleChecklistClick(event) {
   }
 }
 
+function handleChecklistMouseDown(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  // 先於 blur 事件觸發，避免在新增/編輯側欄 checklist 時被自動儲存清空
+  const addBtn = target.closest('.add-checklist-item-btn[data-checklist-container="sidebar-checklist-container"]');
+  const deleteBtn = target.closest('.checklist-item-delete');
+  const inSidebarChecklistInput = target.closest('#sidebar-checklist-container .checklist-item input[type="text"]');
+
+  if (addBtn || deleteBtn || inSidebarChecklistInput) {
+    suppressSidebarAutosaveUntil = Date.now() + 1200;
+  }
+}
+
 function handleChecklistTouchStart(event) {
   const target = event.target instanceof Element ? event.target : null;
   if (!target) return;
@@ -3104,6 +3120,7 @@ function handleChecklistChange(event) {
 }
 
 document.addEventListener('click', handleChecklistClick);
+document.addEventListener('mousedown', handleChecklistMouseDown, true);
 document.addEventListener('touchstart', handleChecklistTouchStart, { passive: false });
 document.addEventListener('change', handleChecklistChange);
 
