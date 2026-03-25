@@ -34,10 +34,6 @@ switch ($action) {
         handleMove($userId);
         break;
         
-    case 'postpone':
-        handlePostpone($userId);
-        break;
-        
     default:
         // 為了區別，這裡改成「無效的卡片動作」
         errorResponse('無效的卡片動作');
@@ -50,7 +46,7 @@ function handleList($userId) {
     try {
         $db = getDB();
         $stmt = $db->prepare("
-            SELECT id, col, title, project, priority, source_link, summary, next_step, body, bgcolor, textcolor, is_private, checklist, postponed_count, completed_at, created_at, updated_at
+            SELECT id, col, title, project, source_link, summary, next_step, body, bgcolor, textcolor, completed_at, created_at, updated_at
             FROM cards 
             WHERE user_id = ?
             ORDER BY created_at ASC
@@ -72,16 +68,12 @@ function handleList($userId) {
                     'id' => (int)$card['id'],
                     'title' => $card['title'],
                     'project' => $card['project'],
-                    'priority' => $card['priority'],
                     'sourceLink' => $card['source_link'],
                     'summary' => $card['summary'],
                     'nextStep' => $card['next_step'],
                     'body' => $card['body'],
                     'bgcolor' => $card['bgcolor'],
                     'textcolor' => $card['textcolor'],
-                    'isPrivate' => (int)$card['is_private'],
-                    'checklist' => $card['checklist'] ? json_decode($card['checklist'], true) : null,
-                    'postponedCount' => (int)$card['postponed_count'],
                     'completedAt' => $card['completed_at'],
                     'createdAt' => $card['created_at'],
                     'updatedAt' => $card['updated_at']
@@ -136,15 +128,12 @@ function handleSave($userId) {
     $sourceLink = cleanInput($input['sourceLink'] ?? null);
     $summary = cleanInput($input['summary'] ?? null);
     $nextStep = cleanInput($input['nextStep'] ?? null);
-    $priority = cleanInput($input['priority'] ?? null);
     
     // ⭐ 重點修改：body 使用 cleanHTML 而不是 cleanInput
     $body = cleanHTML($input['body'] ?? null);
     
     $bgcolor = cleanInput($input['bgcolor'] ?? null);
     $textcolor = cleanInput($input['textcolor'] ?? null);
-    $isPrivate = isset($input['isPrivate']) ? (int)$input['isPrivate'] : 0;
-    $checklist = isset($input['checklist']) && is_array($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
     $completedAt = $input['completedAt'] ?? null;
     
     if (empty($title)) {
@@ -163,58 +152,24 @@ function handleSave($userId) {
             // 更新現有卡片
             $stmt = $db->prepare("
                 UPDATE cards SET 
-                    col = ?, title = ?, project = ?, priority = ?, source_link = ?, summary = ?, next_step = ?, body = ?, bgcolor = ?, textcolor = ?, is_private = ?, checklist = ?, completed_at = ?
+                    col = ?, title = ?, project = ?, source_link = ?, summary = ?, next_step = ?, body = ?, bgcolor = ?, textcolor = ?, completed_at = ?
                 WHERE id = ? AND user_id = ?
             ");
-            $stmt->execute([$col, $title, $project, $priority, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $isPrivate, $checklist, $completedAt, $id, $userId]);
+            $stmt->execute([$col, $title, $project, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $completedAt, $id, $userId]);
             successResponse(['id' => $id], '卡片更新成功');
             
         } else {
             // 新增卡片
             $stmt = $db->prepare("
-                INSERT INTO cards (user_id, col, title, project, priority, source_link, summary, next_step, body, bgcolor, textcolor, is_private, checklist, completed_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO cards (user_id, col, title, project, source_link, summary, next_step, body, bgcolor, textcolor, completed_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$userId, $col, $title, $project, $priority, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $isPrivate, $checklist, $completedAt]);
+            $stmt->execute([$userId, $col, $title, $project, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $completedAt]);
             successResponse(['id' => $db->lastInsertId()], '卡片新增成功');
         }
         
     } catch (Exception $e) {
         errorResponse('儲存卡片失敗: ' . $e->getMessage());
-    }
-}
-
-// ============================================
-// 延期卡片（移回策略庫並累加延期次數）
-// ============================================
-function handlePostpone($userId) {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        errorResponse('僅支援 POST 請求');
-    }
-
-    $input = json_decode(file_get_contents('php://input'), true);
-    $id = (int)($input['id'] ?? 0);
-
-    if (!$id) {
-        errorResponse('缺少卡片 ID');
-    }
-
-    try {
-        $db = getDB();
-        $stmt = $db->prepare("
-            UPDATE cards 
-            SET col = 'lib', completed_at = NULL, postponed_count = COALESCE(postponed_count, 0) + 1
-            WHERE id = ? AND user_id = ?
-        ");
-        $stmt->execute([$id, $userId]);
-
-        if ($stmt->rowCount() > 0) {
-            successResponse(['id' => $id], '卡片延期成功');
-        } else {
-            errorResponse('卡片不存在或無權限延期');
-        }
-    } catch (Exception $e) {
-        errorResponse('延期卡片失敗');
     }
 }
 

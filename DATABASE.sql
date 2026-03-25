@@ -36,14 +36,10 @@ CREATE TABLE IF NOT EXISTS cards (
   
   -- 新增欄位（完整版）
   project VARCHAR(50) DEFAULT NULL COMMENT '專案類型: seo/product/client/family/sop/finance/other',
-  priority VARCHAR(40) DEFAULT NULL COMMENT '四象限: urgent_important/important_not_urgent/urgent_not_important/not_urgent_not_important',
   source_link TEXT DEFAULT NULL COMMENT '來源連結',
   summary TEXT DEFAULT NULL COMMENT '一句摘要',
   next_step TEXT DEFAULT NULL COMMENT '下一步行動',
   body TEXT DEFAULT NULL COMMENT '詳細內容',
-  checklist JSON DEFAULT NULL COMMENT '待辦清單',
-  is_private TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否私人卡片',
-  postponed_count INT NOT NULL DEFAULT 0 COMMENT '延期次數',
   
   -- 樣式
   bgcolor VARCHAR(20) DEFAULT NULL COMMENT '背景顏色',
@@ -57,8 +53,6 @@ CREATE TABLE IF NOT EXISTS cards (
   -- 索引
   INDEX idx_user_col (user_id, col),
   INDEX idx_project (project),
-  INDEX idx_priority (priority),
-  INDEX idx_private (is_private),
   INDEX idx_completed_at (completed_at),
   
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
