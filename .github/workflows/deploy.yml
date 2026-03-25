@@ -17,9 +17,25 @@ jobs:
           password: ${{ secrets.SERVER_PASS }}
           port: 22
           script: |
-            git config --global --add safe.directory /home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html
-            cd applications/zeyjsvrczr/public_html
-            git init
+            set -e
+
+            APP_DIR="/home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html"
+            if [ ! -d "$APP_DIR" ]; then
+              APP_DIR="$HOME/applications/zeyjsvrczr/public_html"
+            fi
+
+            if [ ! -d "$APP_DIR" ]; then
+              echo "Deploy path not found: /home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html or $HOME/applications/zeyjsvrczr/public_html"
+              exit 1
+            fi
+
+            git config --global --add safe.directory "$APP_DIR"
+            cd "$APP_DIR"
+
+            if [ ! -d .git ]; then
+              git init
+            fi
+
             git remote remove origin || true
             git remote add origin https://github.com/chienyiyeh/focus-hd.git
             git fetch origin
