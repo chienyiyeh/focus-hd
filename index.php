@@ -3056,7 +3056,10 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
 }
 
 function handleChecklistClick(event) {
-  const addBtn = event.target.closest('.add-checklist-item-btn');
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  const addBtn = target.closest('.add-checklist-item-btn');
   if (addBtn) {
     event.preventDefault();
     event.stopPropagation();
@@ -3064,7 +3067,7 @@ function handleChecklistClick(event) {
     return;
   }
 
-  const deleteBtn = event.target.closest('.checklist-item-delete');
+  const deleteBtn = target.closest('.checklist-item-delete');
   if (deleteBtn) {
     event.preventDefault();
     event.stopPropagation();
@@ -3073,7 +3076,10 @@ function handleChecklistClick(event) {
 }
 
 function handleChecklistTouchStart(event) {
-  const checkbox = event.target.closest('.card-checklist-toggle');
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  const checkbox = target.closest('.card-checklist-toggle');
   if (!checkbox) return;
 
   event.preventDefault();
@@ -3082,7 +3088,10 @@ function handleChecklistTouchStart(event) {
 }
 
 function handleChecklistChange(event) {
-  const checkbox = event.target.closest('.card-checklist-toggle');
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  const checkbox = target.closest('.card-checklist-toggle');
   if (!checkbox) return;
 
   event.stopPropagation();
