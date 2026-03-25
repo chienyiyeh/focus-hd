@@ -312,6 +312,9 @@ $username = $_SESSION['username'] ?? 'User';
   .priority-btn { padding: 9px 12px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
   .priority-btn:hover { background: var(--surface2); }
   .priority-btn.active { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); font-weight: 600; }
+
+  /* 手機觸控優化：降低點擊延遲，避免按鈕難點 */
+  button, .priority-btn, .add-checklist-item-btn, .checklist-item-delete, .card-checklist-item input[type="checkbox"] { touch-action: manipulation; }
   
   /* Word 編輯器預覽區 */
   .word-preview { min-height: 100px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #FAFAFA; cursor: pointer; transition: all 0.2s; }
@@ -1421,13 +1424,14 @@ async function silentSaveSidebar() {
   
   try {
     const isPrivate = document.getElementById('sidebar-privacy-private')?.checked ? 1 : 0;
-    const checklist = getChecklistData();
-    
+    const priority = document.getElementById('sidebar-input-priority')?.value || null;
+
     const data = {
       id: currentEditingCard.id,
       col: currentEditingCard.col,
       title: title,
       project: document.getElementById('sidebar-input-project')?.value || '',
+      priority: priority,
       sourceLink: document.getElementById('sidebar-input-source')?.value.trim() || '',
       summary: document.getElementById('sidebar-input-summary')?.value.trim() || '',
       nextStep: document.getElementById('sidebar-input-nextstep')?.value.trim() || '',
@@ -1558,7 +1562,7 @@ async function saveSidebarCard() {
   }
   
   const isPrivate = document.getElementById('sidebar-privacy-private').checked ? 1 : 0;
-  const checklist = getChecklistData();
+  const checklist = getChecklistData('sidebar-checklist-container');
   const priority = document.getElementById('sidebar-input-priority')?.value || null; // 获取优先级
   
   const data = {
@@ -2678,13 +2682,14 @@ async function silentAutoSave() {
   
   try {
     const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
-    const checklist = getChecklistData();
-    
+    const priority = document.getElementById('input-priority')?.value || null;
+
     const data = {
       id: editId,
       col: document.getElementById('input-col').value,
       title: title,
       project: document.getElementById('input-project').value,
+      priority: priority,
       sourceLink: document.getElementById('input-source').value.trim(),
       summary: document.getElementById('input-summary').value.trim(),
       nextStep: document.getElementById('input-nextstep').value.trim(),
@@ -2692,7 +2697,7 @@ async function silentAutoSave() {
       bgcolor: document.getElementById('input-bgcolor').value,
       textcolor: document.getElementById('input-textcolor').value,
       isPrivate: isPrivate,
-      checklist: getChecklistData('sidebar-checklist-container')
+      checklist: getChecklistData('checklist-container')
     };
     
     // 静默保存：不显示 toast 提示
@@ -2899,13 +2904,39 @@ function backupData() { downloadFile(JSON.stringify({v:'2.0',data:state},null,2)
 function restoreData(e) { alert("已升級為 MySQL 雲端版，請聯絡管理員手動匯入。"); e.target.value = ''; toggleExportMenu(); }
 function downloadFile(content, filename, mime) { const b = new Blob([content], {type:mime}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); }
 
+function syncPriorityButtons(groupId, selectedValue) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+
+  const values = [
+    'urgent_important',
+    'important_not_urgent',
+    'urgent_not_important',
+    'not_urgent_not_important'
+  ];
+
+  group.querySelectorAll('.priority-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', values[idx] === selectedValue);
+  });
+}
+
+function selectPriorityValue(inputId, groupId, value) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const nextValue = input.value === value ? '' : value;
+  input.value = nextValue;
+  syncPriorityButtons(groupId, nextValue);
+}
+
 // ==========================================
 // 待办清单相关函数
 // ==========================================
 
 // 添加待办项到编辑界面
-function addChecklistItem(text = '', checked = false) {
-  const container = document.getElementById('checklist-container');
+function addChecklistItem(text = '', checked = false, containerId = 'checklist-container') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
   const id = 'checklist-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   
   const item = document.createElement('div');
@@ -2913,7 +2944,7 @@ function addChecklistItem(text = '', checked = false) {
   item.dataset.id = id;
   item.innerHTML = `
     <input type="checkbox" ${checked ? 'checked' : ''}>
-    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
+    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem('', false, '${containerId}');}">
     <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();">刪除</button>
   `;
   
@@ -2934,9 +2965,12 @@ function deleteChecklistItem(id) {
 }
 
 // 获取当前编辑界面的待办清单数据
-function getChecklistData() {
+function getChecklistData(containerId = 'checklist-container') {
+  const container = document.getElementById(containerId);
+  if (!container) return null;
+
   const items = [];
-  document.querySelectorAll('#checklist-container .checklist-item').forEach(item => {
+  container.querySelectorAll('.checklist-item').forEach(item => {
     const checkbox = item.querySelector('input[type="checkbox"]');
     const textInput = item.querySelector('input[type="text"]');
     const text = textInput.value.trim();
@@ -2952,13 +2986,14 @@ function getChecklistData() {
 }
 
 // 在编辑界面渲染待办清单
-function renderChecklistEdit(checklist) {
-  const container = document.getElementById('checklist-container');
+function renderChecklistEdit(checklist, containerId = 'checklist-container') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
   container.innerHTML = '';
   
   if (checklist && Array.isArray(checklist)) {
     checklist.forEach(item => {
-      addChecklistItem(item.text, item.checked);
+      addChecklistItem(item.text, item.checked, containerId);
     });
   }
 }

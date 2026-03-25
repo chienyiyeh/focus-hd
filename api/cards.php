@@ -46,7 +46,7 @@ function handleList($userId) {
     try {
         $db = getDB();
         $stmt = $db->prepare("
-            SELECT id, col, title, project, source_link, summary, next_step, body, bgcolor, textcolor, completed_at, created_at, updated_at
+            SELECT id, col, title, project, priority, source_link, summary, next_step, body, checklist, bgcolor, textcolor, completed_at, created_at, updated_at
             FROM cards 
             WHERE user_id = ?
             ORDER BY created_at ASC
@@ -68,10 +68,12 @@ function handleList($userId) {
                     'id' => (int)$card['id'],
                     'title' => $card['title'],
                     'project' => $card['project'],
+                    'priority' => $card['priority'],
                     'sourceLink' => $card['source_link'],
                     'summary' => $card['summary'],
                     'nextStep' => $card['next_step'],
                     'body' => $card['body'],
+                    'checklist' => $card['checklist'] ? json_decode($card['checklist'], true) : null,
                     'bgcolor' => $card['bgcolor'],
                     'textcolor' => $card['textcolor'],
                     'completedAt' => $card['completed_at'],
@@ -125,6 +127,7 @@ function handleSave($userId) {
     $col = cleanInput($input['col'] ?? 'lib');
     $title = cleanInput($input['title'] ?? '');
     $project = cleanInput($input['project'] ?? null);
+    $priority = cleanInput($input['priority'] ?? null);
     $sourceLink = cleanInput($input['sourceLink'] ?? null);
     $summary = cleanInput($input['summary'] ?? null);
     $nextStep = cleanInput($input['nextStep'] ?? null);
@@ -135,6 +138,7 @@ function handleSave($userId) {
     $bgcolor = cleanInput($input['bgcolor'] ?? null);
     $textcolor = cleanInput($input['textcolor'] ?? null);
     $completedAt = $input['completedAt'] ?? null;
+    $checklist = isset($input['checklist']) && is_array($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
     
     if (empty($title)) {
         errorResponse('標題不能為空');
@@ -152,19 +156,19 @@ function handleSave($userId) {
             // 更新現有卡片
             $stmt = $db->prepare("
                 UPDATE cards SET 
-                    col = ?, title = ?, project = ?, source_link = ?, summary = ?, next_step = ?, body = ?, bgcolor = ?, textcolor = ?, completed_at = ?
+                    col = ?, title = ?, project = ?, priority = ?, source_link = ?, summary = ?, next_step = ?, body = ?, checklist = ?, bgcolor = ?, textcolor = ?, completed_at = ?
                 WHERE id = ? AND user_id = ?
             ");
-            $stmt->execute([$col, $title, $project, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $completedAt, $id, $userId]);
+            $stmt->execute([$col, $title, $project, $priority, $sourceLink, $summary, $nextStep, $body, $checklist, $bgcolor, $textcolor, $completedAt, $id, $userId]);
             successResponse(['id' => $id], '卡片更新成功');
             
         } else {
             // 新增卡片
             $stmt = $db->prepare("
-                INSERT INTO cards (user_id, col, title, project, source_link, summary, next_step, body, bgcolor, textcolor, completed_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO cards (user_id, col, title, project, priority, source_link, summary, next_step, body, checklist, bgcolor, textcolor, completed_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$userId, $col, $title, $project, $sourceLink, $summary, $nextStep, $body, $bgcolor, $textcolor, $completedAt]);
+            $stmt->execute([$userId, $col, $title, $project, $priority, $sourceLink, $summary, $nextStep, $body, $checklist, $bgcolor, $textcolor, $completedAt]);
             successResponse(['id' => $db->lastInsertId()], '卡片新增成功');
         }
         
