@@ -39,8 +39,17 @@ jobs:
             }
 
       - name: Enable GitHub auto-merge (squash)
+        id: enable_auto_merge
+        continue-on-error: true
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ github.event.pull_request.number }}
           merge-method: squash
+
+      - name: Auto-merge fallback note
+        if: ${{ steps.enable_auto_merge.outcome == 'failure' }}
+        run: |
+          echo "Auto-merge could not be enabled."
+          echo "This usually means the base branch has no required protected branch rule."
+          echo "Enable a branch protection rule on the target branch to use GitHub auto-merge."
