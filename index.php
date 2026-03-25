@@ -1418,6 +1418,7 @@ function enableSidebarAutoSave() {
 // 侧边栏静默保存
 async function silentSaveSidebar() {
   if (!currentEditingCard) return;
+  if (hasPendingChecklistDraft('sidebar-checklist-container')) return;
   
   const title = document.getElementById('sidebar-input-title')?.value.trim();
   if (!title) return;
@@ -2994,6 +2995,16 @@ function getChecklistData(containerId = 'checklist-container') {
     }
   });
   return items.length > 0 ? items : null;
+}
+
+function hasPendingChecklistDraft(containerId = 'checklist-container') {
+  const container = document.getElementById(containerId);
+  if (!container) return false;
+
+  return Array.from(container.querySelectorAll('.checklist-item')).some(item => {
+    const textInput = item.querySelector('input[type="text"]');
+    return !textInput || textInput.value.trim() === '';
+  });
 }
 
 function normalizeChecklistItems(checklist) {
