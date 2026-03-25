@@ -113,6 +113,46 @@ function cleanHTML($html) {
     return $cleaned;
 }
 
+/**
+ * 正規化 checklist 欄位，確保可安全轉為 JSON 儲存
+ */
+function normalizeChecklist($rawChecklist) {
+    if ($rawChecklist === null || $rawChecklist === '') {
+        return null;
+    }
+
+    // 兼容前端傳字串 JSON 的情況
+    if (is_string($rawChecklist)) {
+        $decoded = json_decode($rawChecklist, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $rawChecklist = $decoded;
+        }
+    }
+
+    if (!is_array($rawChecklist)) {
+        return null;
+    }
+
+    $normalized = [];
+    foreach ($rawChecklist as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $text = trim((string)($item['text'] ?? ''));
+        if ($text === '') {
+            continue;
+        }
+
+        $normalized[] = [
+            'text' => $text,
+            'checked' => !empty($item['checked'])
+        ];
+    }
+
+    return !empty($normalized) ? json_encode($normalized, JSON_UNESCAPED_UNICODE) : null;
+}
+
 // ============================================
 // 新增/更新卡片
 // ============================================
@@ -138,7 +178,7 @@ function handleSave($userId) {
     $bgcolor = cleanInput($input['bgcolor'] ?? null);
     $textcolor = cleanInput($input['textcolor'] ?? null);
     $completedAt = $input['completedAt'] ?? null;
-    $checklist = isset($input['checklist']) && is_array($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
+    $checklist = normalizeChecklist($input['checklist'] ?? null);
     
     if (empty($title)) {
         errorResponse('標題不能為空');

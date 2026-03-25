@@ -1126,7 +1126,7 @@ $username = $_SESSION['username'] ?? 'User';
         <div class="checklist-container" id="checklist-container">
           <!-- 待办项会动态添加到这里 -->
         </div>
-        <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem('', false, 'checklist-container'); event.stopPropagation();">+ 新增待辦項目</button>
+        <button type="button" class="add-checklist-item-btn" data-checklist-container="checklist-container">+ 新增待辦項目</button>
       </div>
       <div class="field">
         <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟 Word 編輯器)</span></label>
@@ -1509,8 +1509,8 @@ function generateEditForm(card, cardId, col) {
     </div>
     <div class="field">
       <label class="field-label">✓ 待辦清單 <span class="optional">(選填)</span></label>
-      <div class="checklist-container" id="checklist-container"></div>
-      <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem('', false, 'checklist-container'); event.stopPropagation();">+ 新增待辦項目</button>
+      <div class="checklist-container" id="sidebar-checklist-container"></div>
+      <button type="button" class="add-checklist-item-btn" data-checklist-container="sidebar-checklist-container">+ 新增待辦項目</button>
     </div>
     <div class="field">
       <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟編輯器)</span></label>
@@ -2451,7 +2451,7 @@ function buildCard(card, col) {
     checklistHTML += `<div class="card-checklist-header">✓ 待辦清單 <span class="card-checklist-progress">${completed}/${total}</span></div>`;
     card.checklist.forEach((item, idx) => {
       checklistHTML += `<div class="card-checklist-item${item.checked ? ' checked' : ''}">`;
-      checklistHTML += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem(${card.id}, ${idx}, '${col}'); event.stopPropagation();">`;
+      checklistHTML += `<input type="checkbox" class="card-checklist-toggle" data-card-id="${card.id}" data-item-index="${idx}" data-col="${col}" ${item.checked ? 'checked' : ''}>`;
       checklistHTML += `<label>${escHtml(item.text)}</label>`;
       checklistHTML += '</div>';
     });
@@ -2944,15 +2944,25 @@ function addChecklistItem(text = '', checked = false, containerId = 'checklist-c
   item.dataset.id = id;
   item.innerHTML = `
     <input type="checkbox" ${checked ? 'checked' : ''}>
-    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem('', false, '${containerId}');}">
-    <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();">刪除</button>
+    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}">
+    <button type="button" class="checklist-item-delete" data-checklist-id="${id}">刪除</button>
   `;
   
   container.appendChild(item);
+
+  const textInput = item.querySelector('input[type="text"]');
+  if (textInput) {
+    textInput.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Enter') {
+        evt.preventDefault();
+        addChecklistItem('', false, containerId);
+      }
+    });
+  }
   
   // 自动聚焦到新添加的输入框
   if (!text) {
-    item.querySelector('input[type="text"]').focus();
+    textInput?.focus();
   }
 }
 
@@ -3025,6 +3035,49 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
   // 重新渲染
   render();
 }
+
+function handleChecklistClick(event) {
+  const addBtn = event.target.closest('.add-checklist-item-btn');
+  if (addBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    addChecklistItem('', false, addBtn.dataset.checklistContainer || 'checklist-container');
+    return;
+  }
+
+  const deleteBtn = event.target.closest('.checklist-item-delete');
+  if (deleteBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteChecklistItem(deleteBtn.dataset.checklistId);
+  }
+}
+
+function handleChecklistTouchStart(event) {
+  const checkbox = event.target.closest('.card-checklist-toggle');
+  if (!checkbox) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  checkbox.click();
+}
+
+function handleChecklistChange(event) {
+  const checkbox = event.target.closest('.card-checklist-toggle');
+  if (!checkbox) return;
+
+  event.stopPropagation();
+  const cardId = Number(checkbox.dataset.cardId);
+  const itemIndex = Number(checkbox.dataset.itemIndex);
+  const col = checkbox.dataset.col;
+
+  if (!Number.isInteger(cardId) || !Number.isInteger(itemIndex) || !col) return;
+  toggleChecklistItem(cardId, itemIndex, col);
+}
+
+document.addEventListener('click', handleChecklistClick);
+document.addEventListener('touchstart', handleChecklistTouchStart, { passive: false });
+document.addEventListener('change', handleChecklistChange);
 
 // ==========================================
 // 通知功能
