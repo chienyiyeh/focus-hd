@@ -1,0 +1,46 @@
+name: PR Auto Assign and Auto Merge
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-assign-and-enable-merge:
+    if: ${{ github.event.pull_request.state == 'open' && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto assign repository owner
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            try {
+              await github.rest.issues.addAssignees({
+                owner,
+                repo,
+                issue_number,
+                assignees: [owner]
+              });
+              core.info(`Assigned @${owner} to PR #${issue_number}`);
+            } catch (error) {
+              core.warning(`Unable to assign @${owner}: ${error.message}`);
+            }
+
+      - name: Enable GitHub auto-merge (squash)
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash

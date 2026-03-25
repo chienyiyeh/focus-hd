@@ -160,6 +160,27 @@ POST   /api/cards.php?action=move
 
 資料庫已預留 `customers` 和 `orders` 表，可隨時啟用。
 
+
+## 🤖 無感審核（Auto-merge）
+
+此 Repo 已加入 `.github/workflows/pr-auto-merge.yml`：
+
+- PR 建立/更新後，會自動指派給 Repository Owner。
+- 非 Draft PR 會自動啟用 GitHub Auto-merge（Squash）。
+- PR 一旦通過必要的分支保護檢查，會自動合併到 `main`。
+- 合併後會觸發 `.github/workflows/deploy.yml`，自動部署到 Cloudways。
+
+### 一次性設定（GitHub 後台）
+
+請在 GitHub Repo 設定確認以下項目已開啟：
+
+1. **General → Pull Requests → Allow auto-merge**
+2. **Branches → Branch protection rules（main）**
+   - 啟用你需要的狀態檢查（例如測試/語法檢查）
+   - 保留「需要 PR 才能合併」
+
+> 這樣可以維持程式品質檢查，同時做到你要的「不用手動按 Merge」。
+
 ## 🛠️ 疑難排解
 
 ### 無法登入
