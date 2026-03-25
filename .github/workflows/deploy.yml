@@ -18,4 +18,6 @@ jobs:
           port: 22
           script: |
             cd applications/zeyjsvrczr/public_html
+            git init
+            git remote add origin git@github.com:chienyiyeh/focus-hd.git || true
             git pull origin main
