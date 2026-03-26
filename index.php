@@ -377,6 +377,7 @@ $username = $_SESSION['username'] ?? 'User';
   .modal-btn { padding: 12px 24px; border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
   .modal-btn.primary { background: var(--accent-week); color: white; }
   .modal-btn.secondary { background: var(--surface2); color: var(--text-secondary); }
+  .modal-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
   /* 專案管理 Modal */
   .project-list { margin-top: 16px; }
@@ -1164,7 +1165,7 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
     <div class="modal-footer">
       <button class="modal-btn secondary" onclick="closeModal()">取消</button>
-      <button class="modal-btn primary" onclick="saveCard()">儲存</button>
+      <button class="modal-btn primary" id="modal-save-btn" onclick="saveCard()">儲存</button>
     </div>
   </div>
 </div>
@@ -1352,6 +1353,8 @@ let quill = null;
 let isDBMode = false; // 追蹤是否成功使用資料庫
 let currentEditingCard = null; // 当前正在编辑的卡片
 let suppressSidebarAutosaveUntil = 0; // checklist 互動期間，暫停 blur 自動儲存
+let modalInitialSnapshot = null;
+let sidebarInitialSnapshot = null;
 
 // ==========================================
 // 侧边编辑栏相关函数
@@ -1392,6 +1395,8 @@ function openSidebar(cardId, col) {
     renderChecklistEdit(card.checklist, 'sidebar-checklist-container');
     initSwatches(card.bgcolor || '', card.textcolor || '#1A1A18', 'sidebar');
     updateWordPreview(card.body || '');
+    sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
+    updateSaveButtonDirtyState('sidebar');
     
     // 为侧边栏添加自动保存监听（Notion 方式）
     enableSidebarAutoSave();
@@ -1408,6 +1413,70 @@ async function closeSidebar() {
   document.getElementById('editor-sidebar').classList.remove('open');
   document.querySelectorAll('.card').forEach(c => c.classList.remove('editing'));
   currentEditingCard = null;
+  sidebarInitialSnapshot = null;
+}
+
+function getChecklistDraftState(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+
+  return Array.from(container.querySelectorAll('.checklist-item')).map(item => ({
+    text: item.querySelector('input[type="text"]')?.value ?? '',
+    checked: !!item.querySelector('input[type="checkbox"]')?.checked
+  }));
+}
+
+function buildEditorSnapshot(mode = 'modal') {
+  const isSidebar = mode === 'sidebar';
+  const prefix = isSidebar ? 'sidebar-' : '';
+  const checklistContainer = isSidebar ? 'sidebar-checklist-container' : 'checklist-container';
+  const privacyPrivateId = isSidebar ? 'sidebar-privacy-private' : 'privacy-private';
+  const titleEl = document.getElementById(`${prefix}input-title`);
+  if (!titleEl) return null;
+
+  return JSON.stringify({
+    title: titleEl.value,
+    project: document.getElementById(`${prefix}input-project`)?.value || '',
+    priority: document.getElementById(`${prefix}input-priority`)?.value || '',
+    sourceLink: document.getElementById(`${prefix}input-source`)?.value || '',
+    summary: document.getElementById(`${prefix}input-summary`)?.value || '',
+    nextStep: document.getElementById(`${prefix}input-nextstep`)?.value || '',
+    body: document.getElementById(`${prefix}input-body`)?.value || '',
+    bgcolor: document.getElementById(`${prefix}input-bgcolor`)?.value || '',
+    textcolor: document.getElementById(`${prefix}input-textcolor`)?.value || '',
+    isPrivate: !!document.getElementById(privacyPrivateId)?.checked,
+    checklistDraft: getChecklistDraftState(checklistContainer)
+  });
+}
+
+function updateSaveButtonDirtyState(mode = 'modal') {
+  const isSidebar = mode === 'sidebar';
+  const btn = document.getElementById(isSidebar ? 'sidebar-save-btn' : 'modal-save-btn');
+  if (!btn) return;
+
+  const currentSnapshot = buildEditorSnapshot(mode);
+  if (!currentSnapshot) {
+    btn.disabled = true;
+    return;
+  }
+
+  const editId = document.getElementById(isSidebar ? 'sidebar-input-edit-id' : 'input-edit-id')?.value;
+  if (editId) {
+    const baseline = isSidebar ? sidebarInitialSnapshot : modalInitialSnapshot;
+    btn.disabled = baseline !== null && currentSnapshot === baseline;
+    return;
+  }
+
+  const title = document.getElementById(isSidebar ? 'sidebar-input-title' : 'input-title')?.value.trim();
+  btn.disabled = !title;
+}
+
+function refreshDirtyStateByContainer(containerId) {
+  if (containerId === 'sidebar-checklist-container') {
+    updateSaveButtonDirtyState('sidebar');
+    return;
+  }
+  updateSaveButtonDirtyState('modal');
 }
 
 // 启用侧边栏自动保存监听（Notion 方式）
@@ -1479,6 +1548,8 @@ async function silentSaveSidebar() {
     const result = await res.json();
     if (result.success) {
       // 静默更新数据，不显示提示，不关闭侧边栏
+      sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
+      updateSaveButtonDirtyState('sidebar');
       await loadCards();
     }
   } catch (err) {
@@ -1560,7 +1631,7 @@ function generateEditForm(card, cardId, col) {
     <input type="hidden" id="sidebar-input-edit-id" value="${cardId}">
     
     <div style="display: flex; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
-      <button class="modal-btn primary" onclick="saveSidebarCard()" style="flex: 1;">儲存</button>
+      <button class="modal-btn primary" id="sidebar-save-btn" onclick="saveSidebarCard()" style="flex: 1;">儲存</button>
       <button class="modal-btn secondary" onclick="closeSidebar()">取消</button>
     </div>
   `;
@@ -1609,6 +1680,8 @@ async function saveSidebarCard() {
   };
   
   await saveCardToAPI(data);
+  sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
+  updateSaveButtonDirtyState('sidebar');
   closeSidebar();
 }
 
@@ -2596,6 +2669,8 @@ function openModal(col) {
   document.getElementById('input-textcolor').value = '#1A1A18';
   document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
+  modalInitialSnapshot = buildEditorSnapshot('modal');
+  updateSaveButtonDirtyState('modal');
 }
 
 function editCard(id, col) {
@@ -2624,6 +2699,8 @@ function editCard(id, col) {
   initSwatches(card.bgcolor || '', card.textcolor || '#1A1A18'); document.getElementById('modal-title').textContent = '編輯卡片';
   document.getElementById('overlay').classList.add('open');
   setTimeout(() => document.getElementById('input-title').focus(), 60);
+  modalInitialSnapshot = buildEditorSnapshot('modal');
+  updateSaveButtonDirtyState('modal');
 }
 
 async function saveCard() {
@@ -2646,9 +2723,11 @@ async function saveCard() {
     checklist: checklist 
   };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
-  const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
+  const btn = document.getElementById('modal-save-btn'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
+  modalInitialSnapshot = buildEditorSnapshot('modal');
   btn.disabled = false; btn.textContent = '儲存';
+  updateSaveButtonDirtyState('modal');
 }
 
 // 自动保存相关
@@ -2764,7 +2843,7 @@ async function closeModalWithSave() {
   }
 }
 
-function closeModal() { document.getElementById('overlay').classList.remove('open'); autoSaveEnabled = false; if (autoSaveTimer) clearTimeout(autoSaveTimer); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); autoSaveEnabled = false; if (autoSaveTimer) clearTimeout(autoSaveTimer); modalInitialSnapshot = null; }
 function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
 document.addEventListener('keydown', e => { 
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
@@ -2962,6 +3041,12 @@ function selectPriorityValue(inputId, groupId, value) {
   const nextValue = input.value === value ? '' : value;
   input.value = nextValue;
   syncPriorityButtons(groupId, nextValue);
+
+  if (inputId.startsWith('sidebar-')) {
+    updateSaveButtonDirtyState('sidebar');
+  } else {
+    updateSaveButtonDirtyState('modal');
+  }
 }
 
 // ==========================================
@@ -2999,13 +3084,17 @@ function addChecklistItem(text = '', checked = false, containerId = 'checklist-c
   if (!text) {
     textInput?.focus();
   }
+
+  refreshDirtyStateByContainer(containerId);
 }
 
 // 删除待办项
 function deleteChecklistItem(id) {
   const item = document.querySelector(`.checklist-item[data-id="${id}"]`);
   if (item) {
+    const containerId = item.parentElement?.id || 'checklist-container';
     item.remove();
+    refreshDirtyStateByContainer(containerId);
   }
 }
 
@@ -3155,6 +3244,18 @@ document.addEventListener('click', handleChecklistClick);
 document.addEventListener('mousedown', handleChecklistMouseDown, true);
 document.addEventListener('touchstart', handleChecklistTouchStart, { passive: false });
 document.addEventListener('change', handleChecklistChange);
+document.addEventListener('input', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  if (target.closest('#editor-sidebar.open')) updateSaveButtonDirtyState('sidebar');
+  if (target.closest('#overlay.open')) updateSaveButtonDirtyState('modal');
+}, true);
+document.addEventListener('change', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  if (target.closest('#editor-sidebar.open')) updateSaveButtonDirtyState('sidebar');
+  if (target.closest('#overlay.open')) updateSaveButtonDirtyState('modal');
+}, true);
 
 // ==========================================
 // 通知功能
