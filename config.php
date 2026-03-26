@@ -154,6 +154,24 @@ function cleanInput($data) {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * 相容不同 PHP 版本的 session cookie 參數設定
+ */
+function configureSessionCookieParams($cookieParams) {
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params($cookieParams);
+        return;
+    }
+
+    session_set_cookie_params(
+        $cookieParams['lifetime'],
+        $cookieParams['path'],
+        '',
+        $cookieParams['secure'],
+        $cookieParams['httponly']
+    );
+}
+
 // ============================================
 // SESSION 初始化
 // ============================================
@@ -162,28 +180,19 @@ if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (($_SERVER['SERVER_PORT'] ?? null) == 443)
-
         || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
-
-
     );
 
     ini_set('session.use_strict_mode', '1');
     ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
     ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
 
-
     $cookieParams = [
-
-    session_name(SESSION_NAME);
-    session_set_cookie_params([
-
         'lifetime' => SESSION_LIFETIME,
         'path' => '/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => 'Lax',
-
     ];
 
     $legacySessionNames = array_unique([SESSION_NAME, 'PHPSESSID']);
@@ -197,7 +206,7 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 
     session_name($activeLegacyName ?: SESSION_NAME);
-    session_set_cookie_params($cookieParams);
+    configureSessionCookieParams($cookieParams);
     session_start();
 
     // 兼容舊版 PHPSESSID：若讀到舊 session 但有登入資訊，搬移到 KANBAN_SESSION
@@ -206,15 +215,11 @@ if (session_status() === PHP_SESSION_NONE) {
         session_write_close();
 
         session_name(SESSION_NAME);
-        session_set_cookie_params($cookieParams);
+        configureSessionCookieParams($cookieParams);
         session_start();
 
         $_SESSION = array_merge($_SESSION, $legacyData);
     }
-
-    ]);
-    session_start();
-
 }
 
 // 設定時區
