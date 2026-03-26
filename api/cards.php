@@ -4,7 +4,7 @@
  */
 
 // 1. 只需要引入 config.php 就好，裡面已經有 session 和資料庫設定
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 // 2. 絕對不要引入 auth.php！我們直接在這裡檢查登入狀態
 if (!isset($_SESSION['user_id'])) {

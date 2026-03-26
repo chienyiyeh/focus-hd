@@ -158,8 +158,49 @@ function cleanInput($data) {
 // SESSION 初始化
 // ============================================
 
-session_name(SESSION_NAME);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+    );
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
+    ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
+
+    session_name(SESSION_NAME);
+    session_set_cookie_params([
+        'lifetime' => SESSION_LIFETIME,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    $bridgeHeader = $_SERVER['HTTP_X_AUTH_BRIDGE'] ?? '';
+    if (is_string($bridgeHeader) && strpos($bridgeHeader, '.') !== false) {
+        [$payload, $signature] = explode('.', $bridgeHeader, 2);
+        $expected = hash_hmac('sha256', $payload, DB_PASS);
+
+        if (hash_equals($expected, $signature)) {
+            $decoded = json_decode(base64_decode($payload, true), true);
+            $exp = (int)($decoded['exp'] ?? 0);
+            $bridgeUserId = (int)($decoded['user_id'] ?? 0);
+            $bridgeUsername = trim((string)($decoded['username'] ?? ''));
+
+            if ($bridgeUserId > 0 && $exp >= time()) {
+                $_SESSION['user_id'] = $bridgeUserId;
+                if ($bridgeUsername !== '') {
+                    $_SESSION['username'] = $bridgeUsername;
+                }
+                $_SESSION['login_time'] = $_SESSION['login_time'] ?? time();
+            }
+        }
+    }
+}
 
 // 設定時區
 date_default_timezone_set(APP_TIMEZONE);
