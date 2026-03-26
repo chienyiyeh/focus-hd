@@ -4,45 +4,87 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+      CLOUDWAYS_PORT: ${{ secrets.CLOUDWAYS_PORT }}
+      CLOUDWAYS_APP_USER: ${{ secrets.CLOUDWAYS_APP_USER }}
+      CLOUDWAYS_APP_PASSWORD: ${{ secrets.CLOUDWAYS_APP_PASSWORD }}
+      CLOUDWAYS_WEB_ROOT: public_html
+
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+
+          : "${CLOUDWAYS_HOST:?Missing CLOUDWAYS_HOST}"
+          : "${CLOUDWAYS_APP_USER:?Missing CLOUDWAYS_APP_USER}"
+          : "${CLOUDWAYS_APP_PASSWORD:?Missing CLOUDWAYS_APP_PASSWORD}"
+
+          if [ -z "${CLOUDWAYS_PORT:-}" ]; then
+            echo "CLOUDWAYS_PORT is not set. Falling back to 22."
+            echo "CLOUDWAYS_PORT=22" >> "$GITHUB_ENV"
+          fi
+
+      - name: Pre-clean malformed folders and safe .htaccess correction
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASS }}
-          port: 22
+          host: ${{ env.CLOUDWAYS_HOST }}
+          username: ${{ env.CLOUDWAYS_APP_USER }}
+          password: ${{ env.CLOUDWAYS_APP_PASSWORD }}
+          port: ${{ env.CLOUDWAYS_PORT }}
+          script_stop: true
           script: |
-            set -e
+            set -euo pipefail
+            cd "public_html"
 
-            APP_DIR="/home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html"
-            if [ ! -d "$APP_DIR" ]; then
-              APP_DIR="$HOME/applications/zeyjsvrczr/public_html"
+            rm -rf -- './{api,assets' './{css,js}}'
+
+            if [ ! -f .htaccess ] && [ -f .htaccess.php ] && grep -Eq 'RewriteEngine|DirectoryIndex' .htaccess.php; then
+              mv .htaccess.php .htaccess
             fi
 
-            if [ ! -d "$APP_DIR" ]; then
-              echo "Deploy path not found: /home/1553960.cloudwaysapps.com/zeyjsvrczr/public_html or $HOME/applications/zeyjsvrczr/public_html"
-              exit 1
-            fi
+      - name: Install rsync and sshpass
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y rsync sshpass
 
-            git config --global --add safe.directory "$APP_DIR"
-            cd "$APP_DIR"
+      - name: Deploy files to public_html/ with rsync
+        env:
+          SSHPASS: ${{ env.CLOUDWAYS_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
 
-            if [ ! -d .git ]; then
-              git init
-            fi
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='*.sql' \
+            --exclude='*.md' \
+            --exclude='.gitignore' \
+            -e "ssh -p $CLOUDWAYS_PORT -o StrictHostKeyChecking=no" \
+            ./ "$CLOUDWAYS_APP_USER@$CLOUDWAYS_HOST:$CLOUDWAYS_WEB_ROOT/"
 
-            git remote remove origin || true
-            git remote add origin https://github.com/chienyiyeh/focus-hd.git
-            git fetch origin
-            git reset --hard origin/main
-            git clean -fd
+      - name: Finalize permissions and verify index.php exists
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.CLOUDWAYS_HOST }}
+          username: ${{ env.CLOUDWAYS_APP_USER }}
+          password: ${{ env.CLOUDWAYS_APP_PASSWORD }}
+          port: ${{ env.CLOUDWAYS_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "public_html"
 
-            rm -f index.html
+            find . -type d -exec chmod 755 {} \;
+            find . -type f -exec chmod 644 {} \;
 
-            find . -path './.git' -prune -o -type d -exec chmod 755 {} \;
-            find . -path './.git' -prune -o -type f -exec chmod 644 {} \;
+            test -f index.php
