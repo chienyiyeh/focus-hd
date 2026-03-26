@@ -63,6 +63,16 @@ function handleLogin() {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['login_time'] = time();
+
+        // 若目前落在舊版 session 名稱，登入成功後搬移到 KANBAN_SESSION
+        if (session_name() !== SESSION_NAME) {
+            $sessionData = $_SESSION;
+            session_write_close();
+
+            session_name(SESSION_NAME);
+            session_start();
+            $_SESSION = $sessionData;
+        }
         
         // 使用 config.php 裡的 successResponse (它自帶 'success' => true)
         successResponse([
