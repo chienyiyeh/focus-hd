@@ -7,7 +7,7 @@
  * GET  /api/auth.php?action=check    - 檢查登入狀態
  */
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 // 獲取請求動作
 $action = $_GET['action'] ?? $_POST['action'] ?? 'check';
