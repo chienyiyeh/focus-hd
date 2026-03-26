@@ -40,3 +40,9 @@ jobs:
             git remote add origin https://github.com/chienyiyeh/focus-hd.git
             git fetch origin
             git reset --hard origin/main
+            git clean -fd
+
+            rm -f index.html
+
+            find . -path './.git' -prune -o -type d -exec chmod 755 {} \;
+            find . -path './.git' -prune -o -type f -exec chmod 644 {} \;
