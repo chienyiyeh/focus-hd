@@ -59,6 +59,7 @@ function handleLogin() {
         }
         
         // 設定 SESSION
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['login_time'] = time();
