@@ -2,7 +2,7 @@
 /**
  * 登入頁面
  */
-session_start();
+require_once __DIR__ . '/api/config.php';
 
 // 如果已經登入，轉到主頁
 if (isset($_SESSION['user_id'])) {
