@@ -162,19 +162,28 @@ if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+ 
         || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+
+
     );
 
     ini_set('session.use_strict_mode', '1');
     ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
     ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
 
+ 
     $cookieParams = [
+
+    session_name(SESSION_NAME);
+    session_set_cookie_params([
+
         'lifetime' => SESSION_LIFETIME,
         'path' => '/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => 'Lax',
+
     ];
 
     $legacySessionNames = array_unique([SESSION_NAME, 'PHPSESSID']);
@@ -202,7 +211,10 @@ if (session_status() === PHP_SESSION_NONE) {
 
         $_SESSION = array_merge($_SESSION, $legacyData);
     }
-}
+
+    ]);
+    session_start();
+
 
 // 設定時區
 date_default_timezone_set(APP_TIMEZONE);
