@@ -158,8 +158,51 @@ function cleanInput($data) {
 // SESSION 初始化
 // ============================================
 
-session_name(SESSION_NAME);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
+    ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
+
+    $cookieParams = [
+        'lifetime' => SESSION_LIFETIME,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+
+    $legacySessionNames = array_unique([SESSION_NAME, 'PHPSESSID']);
+    $activeLegacyName = null;
+
+    foreach ($legacySessionNames as $candidateName) {
+        if (!empty($_COOKIE[$candidateName])) {
+            $activeLegacyName = $candidateName;
+            break;
+        }
+    }
+
+    session_name($activeLegacyName ?: SESSION_NAME);
+    session_set_cookie_params($cookieParams);
+    session_start();
+
+    // 兼容舊版 PHPSESSID：若讀到舊 session 但有登入資訊，搬移到 KANBAN_SESSION
+    if (session_name() !== SESSION_NAME && !empty($_SESSION['user_id'])) {
+        $legacyData = $_SESSION;
+        session_write_close();
+
+        session_name(SESSION_NAME);
+        session_set_cookie_params($cookieParams);
+        session_start();
+
+        $_SESSION = array_merge($_SESSION, $legacyData);
+    }
+}
 
 // 設定時區
 date_default_timezone_set(APP_TIMEZONE);

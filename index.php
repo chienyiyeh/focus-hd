@@ -1356,6 +1356,13 @@ let suppressSidebarAutosaveUntil = 0; // checklist 互動期間，暫停 blur �
 let modalInitialSnapshot = null;
 let sidebarInitialSnapshot = null;
 
+function fetchWithSession(url, options = {}) {
+  return fetch(url, {
+    credentials: 'include',
+    ...options
+  });
+}
+
 // ==========================================
 // 侧边编辑栏相关函数
 // ==========================================
@@ -1539,7 +1546,7 @@ async function silentSaveSidebar() {
     };
     
     // 静默保存：不显示 toast 提示
-    const res = await fetch('api/cards.php?action=save', {
+    const res = await fetchWithSession('api/cards.php?action=save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -1692,7 +1699,7 @@ async function saveSidebarCard() {
 // 從資料庫載入專案
 async function loadProjectsFromDB() {
   try {
-    const res = await fetch('api/projects.php?action=list');
+    const res = await fetchWithSession('api/projects.php?action=list');
 
     if (!res.ok) {
       console.warn('API 回應錯誤:', res.status);
@@ -2140,7 +2147,7 @@ async function addCustomProject() {
   if (isDBMode) {
     // ✅ 資料庫模式
     try {
-      const res = await fetch('api/projects.php?action=add', {
+      const res = await fetchWithSession('api/projects.php?action=add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2221,7 +2228,7 @@ async function deleteCustomProject(key) {
   if (isDBMode) {
     // ✅ 資料庫模式
     try {
-      const res = await fetch(`api/projects.php?action=delete&id=${project.id}`, {
+      const res = await fetchWithSession(`api/projects.php?action=delete&id=${project.id}`, {
         method: 'POST'
       });
       
@@ -2302,7 +2309,7 @@ function injectProjectStyles() {
 // ==========================================
 async function loadCards() {
   try {
-    const res = await fetch('api/cards.php?action=list');
+    const res = await fetchWithSession('api/cards.php?action=list');
     const data = await res.json();
     if (data.error) { toast(data.error); return; }
     state = { lib: data.lib || [], week: data.week || [], focus: data.focus || [], done: data.done || [] };
@@ -2316,7 +2323,7 @@ async function loadCards() {
 
 async function saveCardToAPI(cardData) {
   try {
-    const res = await fetch('api/cards.php?action=save', {
+    const res = await fetchWithSession('api/cards.php?action=save', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cardData)
     });
     const data = await res.json();
@@ -2329,7 +2336,7 @@ async function saveCardToAPI(cardData) {
 
 async function moveAPI(id, toCol) {
   try {
-    const res = await fetch('api/cards.php?action=move', {
+    const res = await fetchWithSession('api/cards.php?action=move', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, col: toCol })
     });
     const data = await res.json();
@@ -2360,7 +2367,7 @@ async function deleteAPI(id) {
   if (!confirm(confirmMessage)) return;
   
   try {
-    const res = await fetch(`api/cards.php?action=delete&id=${id}`, { method: 'GET' });
+    const res = await fetchWithSession(`api/cards.php?action=delete&id=${id}`, { method: 'GET' });
     const data = await res.json();
     if (data.success) { toast('🗑️ 卡片已刪除'); await loadCards(); } 
     else toast('❌ ' + (data.error || '刪除失敗'));
@@ -2370,7 +2377,7 @@ async function deleteAPI(id) {
 async function logout() {
   if (!confirm('確定要登出嗎？')) return;
   try {
-    const res = await fetch('api/auth.php?action=logout', { method: 'POST' });
+    const res = await fetchWithSession('api/auth.php?action=logout', { method: 'POST' });
     const data = await res.json();
     if (data.success) window.location.href = 'login.php';
     else toast('登出失敗');
@@ -2631,7 +2638,7 @@ async function postponeCard(id, currentCol) {
   
   try {
     // 移动到策略库并增加延期次数
-    const res = await fetch('api/cards.php?action=postpone', {
+    const res = await fetchWithSession('api/cards.php?action=postpone', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id })
@@ -2649,7 +2656,7 @@ async function postponeCard(id, currentCol) {
 }
 async function clearDone() {
   if (!confirm('確定永久清空已完成區塊嗎？')) return;
-  toast('清空中...'); for (const c of state.done) await fetch(`api/cards.php?action=delete&id=${c.id}`);
+  toast('清空中...'); for (const c of state.done) await fetchWithSession(`api/cards.php?action=delete&id=${c.id}`);
   toast('已清除完成區'); await loadCards();
 }
 
@@ -2812,7 +2819,7 @@ async function silentAutoSave() {
     };
     
     // 静默保存：不显示 toast 提示
-    const res = await fetch('api/cards.php?action=save', {
+    const res = await fetchWithSession('api/cards.php?action=save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -2927,7 +2934,7 @@ async function startTimer(id) {
   const card = state.focus.find(c => c.id === id);
   if (card && !currentFocusLogId) {
     try {
-      const res = await fetch('api/focus-logs.php?action=start', {
+      const res = await fetchWithSession('api/focus-logs.php?action=start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2986,7 +2993,7 @@ async function saveTimerDuration() {
   if (!currentFocusLogId || timerSeconds === 0) return;
   
   try {
-    await fetch('api/focus-logs.php?action=stop', {
+    await fetchWithSession('api/focus-logs.php?action=stop', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3341,7 +3348,7 @@ function initNotifications() {
 // 检查未读通知数量
 async function checkNotifications() {
   try {
-    const res = await fetch('api/notifications.php?action=count');
+    const res = await fetchWithSession('api/notifications.php?action=count');
     const data = await res.json();
     
     if (data.success && data.count > 0) {
@@ -3392,7 +3399,7 @@ async function toggleNotifications() {
 // 加载通知列表
 async function loadNotifications() {
   try {
-    const res = await fetch('api/notifications.php?action=list');
+    const res = await fetchWithSession('api/notifications.php?action=list');
     const data = await res.json();
     
     const list = document.getElementById('notification-list');
@@ -3418,7 +3425,7 @@ async function loadNotifications() {
 // 处理通知点击
 async function handleNotificationClick(notificationId) {
   try {
-    await fetch('api/notifications.php?action=mark_read', {
+    await fetchWithSession('api/notifications.php?action=mark_read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: notificationId })
@@ -3435,7 +3442,7 @@ async function handleNotificationClick(notificationId) {
 // 全部标记为已读
 async function markAllNotificationsRead() {
   try {
-    await fetch('api/notifications.php?action=mark_all_read', {
+    await fetchWithSession('api/notifications.php?action=mark_all_read', {
       method: 'POST'
     });
     
