@@ -4,7 +4,7 @@
 // ============================================
 
 // 使用 config.php（就像 cards.php 一样）
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 // 检查登入
 if (!isset($_SESSION['user_id'])) {

@@ -24,6 +24,9 @@ define('DB_CHARSET', 'utf8mb4');
 // SESSION 設定
 define('SESSION_NAME', 'KANBAN_SESSION');
 define('SESSION_LIFETIME', 86400);  // 24 小時
+define('AUTH_COOKIE_NAME', 'KANBAN_AUTH');
+define('AUTH_COOKIE_LIFETIME', 2592000); // 30 天
+define('AUTH_COOKIE_SECRET', hash('sha256', DB_HOST . '|' . DB_NAME . '|' . DB_USER . '|' . DB_PASS));
 
 // CORS 設定（如需要跟 WordPress 整合）
 define('ALLOW_CORS', false);  // 設為 true 啟用 CORS
@@ -154,12 +157,100 @@ function cleanInput($data) {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
 
+function isHttpsRequest() {
+    return (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
+}
+
+function setAuthCookie($userId, $username) {
+    $expiresAt = time() + AUTH_COOKIE_LIFETIME;
+    $payload = $userId . '|' . $username . '|' . $expiresAt;
+    $signature = hash_hmac('sha256', $payload, AUTH_COOKIE_SECRET);
+    $token = base64_encode(json_encode([
+        'uid' => (int)$userId,
+        'usr' => (string)$username,
+        'exp' => $expiresAt,
+        'sig' => $signature
+    ], JSON_UNESCAPED_UNICODE));
+
+    setcookie(AUTH_COOKIE_NAME, $token, [
+        'expires' => $expiresAt,
+        'path' => '/',
+        'secure' => isHttpsRequest(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function clearAuthCookie() {
+    setcookie(AUTH_COOKIE_NAME, '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => isHttpsRequest(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function restoreSessionFromAuthCookie() {
+    if (isset($_SESSION['user_id'])) {
+        return;
+    }
+
+    $raw = $_COOKIE[AUTH_COOKIE_NAME] ?? '';
+    if ($raw === '') {
+        return;
+    }
+
+    $decoded = json_decode(base64_decode($raw, true), true);
+    if (!is_array($decoded)) {
+        return;
+    }
+
+    $uid = (int)($decoded['uid'] ?? 0);
+    $usr = (string)($decoded['usr'] ?? '');
+    $exp = (int)($decoded['exp'] ?? 0);
+    $sig = (string)($decoded['sig'] ?? '');
+    if ($uid <= 0 || $usr === '' || $exp < time() || $sig === '') {
+        return;
+    }
+
+    $payload = $uid . '|' . $usr . '|' . $exp;
+    $expected = hash_hmac('sha256', $payload, AUTH_COOKIE_SECRET);
+    if (!hash_equals($expected, $sig)) {
+        return;
+    }
+
+    $_SESSION['user_id'] = $uid;
+    $_SESSION['username'] = $usr;
+    $_SESSION['login_time'] = time();
+}
+
 // ============================================
 // SESSION 初始化
 // ============================================
 
-session_name(SESSION_NAME);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = isHttpsRequest();
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
+    ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
+
+    session_name(SESSION_NAME);
+    session_set_cookie_params([
+        'lifetime' => SESSION_LIFETIME,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+restoreSessionFromAuthCookie();
 
 // 設定時區
 date_default_timezone_set(APP_TIMEZONE);

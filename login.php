@@ -212,6 +212,13 @@ const loginForm = document.getElementById('login-form');
 const btnSubmit = document.getElementById('btn-submit');
 const errorMessage = document.getElementById('error-message');
 
+function fetchWithSession(url, options = {}) {
+  return fetch(url, {
+    credentials: 'include',
+    ...options
+  });
+}
+
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   
@@ -228,7 +235,7 @@ loginForm.addEventListener('submit', async (e) => {
   hideError();
   
   try {
-    const response = await fetch('api/auth.php?action=login', {
+    const response = await fetchWithSession('api/auth.php?action=login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

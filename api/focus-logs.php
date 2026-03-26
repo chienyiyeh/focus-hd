@@ -1,6 +1,6 @@
 <?php
 // 专注时间记录 API
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 $user_id = $_SESSION['user_id'] ?? null;
 $action = $_GET['action'] ?? '';

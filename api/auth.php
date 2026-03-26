@@ -7,7 +7,7 @@
  * GET  /api/auth.php?action=check    - 檢查登入狀態
  */
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 // 獲取請求動作
 $action = $_GET['action'] ?? $_POST['action'] ?? 'check';
@@ -59,9 +59,11 @@ function handleLogin() {
         }
         
         // 設定 SESSION
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['login_time'] = time();
+        setAuthCookie($user['id'], $user['username']);
         
         // 使用 config.php 裡的 successResponse (它自帶 'success' => true)
         successResponse([
@@ -91,6 +93,7 @@ function handleLogout() {
     }
     
     session_destroy();
+    clearAuthCookie();
     successResponse([], '登出成功');
 }
 
