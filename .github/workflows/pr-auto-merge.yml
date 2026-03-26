@@ -17,9 +17,11 @@ jobs:
   auto-assign-and-enable-merge:
     if: ${{ github.event.pull_request.state == 'open' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Auto assign repository owner
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
@@ -39,6 +41,7 @@ jobs:
             }
 
       - name: Enable GitHub auto-merge (squash)
+        continue-on-error: true
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
