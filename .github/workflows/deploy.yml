@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          rsync -az --delete \
+          sshpass -e rsync -az --delete \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='*.sql' \
