@@ -154,6 +154,24 @@ function cleanInput($data) {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * 設定 session cookie 參數（兼容舊版 PHP）
+ */
+function setSessionCookieParamsCompat($cookieParams) {
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params($cookieParams);
+        return;
+    }
+
+    session_set_cookie_params(
+        $cookieParams['lifetime'],
+        $cookieParams['path'] . '; samesite=' . $cookieParams['samesite'],
+        '',
+        $cookieParams['secure'],
+        $cookieParams['httponly']
+    );
+}
+
 // ============================================
 // SESSION 初始化
 // ============================================
@@ -188,7 +206,7 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 
     session_name($activeLegacyName ?: SESSION_NAME);
-    session_set_cookie_params($cookieParams);
+    setSessionCookieParamsCompat($cookieParams);
     session_start();
 
     // 兼容舊版 PHPSESSID：若讀到舊 session 但有登入資訊，搬移到 KANBAN_SESSION
@@ -197,7 +215,7 @@ if (session_status() === PHP_SESSION_NONE) {
         session_write_close();
 
         session_name(SESSION_NAME);
-        session_set_cookie_params($cookieParams);
+        setSessionCookieParamsCompat($cookieParams);
         session_start();
 
         $_SESSION = array_merge($_SESSION, $legacyData);
@@ -208,7 +226,7 @@ if (session_status() === PHP_SESSION_NONE) {
 date_default_timezone_set(APP_TIMEZONE);
 
 // OPTIONS 請求處理（CORS 預檢）
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     if (ALLOW_CORS) {
         http_response_code(200);
         exit;
