@@ -37,50 +37,61 @@ $username = $_SESSION['username'] ?? 'User';
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #F8F8F6;
-    --surface: #FFFFFF;
-    --surface2: #F3F3F1;
-    --border: rgba(0,0,0,0.06);
-    --border-strong: rgba(0,0,0,0.10);
-    --text: #2A2A28;
-    --text-secondary: #737371;
-    --text-muted: #A8A8A5;
-    
-    /* 策略筆記 - 淡藍色系 */
+    /* =========================================
+       UI v2: Notion-like Theme Variables
+       ========================================= */
+    --bg-main: #fcfcfc;
+    --bg-card: #ffffff;
+    --border-light: #eaeaea;
+    --text-main: #333333;
+    --text-muted: #888888;
+
+    --accent-strategy: #e3f2fd;
+    --accent-weekly: #f3e5f5;
+    --accent-today: #ff9800;
+    --accent-done: #e8f5e9;
+
+    --radius-soft: 8px;
+    --radius-card: 6px;
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    /* Backward-compatible aliases */
+    --bg: var(--bg-main);
+    --surface: var(--bg-card);
+    --surface2: #f5f5f5;
+    --border: var(--border-light);
+    --border-strong: #dddddd;
+    --text: var(--text-main);
+    --text-secondary: #666666;
+
     --accent-lib: #7BA5D6;
-    --accent-lib-bg: #EFF5FB;
+    --accent-lib-bg: var(--accent-strategy);
     --accent-lib-text: #3A5A7A;
-    
-    /* 本週目標 - 淡紫色系 */
+
     --accent-week: #9B8FD9;
-    --accent-week-bg: #F3F1FC;
+    --accent-week-bg: var(--accent-weekly);
     --accent-week-text: #524A8C;
-    
-    /* 今日專注 - 醒目橙色系（不變淡！） */
+
     --accent-focus: #E8763E;
     --accent-focus-bg: #FFF3ED;
     --accent-focus-text: #B85828;
-    
-    /* 已完成 - 淡綠色系 */
-    --accent-done: #8FBC8F;
-    --accent-done-bg: #F2F8F2;
+
+    --accent-done-bg: var(--accent-done);
     --accent-done-text: #4A6B4A;
-    
-    --radius: 10px;
+
+    --radius: var(--radius-soft);
     --radius-lg: 14px;
   }
 
-  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
 
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 12px; }
+  .ui-v2-header { background: var(--bg-card); border-bottom: 1px solid var(--border-light); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; gap: 16px; }
   .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
   .logo span { color: var(--accent-focus); }
   
   .header-center { display: flex; gap: 12px; align-items: center; flex: 1; justify-content: center; min-width: 0; }
-  .search-box { position: relative; max-width: 300px; width: 100%; flex-shrink: 1; }
-  .search-input { width: 100%; padding: 6px 12px 6px 32px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface); }
+  .search-input { width: 100%; padding: 6px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-soft); font-size: 13px; font-family: inherit; color: var(--text-main); background: var(--bg-main); }
   .search-input:focus { outline: none; border-color: var(--accent-week); }
-  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
   
   .filter-tags { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; max-width: 100%; align-items: center; }
   .filter-tags::-webkit-scrollbar { display: none; }
@@ -90,8 +101,8 @@ $username = $_SESSION['username'] ?? 'User';
   .filter-tag:hover { background: var(--surface2); }
   .filter-tag.active { background: var(--accent-week); color: white; border-color: var(--accent-week); }
 
-  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
-  .header-user { font-size: 12px; color: var(--text-secondary); padding: 6px 12px; background: var(--surface2); border-radius: var(--radius); white-space: nowrap; }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+  .user-info { font-size: 12px; color: var(--text-secondary); padding: 6px 12px; background: var(--surface2); border-radius: var(--radius); white-space: nowrap; }
   
   /* 通知按钮 */
   .notification-btn { position: relative; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 16px; cursor: pointer; transition: background 0.12s; }
@@ -130,6 +141,23 @@ $username = $_SESSION['username'] ?? 'User';
   
   .logout-btn { background: #FFF3F2; color: #991B1B; border-color: #FCA5A5; }
   .logout-btn:hover { background: #FEE2E2; }
+
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-right { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.9rem; }
+  .icon-btn, .text-btn, .privacy-select {
+    padding: 6px 10px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-soft);
+    background: var(--bg-main);
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .text-btn { text-decoration: none; display: inline-flex; align-items: center; }
+  .icon-btn:hover, .text-btn:hover, .privacy-select:hover { box-shadow: var(--shadow-hover); }
+  .user-info { font-weight: 500; color: var(--text-main); }
+  .logout-link { color: #d32f2f; }
   
   .privacy-filters { display: flex; gap: 6px; margin-left: 12px; }
   .privacy-filter-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 10px; font-size: 12px; font-family: inherit; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
@@ -518,7 +546,7 @@ $username = $_SESSION['username'] ?? 'User';
       padding: 0 16px; /* 內部元素有 padding */
     }
     
-    .header-actions { 
+    .header-right { 
       order: 2; 
       flex: 1; 
       justify-content: flex-end;
@@ -526,20 +554,16 @@ $username = $_SESSION['username'] ?? 'User';
       padding-right: 16px; /* 右側 padding */
     }
     
-    .header-user { display: none; }
+    .user-info { display: none; }
     
     /* 手機版 header-center 只保留搜尋框 */
     .search-box { max-width: 100%; }
     .search-input {
       font-size: 15px; /* 搜尋框字體加大 */
-      padding: 10px 12px 10px 38px;
-    }
-    .search-icon {
-      font-size: 16px;
-      left: 12px;
+      padding: 10px 12px;
     }
     .filter-tags { display: none !important; } /* 隱藏專案標籤 */
-    .privacy-filters { display: none !important; } /* 隱藏隱私篩選 */
+    #privacyFilter { display: none !important; } /* 隱藏隱私篩選 */
     
     .sidebar { 
       width: 100%; 
@@ -669,29 +693,29 @@ $username = $_SESSION['username'] ?? 'User';
     .filter-tag { flex-shrink: 0; }
     
     /* 手機版 header-actions 優化 */
-    .header-actions { 
+    .header-right { 
       gap: 8px; 
       flex-wrap: nowrap; 
       overflow: visible; /* 改為 visible */
     }
     
     /* 手機版隱藏部分按鈕 */
-    .header-actions .export-menu,
-    .header-actions .help-menu,
-    .header-actions .settings-btn,
-    .header-actions .logout-btn,
-    .header-actions #notification-sound-toggle {
+    .header-right .export-menu,
+    .header-right .help-menu,
+    .header-right .settings-btn,
+    .header-right .logout-btn,
+    .header-right #notification-sound-toggle {
       display: none !important;
     }
     
     /* 手機版通知按鈕 */
-    .header-actions .notification-btn { 
+    .header-right .notification-btn { 
       padding: 8px; 
       font-size: 18px;
     }
     
     /* 手機版統計按鈕 - 隱藏，移到選單 */
-    .header-actions .settings-btn[href*="stats"] {
+    .header-right .settings-btn[href*="stats"] {
       display: none !important;
     }
     
@@ -850,35 +874,32 @@ $username = $_SESSION['username'] ?? 'User';
 </head>
 <body>
 
-<header>
-  <div class="logo">FOCUS <span>HD</span></div>
-  
-  <div class="header-center">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片...">
-    </div>
-    <div class="filter-tags" id="filter-tags"></div>
-    <div class="privacy-filters">
-      <button class="privacy-filter-btn active" data-filter="all" onclick="setPrivacyFilter('all')">全部</button>
-      <button class="privacy-filter-btn" data-filter="shared" onclick="setPrivacyFilter('shared')">👥 共用</button>
-      <button class="privacy-filter-btn" data-filter="private" onclick="setPrivacyFilter('private')">🔒 私人</button>
-    </div>
+<header class="ui-v2-header">
+  <div class="header-left">
+    <div class="logo">FOCUS <span>HD</span></div>
   </div>
 
-  <div class="header-actions">
-    <button class="notification-btn" id="notification-sound-toggle" onclick="toggleNotificationSound()" title="點擊關閉提示音" style="border: none; background: none; font-size: 14px; cursor: pointer; padding: 6px;">
-      🔔
-    </button>
-    <button class="notification-btn" id="notification-btn" onclick="toggleNotifications()">
-      🔔
+  <div class="header-center">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋卡片...">
+    <div id="projectFilterContainer" class="filter-tags"></div>
+    <select id="privacyFilter" class="privacy-select">
+      <option value="all">全部</option>
+      <option value="shared">共用</option>
+      <option value="private">私人</option>
+    </select>
+  </div>
+
+  <div class="header-right">
+    <button id="notification-sound-toggle" class="icon-btn" onclick="toggleNotificationSound()" title="點擊關閉提示音">🔔 通知音</button>
+    <button class="icon-btn notification-btn" id="notification-btn" onclick="toggleNotifications()">
+      🔔 通知
       <span class="notification-badge" id="notification-badge" style="display:none;">0</span>
     </button>
-    <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
-    <a href="stats.php" class="settings-btn" style="text-decoration: none; display: inline-flex; align-items: center;">📊 統計</a>
-    <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
+    <div class="user-info"><?php echo htmlspecialchars($username); ?></div>
+    <a href="stats.php" class="text-btn settings-btn" style="text-decoration: none;">統計</a>
+    <button class="text-btn settings-btn" onclick="openProjectSettings()">設定</button>
     <div class="export-menu">
-      <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
+      <button id="btnExport" class="text-btn export-btn" onclick="toggleExportMenu()">匯出 ▾</button>
       <div class="export-dropdown" id="export-dropdown">
         <div class="export-option" onclick="exportToExcel()">
           <div class="export-option-title">📊 匯出 Excel</div>
@@ -899,7 +920,7 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
     </div>
     <div class="help-menu">
-      <button class="help-toggle" onclick="toggleHelpMenu()">💡 說明</button>
+      <button class="text-btn help-toggle" onclick="toggleHelpMenu()">說明</button>
       <div class="help-dropdown" id="help-dropdown">
         <div class="export-option" onclick="openChangelog()">
           <div class="export-option-title">📋 更新日誌</div>
@@ -911,8 +932,7 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-    
-    <!-- 手機版「更多」菜單 -->
+
     <div class="mobile-more-menu">
       <button class="mobile-more-btn" onclick="toggleMobileMoreMenu()">⋯</button>
       <div class="mobile-more-dropdown" id="mobile-more-dropdown">
@@ -942,8 +962,8 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-    
-    <button class="logout-btn" onclick="logout()">登出</button>
+
+    <button class="text-btn logout-link" onclick="logout()">登出</button>
   </div>
 </header>
 
@@ -2338,7 +2358,7 @@ function render() {
 }
 
 function renderFilterTags() {
-  const container = document.getElementById('filter-tags');
+  const container = document.getElementById('projectFilterContainer');
   container.innerHTML = '';
 
   const fixedOrder = [
@@ -2750,15 +2770,18 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
 });
 document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
-document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+document.getElementById('searchInput').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
 
 function setPrivacyFilter(filter) {
   privacyFilter = filter;
-  document.querySelectorAll('.privacy-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === filter);
-  });
+  const privacySelect = document.getElementById('privacyFilter');
+  if (privacySelect && privacySelect.value !== filter) privacySelect.value = filter;
   render();
 }
+
+document.getElementById('privacyFilter').addEventListener('change', e => {
+  setPrivacyFilter(e.target.value);
+});
 
 function toggleHelp() { document.getElementById('sidebar').classList.toggle('open'); }
 function toggleExportMenu() { document.getElementById('export-dropdown').classList.toggle('open'); }
