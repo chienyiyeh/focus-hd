@@ -37,35 +37,26 @@ $username = $_SESSION['username'] ?? 'User';
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #F8F8F6;
+    --bg: #F5F3EE;
     --surface: #FFFFFF;
-    --surface2: #F3F3F1;
-    --border: rgba(0,0,0,0.06);
-    --border-strong: rgba(0,0,0,0.10);
-    --text: #2A2A28;
-    --text-secondary: #737371;
-    --text-muted: #A8A8A5;
-    
-    /* 策略筆記 - 淡藍色系 */
-    --accent-lib: #7BA5D6;
-    --accent-lib-bg: #EFF5FB;
-    --accent-lib-text: #3A5A7A;
-    
-    /* 本週目標 - 淡紫色系 */
-    --accent-week: #9B8FD9;
-    --accent-week-bg: #F3F1FC;
-    --accent-week-text: #524A8C;
-    
-    /* 今日專注 - 醒目橙色系（不變淡！） */
-    --accent-focus: #E8763E;
-    --accent-focus-bg: #FFF3ED;
-    --accent-focus-text: #B85828;
-    
-    /* 已完成 - 淡綠色系 */
-    --accent-done: #8FBC8F;
-    --accent-done-bg: #F2F8F2;
-    --accent-done-text: #4A6B4A;
-    
+    --surface2: #EFEDE8;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --text: #1A1A18;
+    --text-secondary: #6B6B66;
+    --text-muted: #9E9E99;
+    --accent-lib: #1D9E75;
+    --accent-lib-bg: #E1F5EE;
+    --accent-lib-text: #085041;
+    --accent-week: #534AB7;
+    --accent-week-bg: #EEEDFE;
+    --accent-week-text: #26215C;
+    --accent-focus: #D85A30;
+    --accent-focus-bg: #FAECE7;
+    --accent-focus-text: #712B13;
+    --accent-done: #3B6D11;
+    --accent-done-bg: #EAF3DE;
+    --accent-done-text: #173404;
     --radius: 10px;
     --radius-lg: 14px;
   }
@@ -173,23 +164,6 @@ $username = $_SESSION['username'] ?? 'User';
   .col-focus .col-accent { background: var(--accent-focus); }
   .col-done .col-accent { background: var(--accent-done); }
   
-  /* 計時閃爍動畫 - 純閃爍不晃動 */
-  .col-focus.timer-active .col-accent {
-    animation: pureFlash 2s ease-in-out infinite;
-    box-shadow: 0 2px 8px rgba(232, 118, 62, 0.3);
-  }
-  
-  @keyframes pureFlash {
-    0%, 100% { 
-      background: var(--accent-focus);
-      opacity: 1;
-    }
-    50% { 
-      background: #FFA64D;
-      opacity: 0.6;
-    }
-  }
-  
   .cards-area { padding: 10px; min-height: 120px; }
   .empty { text-align: center; padding: 24px 16px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
 
@@ -208,13 +182,13 @@ $username = $_SESSION['username'] ?? 'User';
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
   
   .project-tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block; }
-  .project-tag.seo { background: #F0F7FF; color: #6B9BD6; }
-  .project-tag.product { background: #F9F3FC; color: #A384C4; }
-  .project-tag.client { background: #FFF8F0; color: #E89B6B; }
-  .project-tag.family { background: #FEF3F7; color: #D98CA8; }
-  .project-tag.sop { background: #F3F9F4; color: #7AAE7A; }
-  .project-tag.finance { background: #FFFCF0; color: #E8C46B; }
-  .project-tag.other { background: #F5F6F7; color: #8D9BA8; }
+  .project-tag.seo { background: #E3F2FD; color: #1565C0; }
+  .project-tag.product { background: #F3E5F5; color: #6A1B9A; }
+  .project-tag.client { background: #FFF3E0; color: #E65100; }
+  .project-tag.family { background: #FCE4EC; color: #C2185B; }
+  .project-tag.sop { background: #E8F5E9; color: #2E7D32; }
+  .project-tag.finance { background: #FFF9C4; color: #F57F17; }
+  .project-tag.other { background: #ECEFF1; color: #455A64; }
 
   .completed-time { font-size: 10px; color: var(--text-muted); font-style: italic; }
   .created-by { font-size: 10px; color: var(--text-secondary); background: rgba(102, 126, 234, 0.1); padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-style: italic; }
@@ -280,24 +254,8 @@ $username = $_SESSION['username'] ?? 'User';
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
   .overlay.open { display: flex; }
   .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
-  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; gap: 12px; }
-  .modal-title { font-size: 16px; font-weight: 700; flex: 1; }
-  .modal-back-btn { 
-    display: none; 
-    background: none; 
-    border: none; 
-    font-size: 24px; 
-    color: var(--text); 
-    cursor: pointer; 
-    padding: 0; 
-    width: 32px; 
-    height: 32px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    border-radius: var(--radius);
-  }
-  .modal-back-btn:hover { background: var(--surface2); }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .modal-title { font-size: 16px; font-weight: 700; }
   .modal-body { padding: 20px; flex: 1; overflow-y: auto; }
   .field { margin-bottom: 16px; position: relative; }
   .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
@@ -365,483 +323,37 @@ $username = $_SESSION['username'] ?? 'User';
   .export-option-title { font-weight: 600; margin-bottom: 4px; color: var(--text); }
   .export-option-desc { font-size: 11px; color: var(--text-muted); }
 
-  /* 說明菜单样式（与匯出菜单相同） */
-  .help-menu { position: relative; display: inline-block; }
-  .help-dropdown { display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 180px; z-index: 60; overflow: hidden; }
-  .help-dropdown.open { display: block; }
-
-  /* 侧边编辑栏（桌面版） */
-  .kanban-container { display: flex; gap: 0; flex: 1; min-height: 0; }
-  .board-section { flex: 1; min-width: 0; overflow: hidden; }
-  .editor-sidebar { 
-    width: 420px; 
-    background: var(--surface); 
-    border-left: 1px solid var(--border-strong); 
-    overflow-y: auto; 
-    display: none;
-    flex-shrink: 0;
-  }
-  .editor-sidebar.open { display: block; }
-  .editor-sidebar-header { 
-    padding: 20px 24px; 
-    border-bottom: 1px solid var(--border); 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    background: var(--surface);
-    z-index: 10;
-  }
-  .editor-sidebar-title { font-size: 18px; font-weight: 600; color: var(--text); }
-  .editor-sidebar-close { 
-    background: none; 
-    border: none; 
-    font-size: 24px; 
-    color: var(--text-muted); 
-    cursor: pointer; 
-    padding: 0; 
-    width: 32px; 
-    height: 32px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    border-radius: var(--radius);
-  }
-  .editor-sidebar-close:hover { background: var(--surface2); color: var(--text); }
-  .editor-sidebar-body { padding: 24px; }
-  
-  /* 卡片高亮状态（当在编辑时） */
-  .card.editing { 
-    border-color: var(--accent-week); 
-    border-width: 2px; 
-    background: var(--accent-week-bg);
-  }
-
-  /* 更新日志样式 */
-  .changelog-version {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .changelog-version:last-of-type {
-    border-bottom: none;
-  }
-  .changelog-version h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .version-date {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--text-muted);
-    background: var(--surface2);
-    padding: 4px 10px;
-    border-radius: 12px;
-  }
-  .changelog-version ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .changelog-version li {
-    padding: 6px 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
-
-  /* 預設隱藏手機版元素（桌面版不顯示） */
-  .mobile-tab-bar { display: none; }
-  .mobile-more-menu { display: none; }
-
   /* 響應式 */
   @media (max-width: 1024px) { 
     .board-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); } 
   }
 
   @media (max-width: 768px) { 
-    html { 
-      margin: 0 !important; 
-      padding: 0 !important; 
-      width: 100% !important;
-      overflow-x: hidden !important;
-      
-    }
-    
-    body { 
-      background: var(--surface2); 
-      padding: 0 !important; 
-      padding-bottom: 70px !important; /* 只保留底部給 Tab */
-      margin: 0 !important;
-      width: 100% !important;
-      overflow-x: hidden !important;
-      
-    }
-    
-    header { 
-      padding: 12px 0; /* 上下 12px，左右 0 */
-      gap: 10px; 
-      flex-direction: row;
-      flex-wrap: wrap;
-      width: 100% !important;
-      margin: 0 !important;
-      
-    }
-    
-    .logo { 
-      font-size: 16px;
-      flex: 0 0 auto;
-      padding-left: 16px; /* logo 內部加 padding */
-    }
-    
-    .header-center { 
-      order: 3; 
-      width: 100%; 
-      margin-top: 8px;
-      flex: 1 1 100%;
-      padding: 0 16px; /* 內部元素有 padding */
-    }
-    
-    .header-actions { 
-      order: 2; 
-      flex: 1; 
-      justify-content: flex-end;
-      gap: 10px;
-      padding-right: 16px; /* 右側 padding */
-    }
-    
+    body { background: var(--surface2); }
+    header { padding: 10px 12px; gap: 10px; }
+    .header-center { order: 3; width: 100%; margin-top: 4px; }
+    .header-actions { order: 2; flex: 1; justify-content: flex-end; }
     .header-user { display: none; }
-    
-    /* 手機版 header-center 只保留搜尋框 */
     .search-box { max-width: 100%; }
-    .search-input {
-      font-size: 15px; /* 搜尋框字體加大 */
-      padding: 10px 12px 10px 38px;
-    }
-    .search-icon {
-      font-size: 16px;
-      left: 12px;
-    }
-    .filter-tags { display: none !important; } /* 隱藏專案標籤 */
-    .privacy-filters { display: none !important; } /* 隱藏隱私篩選 */
-    
-    .sidebar { 
-      width: 100%; 
-      position: relative; 
-      top: 0; 
-      border-radius: 0; 
-      border-left: none; 
-      border-right: none; 
-      margin: 0;
-      padding: 0 16px; /* 側邊欄內容有內邊距 */
-    }
-    
-    .main-wrap { 
-      flex-direction: column; 
-      padding: 0 !important; 
-      margin: 0 !important;
-      gap: 0; 
-      min-height: calc(100vh - 140px);
-      width: 100% !important;
-      
-    }
-    
-    /* 手機版：預設隱藏所有欄位 */
-    .board-wrap { 
-      display: block !important; /* 改用 block 而不是 grid */
-      grid-template-columns: none !important; 
-      gap: 0 !important; 
-      padding: 0 !important; 
-      margin: 0 !important;
-      width: 100% !important;
-    }
-    
-    .col { 
-      display: none;
-      border-radius: 0 !important; 
-      border: none !important;
-      border-left: none !important;
-      border-right: none !important;
-      box-shadow: none !important;
-      min-height: calc(100vh - 200px);
-      width: 100vw !important; /* 使用 viewport 宽度 */
-      max-width: 100vw !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      box-sizing: border-box !important;
-      flex: none !important;
-      position: relative;
-      left: 0 !important;
-      right: 0 !important;
-    }
-    
-    /* 強制每個區域都是 100% 視口寬度 */
-    .col-lib, .col-week, .col-focus, .col-done {
-      width: 100vw !important;
-      max-width: 100vw !important;
-      min-width: 100vw !important;
-      flex: none !important;
-      border: none !important;
-      border-left: none !important;
-      border-right: none !important;
-    }
-    
-    /* 顯示當前選中的欄位 */
-    .col.active { display: block !important; }
-    
-    .col-header { 
-      padding: 14px 16px; 
-      background: var(--surface);
-      margin: 0;
-    }
-    
-    .col-title {
-      font-size: 18px; /* 16px → 18px */
-    }
-    
-    .badge {
-      font-size: 13px; /* 12px → 13px */
-    }
-    
-    .col-accent { width: 100%; margin: 0; }
-    
-    .cards-area { 
-      padding: 0 !important; 
-      margin: 0 !important;
-      min-height: 300px; 
-      background: var(--surface2);
-      width: 100% !important;
-    }
-    
-    .empty {
-      padding: 24px 16px;
-      margin: 0;
-      width: 100%;
-      font-size: 16px; /* 15px → 16px */
-    }
-    
-    /* 手機版添加卡片按鈕滿版 */
-    .add-card-btn {
-      border-radius: 0;
-      margin: 0;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      padding: 16px;
-      font-size: 15px;
-    }
-    
-    /* 手機版計時器滿版 */
-    .focus-timer {
-      border-radius: 0;
-      margin: 0 0 1px 0;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      padding: 16px;
-    }
-    
-    .filter-tags { 
-      flex-wrap: nowrap; 
-      overflow-x: auto; 
-      padding: 0 16px 6px 16px; 
-      -webkit-overflow-scrolling: touch; 
-      scrollbar-width: none; 
-      margin: 0;
-    }
+    .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
+    .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
+    .board-wrap { grid-template-columns: 1fr; gap: 12px; padding: 12px 0; }
+    .col { border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .col-header { padding: 14px 16px; }
+    .cards-area { padding: 8px 16px; }
+    .filter-tags { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .filter-tags::-webkit-scrollbar { display: none; }
     .filter-tag { flex-shrink: 0; }
-    
-    /* 手機版 header-actions 優化 */
-    .header-actions { 
-      gap: 8px; 
-      flex-wrap: nowrap; 
-      overflow: visible; /* 改為 visible */
-    }
-    
-    /* 手機版隱藏部分按鈕 */
-    .header-actions .export-menu,
-    .header-actions .help-menu,
-    .header-actions .settings-btn,
-    .header-actions .logout-btn,
-    .header-actions #notification-sound-toggle {
-      display: none !important;
-    }
-    
-    /* 手機版通知按鈕 */
-    .header-actions .notification-btn { 
-      padding: 8px; 
-      font-size: 18px;
-    }
-    
-    /* 手機版統計按鈕 - 隱藏，移到選單 */
-    .header-actions .settings-btn[href*="stats"] {
-      display: none !important;
-    }
-    
-    /* 手機版卡片滿版 */
-    .card { 
-      width: 100% !important;
-      max-width: 100% !important;
-      padding: 16px !important; 
-      border-radius: 0 !important;
-      margin: 0 !important;
-      border: none !important;
-      border-bottom: 1px solid var(--border) !important;
-      box-sizing: border-box !important;
-      font-size: 16px; /* 15px → 16px */
-    }
-    
-    .card-title {
-      font-size: 18px; /* 16px → 18px */
-      font-weight: 600;
-    }
-    
-    .card-meta {
-      font-size: 14px; /* 13px → 14px */
-    }
-    
-    .card-summary {
-      font-size: 16px; /* 14px → 16px */
-    }
-    
-    .act-btn { 
-      padding: 10px 14px; 
-      font-size: 15px; /* 14px → 15px */
-    }
-    
-    /* 手机版modal显示返回按钮 */
-    .modal-back-btn { display: flex !important; }
-    
-    /* 手机版隐藏侧边栏，使用全屏modal */
-    .editor-sidebar { display: none !important; }
-    .kanban-container { display: block; }
-    
-    /* 底部 Tab Bar */
-    .mobile-tab-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      height: 64px;
-      z-index: 50;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-    
-    .mobile-tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      cursor: pointer;
-      border: none;
-      background: none;
-      padding: 8px;
-      color: var(--text-muted);
-      transition: all 0.2s;
-    }
-    
-    .mobile-tab-icon {
-      font-size: 24px;
-      line-height: 1;
-    }
-    
-    .mobile-tab-label {
-      font-size: 11px;
-      font-weight: 500;
-    }
-    
-    .mobile-tab.active {
-      color: var(--accent-focus);
-      background: var(--accent-focus-bg);
-    }
-    
-    .mobile-tab:active {
-      transform: scale(0.95);
-    }
-    
-    /* 手機版「更多」菜單 */
-    .mobile-more-menu {
-      display: block;
-      position: relative;
-    }
-    
-    .mobile-more-btn {
-      padding: 8px 12px;
-      font-size: 20px;
-      font-weight: bold;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text);
-      line-height: 1;
-    }
-    
-    .mobile-more-dropdown {
-      display: none;
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      min-width: 140px;
-      z-index: 100;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    
-    .mobile-more-dropdown.show {
-      display: block;
-    }
-    
-    .mobile-more-option {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.2s;
-    }
-    
-    .mobile-more-option:last-child {
-      border-bottom: none;
-    }
-    
-    .mobile-more-option:active {
-      background: var(--surface2);
-    }
-    
-    .mobile-more-icon {
-      font-size: 18px;
-      line-height: 1;
-    }
-    
-    .mobile-more-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-    }
+    .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn { padding: 6px 10px; font-size: 12px; }
+    .card { padding: 14px; border-radius: 12px; margin-bottom: 10px; }
+    .act-btn { padding: 8px 12px; font-size: 12px; } 
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">FOCUS <span>HD</span></div>
+  <div class="logo">我的專注看板 <span>Ultra</span></div>
   
   <div class="header-center">
     <div class="search-box">
@@ -865,7 +377,6 @@ $username = $_SESSION['username'] ?? 'User';
       <span class="notification-badge" id="notification-badge" style="display:none;">0</span>
     </button>
     <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
-    <a href="stats.php" class="settings-btn" style="text-decoration: none; display: inline-flex; align-items: center;">📊 統計</a>
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
@@ -888,51 +399,7 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-    <div class="help-menu">
-      <button class="help-toggle" onclick="toggleHelpMenu()">💡 說明</button>
-      <div class="help-dropdown" id="help-dropdown">
-        <div class="export-option" onclick="openChangelog()">
-          <div class="export-option-title">📋 更新日誌</div>
-          <div class="export-option-desc">查看版本更新歷史</div>
-        </div>
-        <div class="export-option" onclick="toggleHelp()">
-          <div class="export-option-title">💡 使用說明</div>
-          <div class="export-option-desc">看板功能介紹</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 手機版「更多」菜單 -->
-    <div class="mobile-more-menu">
-      <button class="mobile-more-btn" onclick="toggleMobileMoreMenu()">⋯</button>
-      <div class="mobile-more-dropdown" id="mobile-more-dropdown">
-        <div class="mobile-more-option" onclick="window.location.href='stats.php';">
-          <div class="mobile-more-icon">📊</div>
-          <div class="mobile-more-label">統計</div>
-        </div>
-        <div class="mobile-more-option" onclick="openProjectSettings(); closeMobileMoreMenu();">
-          <div class="mobile-more-icon">⚙️</div>
-          <div class="mobile-more-label">設定</div>
-        </div>
-        <div class="mobile-more-option" onclick="toggleExportMenu(); closeMobileMoreMenu();">
-          <div class="mobile-more-icon">📥</div>
-          <div class="mobile-more-label">匯出</div>
-        </div>
-        <div class="mobile-more-option" onclick="openChangelog(); closeMobileMoreMenu();">
-          <div class="mobile-more-icon">📋</div>
-          <div class="mobile-more-label">更新</div>
-        </div>
-        <div class="mobile-more-option" onclick="toggleHelp(); closeMobileMoreMenu();">
-          <div class="mobile-more-icon">💡</div>
-          <div class="mobile-more-label">說明</div>
-        </div>
-        <div class="mobile-more-option" onclick="logout();">
-          <div class="mobile-more-icon">🚪</div>
-          <div class="mobile-more-label">登出</div>
-        </div>
-      </div>
-    </div>
-    
+    <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
     <button class="logout-btn" onclick="logout()">登出</button>
   </div>
 </header>
@@ -964,10 +431,7 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
   </aside>
 
-  <!-- 桌面版：看板 + 侧边编辑栏容器 -->
-  <div class="kanban-container">
-    <div class="board-section">
-      <div class="board-wrap">
+  <div class="board-wrap">
     <div class="col col-lib" data-col="lib">
       <div class="col-accent"></div>
       <div class="col-header">
@@ -1020,48 +484,12 @@ $username = $_SESSION['username'] ?? 'User';
       <div style="padding: 0 16px 16px; display:none;" id="clear-done-btn"><button class="clear-done-btn" onclick="clearDone()">清空完成區</button></div>
     </div>
   </div>
-  </div><!-- board-section 结束 -->
-  
-  <!-- 侧边编辑栏（桌面版） -->
-  <div class="editor-sidebar" id="editor-sidebar">
-    <div class="editor-sidebar-header">
-      <div class="editor-sidebar-title">編輯卡片</div>
-      <button class="editor-sidebar-close" onclick="closeSidebar()">✕</button>
-    </div>
-    <div class="editor-sidebar-body" id="editor-sidebar-content">
-      <!-- 编辑内容将通过 JavaScript 动态加载 -->
-    </div>
-  </div>
-  
-  </div><!-- kanban-container 结束 -->
-  
-  <!-- 手機版底部 Tab Bar -->
-  <div class="mobile-tab-bar">
-    <button class="mobile-tab" data-col="lib" onclick="switchMobileTab('lib')">
-      <div class="mobile-tab-icon">📚</div>
-      <div class="mobile-tab-label">策略</div>
-    </button>
-    <button class="mobile-tab" data-col="week" onclick="switchMobileTab('week')">
-      <div class="mobile-tab-icon">📅</div>
-      <div class="mobile-tab-label">本週</div>
-    </button>
-    <button class="mobile-tab active" data-col="focus" onclick="switchMobileTab('focus')">
-      <div class="mobile-tab-icon">🎯</div>
-      <div class="mobile-tab-label">今日</div>
-    </button>
-    <button class="mobile-tab" data-col="done" onclick="switchMobileTab('done')">
-      <div class="mobile-tab-icon">✅</div>
-      <div class="mobile-tab-label">完成</div>
-    </button>
-  </div>
-  
 </div>
 
-<!-- 卡片編輯 Modal（手机版使用） -->
+<!-- 卡片編輯 Modal -->
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
-      <button class="modal-back-btn" onclick="closeModalWithSave()" title="返回並儲存">←</button>
       <div class="modal-title" id="modal-title">新增卡片</div>
     </div>
     <div class="modal-body">
@@ -1072,19 +500,6 @@ $username = $_SESSION['username'] ?? 'User';
       <div class="field">
         <label class="field-label">專案類型 <span class="optional">(選填)</span> <a href="javascript:void(0)" onclick="openProjectSettings(); event.stopPropagation();" style="font-size:11px; color:var(--accent-week); text-decoration:underline; margin-left:8px;">⚙️ 管理專案</a></label>
         <select class="field-select" id="input-project"></select>
-      </div>
-      <div class="field">
-        <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
-        <select class="field-select" id="input-priority">
-          <option value="">-- 未設定 --</option>
-          <option value="urgent_important">🔥 重要且緊急（第一象限）</option>
-          <option value="important_not_urgent">⭐ 重要但不緊急（第二象限）</option>
-          <option value="urgent_not_important">⚡ 緊急但不重要（第三象限）</option>
-          <option value="not_urgent_not_important">💤 不重要不緊急（第四象限）</option>
-        </select>
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
-          💡 第一象限：立即處理 | 第二象限：重點規劃 | 第三象限：授權處理 | 第四象限：盡量避免
-        </div>
       </div>
       <div class="field">
         <label class="field-label">隱私設定</label>
@@ -1191,100 +606,6 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
-<!-- 更新日志弹窗 -->
-<div class="overlay" id="changelog-overlay" onclick="if(event.target === this) closeChangelog()">
-  <div class="modal" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
-    <div class="modal-header">
-      <div class="modal-title">📋 版本更新歷史</div>
-      <button onclick="closeChangelog()" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;">✕</button>
-    </div>
-    <div class="modal-body" style="padding: 20px 24px;">
-      
-      <div class="changelog-version">
-        <h3>v2.5.0 - 側邊編輯欄 <span class="version-date">2026-03-22</span></h3>
-        <ul>
-          <li>✅ 桌面版側邊編輯欄（Notion 風格）</li>
-          <li>✅ 手機版保持全屏編輯</li>
-          <li>✅ ESC 快捷鍵關閉側邊欄</li>
-          <li>✅ 編輯中卡片高亮顯示</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v2.4.0 - 通知系統 <span class="version-date">2026-03-21 晚上</span></h3>
-        <ul>
-          <li>✅ 應用內通知功能</li>
-          <li>✅ 提示音 + 靜音開關</li>
-          <li>✅ 自動輪詢（每30秒）</li>
-          <li>✅ 新增 notifications 資料表</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v2.3.0 - 待辦清單 <span class="version-date">2026-03-21 下午</span></h3>
-        <ul>
-          <li>✅ Google Keep 風格待辦清單</li>
-          <li>✅ 卡片上直接勾選</li>
-          <li>✅ 顯示完成進度</li>
-          <li>✅ cards 表新增 checklist 欄位</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v2.2.0 - 隱私控制 <span class="version-date">2026-03-21 上午</span></h3>
-        <ul>
-          <li>✅ 私人/共用卡片功能</li>
-          <li>✅ 隱私篩選按鈕</li>
-          <li>✅ cards 表新增 is_private 欄位</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v2.1.0 - 多用戶協作 <span class="version-date">2026-03-21 凌晨</span></h3>
-        <ul>
-          <li>✅ 兩個帳號（chienyi + holly）</li>
-          <li>✅ 卡片顯示創建者</li>
-          <li>✅ cards 表新增 created_by 欄位</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v2.0.0 - 雲端數據庫 <span class="version-date">2026-03-21</span></h3>
-        <ul>
-          <li>✅ 從 localStorage 遷移到 MySQL</li>
-          <li>✅ 部署到 Cloudways</li>
-          <li>✅ RESTful API 架構</li>
-          <li>✅ PWA 支援</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v1.5.0 - 富文本編輯器 <span class="version-date">2026-03-20</span></h3>
-        <ul>
-          <li>✅ Quill.js 整合</li>
-          <li>✅ 圖片壓縮到 100KB</li>
-          <li>✅ HTML 格式儲存</li>
-        </ul>
-      </div>
-
-      <div class="changelog-version">
-        <h3>v1.0.0 - 初始版本 <span class="version-date">2026-03-19</span></h3>
-        <ul>
-          <li>✅ 四欄看板布局</li>
-          <li>✅ 卡片編輯功能</li>
-          <li>✅ 本地存儲</li>
-        </ul>
-      </div>
-
-      <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 13px;">
-        <p>🚀 持續更新中...</p>
-        <p style="margin-top: 8px;">下一版本計劃：自動保存 • 快捷鍵切換 • 可拖動分隔線</p>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <!-- Quill ImageResize 模組 -->
 <script src="https://unpkg.com/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
@@ -1293,9 +614,6 @@ $username = $_SESSION['username'] ?? 'User';
 // ==========================================
 // 狀態與基礎設定
 // ==========================================
-// 当前用户信息
-const CURRENT_USERNAME = '<?php echo addslashes($username); ?>';
-
 let state = { lib: [], week: [], focus: [], done: [] };
 let privacyFilter = 'all'; // 隐私筛选：'all', 'shared', 'private'
 let searchQuery = '';
@@ -1315,265 +633,8 @@ const DEFAULT_PROJECTS = {
 let ALL_PROJECTS = { ...DEFAULT_PROJECTS };
 let PROJECT_LABELS = {};
 let currentFilter = null, focusTimer = null, timerSeconds = 0, timerRunning = false;
-let currentFocusLogId = null; // 当前专注记录ID
-let currentFocusCardId = null; // 当前专注的卡片ID
 let quill = null;
 let isDBMode = false; // 追蹤是否成功使用資料庫
-let currentEditingCard = null; // 当前正在编辑的卡片
-
-// ==========================================
-// 侧边编辑栏相关函数
-// ==========================================
-
-// 检测是否为移动设备
-function isMobile() {
-  return window.innerWidth <= 768;
-}
-
-// 打开侧边编辑栏（桌面版）
-function openSidebar(cardId, col) {
-  if (isMobile()) {
-    // 手机版继续使用全屏modal
-    return false;
-  }
-  
-  const card = state[col].find(c => c.id === cardId);
-  if (!card) return false;
-  
-  currentEditingCard = { id: cardId, col: col };
-  
-  // 高亮当前卡片
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('editing'));
-  const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
-  if (cardElement) cardElement.classList.add('editing');
-  
-  // 填充编辑内容
-  const sidebarContent = document.getElementById('editor-sidebar-content');
-  sidebarContent.innerHTML = generateEditForm(card, cardId, col);
-  
-  // 显示侧边栏
-  document.getElementById('editor-sidebar').classList.add('open');
-  
-  // 初始化表单
-  setTimeout(() => {
-    renderChecklistEdit(card.checklist);
-    initSwatches(card.bgcolor || '', card.textcolor || '', 'sidebar');
-    updateWordPreview(card.body || '');
-    
-    // 为侧边栏添加自动保存监听（Notion 方式）
-    enableSidebarAutoSave();
-  }, 50);
-  
-  return true;
-}
-
-// 关闭侧边编辑栏
-async function closeSidebar() {
-  // 关闭前先静默保存
-  await silentSaveSidebar();
-  
-  document.getElementById('editor-sidebar').classList.remove('open');
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('editing'));
-  currentEditingCard = null;
-}
-
-// 启用侧边栏自动保存监听（Notion 方式）
-function enableSidebarAutoSave() {
-  const inputs = ['sidebar-input-title', 'sidebar-input-project', 'sidebar-input-source', 'sidebar-input-summary', 'sidebar-input-nextstep'];
-  
-  inputs.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      // 失焦时立即保存
-      element.addEventListener('blur', () => {
-        silentSaveSidebar();
-      });
-    }
-  });
-  
-  // select 选择后立即保存
-  const projectSelect = document.getElementById('sidebar-input-project');
-  if (projectSelect) {
-    projectSelect.addEventListener('change', () => {
-      silentSaveSidebar();
-    });
-  }
-  
-  // 隐私选项改变时立即保存
-  const privacyInputs = document.querySelectorAll('input[name="sidebar-privacy"]');
-  privacyInputs.forEach(input => {
-    input.addEventListener('change', () => {
-      silentSaveSidebar();
-    });
-  });
-}
-
-// 侧边栏静默保存
-async function silentSaveSidebar() {
-  if (!currentEditingCard) return;
-  
-  const title = document.getElementById('sidebar-input-title')?.value.trim();
-  if (!title) return;
-  
-  try {
-    const isPrivate = document.getElementById('sidebar-privacy-private')?.checked ? 1 : 0;
-    const checklist = getChecklistData();
-    
-    const data = {
-      id: currentEditingCard.id,
-      col: currentEditingCard.col,
-      title: title,
-      project: document.getElementById('sidebar-input-project')?.value || '',
-      sourceLink: document.getElementById('sidebar-input-source')?.value.trim() || '',
-      summary: document.getElementById('sidebar-input-summary')?.value.trim() || '',
-      nextStep: document.getElementById('sidebar-input-nextstep')?.value.trim() || '',
-      body: document.getElementById('sidebar-input-body')?.value.trim() || '',
-      bgcolor: document.getElementById('sidebar-input-bgcolor')?.value || '',
-      textcolor: document.getElementById('sidebar-input-textcolor')?.value || '',
-      isPrivate: isPrivate,
-      checklist: checklist
-    };
-    
-    const result = await apiJson('api/cards.php?action=save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    
-    if (result.success) {
-      await loadCards();
-    }
-  } catch (err) {
-    if (isSessionExpiredError(err)) return;
-    console.log('侧边栏自动保存失败:', err);
-  }
-}
-
-// 生成编辑表单HTML
-function generateEditForm(card, cardId, col) {
-  return `
-    <div class="field">
-      <label class="field-label">標題 *</label>
-      <input type="text" class="field-input" id="sidebar-input-title" value="${escHtml(card.title)}" placeholder="輸入任務標題...">
-    </div>
-    <div class="field">
-      <label class="field-label">專案類型 <span class="optional">(選填)</span></label>
-      <select class="field-select" id="sidebar-input-project">
-        ${Object.keys(ALL_PROJECTS).map(key => `<option value="${key}" ${card.project === key ? 'selected' : ''}>${PROJECT_LABELS[key] || key}</option>`).join('')}
-      </select>
-    </div>
-    <div class="field">
-      <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
-      <select class="field-select" id="sidebar-input-priority">
-        <option value="">-- 未設定 --</option>
-        <option value="urgent_important" ${card.priority === 'urgent_important' ? 'selected' : ''}>🔥 重要且緊急</option>
-        <option value="important_not_urgent" ${card.priority === 'important_not_urgent' ? 'selected' : ''}>⭐ 重要但不緊急</option>
-        <option value="urgent_not_important" ${card.priority === 'urgent_not_important' ? 'selected' : ''}>⚡ 緊急但不重要</option>
-        <option value="not_urgent_not_important" ${card.priority === 'not_urgent_not_important' ? 'selected' : ''}>💤 不重要不緊急</option>
-      </select>
-    </div>
-    <div class="field">
-      <label class="field-label">隱私設定</label>
-      <div style="display: flex; gap: 12px; margin-top: 8px;">
-        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-          <input type="radio" name="sidebar-privacy" id="sidebar-privacy-shared" value="0" ${!card.isPrivate ? 'checked' : ''} style="cursor: pointer;">
-          <span style="font-size: 14px;">👥 共用</span>
-        </label>
-        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-          <input type="radio" name="sidebar-privacy" id="sidebar-privacy-private" value="1" ${card.isPrivate ? 'checked' : ''} style="cursor: pointer;">
-          <span style="font-size: 14px;">🔒 私人</span>
-        </label>
-      </div>
-    </div>
-    <div class="field">
-      <label class="field-label">來源連結 <span class="optional">(選填)</span></label>
-      <input type="url" class="field-input" id="sidebar-input-source" value="${escHtml(card.sourceLink || '')}" placeholder="https://...">
-    </div>
-    <div class="field">
-      <label class="field-label">一句摘要 <span class="optional">(選填)</span></label>
-      <input type="text" class="field-input" id="sidebar-input-summary" value="${escHtml(card.summary || '')}" placeholder="用一句話說明這張卡的重點...">
-    </div>
-    <div class="field">
-      <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
-      <textarea class="field-textarea" id="sidebar-input-nextstep" placeholder="明確的行動指令">${escHtml(card.nextStep || '')}</textarea>
-    </div>
-    <div class="field">
-      <label class="field-label">✓ 待辦清單 <span class="optional">(選填)</span></label>
-      <div class="checklist-container" id="checklist-container"></div>
-      <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
-    </div>
-    <div class="field">
-      <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟編輯器)</span></label>
-      <div class="word-preview" id="sidebar-word-preview" onclick="openFullscreenEditor()">
-        <span class="empty">點擊此處使用 Word 編輯器撰寫...</span>
-      </div>
-      <input type="hidden" id="sidebar-input-body" value="${escHtml(card.body || '')}">
-    </div>
-    <div class="color-section">
-      <label class="color-label">背景顏色</label>
-      <div class="swatches" id="sidebar-bg-swatches"></div>
-    </div>
-    <div class="color-section">
-      <label class="color-label">文字顏色</label>
-      <div class="swatches" id="sidebar-text-swatches"></div>
-    </div>
-    <input type="hidden" id="sidebar-input-bgcolor" value="${card.bgcolor || ''}">
-    <input type="hidden" id="sidebar-input-textcolor" value="${card.textcolor || ''}">
-    <input type="hidden" id="sidebar-input-col" value="${col}">
-    <input type="hidden" id="sidebar-input-edit-id" value="${cardId}">
-    
-    <div style="display: flex; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
-      <button class="modal-btn primary" onclick="saveSidebarCard()" style="flex: 1;">儲存</button>
-      <button class="modal-btn secondary" onclick="closeSidebar()">取消</button>
-    </div>
-  `;
-}
-
-// 更新Word预览
-function updateWordPreview(content) {
-  const preview = document.getElementById('sidebar-word-preview');
-  if (!preview) return;
-  
-  if (content && content.trim()) {
-    preview.innerHTML = content;
-    preview.classList.remove('empty');
-  } else {
-    preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
-    preview.classList.add('empty');
-  }
-}
-
-// 保存侧边栏卡片
-async function saveSidebarCard() {
-  const title = document.getElementById('sidebar-input-title').value.trim();
-  if (!title) {
-    document.getElementById('sidebar-input-title').focus();
-    return;
-  }
-  
-  const isPrivate = document.getElementById('sidebar-privacy-private').checked ? 1 : 0;
-  const checklist = getChecklistData();
-  const priority = document.getElementById('sidebar-input-priority')?.value || null; // 获取优先级
-  
-  const data = {
-    id: document.getElementById('sidebar-input-edit-id').value,
-    col: document.getElementById('sidebar-input-col').value,
-    title: title,
-    project: document.getElementById('sidebar-input-project').value,
-    priority: priority, // 添加优先级
-    sourceLink: document.getElementById('sidebar-input-source').value.trim(),
-    summary: document.getElementById('sidebar-input-summary').value.trim(),
-    nextStep: document.getElementById('sidebar-input-nextstep').value.trim(),
-    body: document.getElementById('sidebar-input-body').value.trim(),
-    bgcolor: document.getElementById('sidebar-input-bgcolor').value,
-    textcolor: document.getElementById('sidebar-input-textcolor').value,
-    isPrivate: isPrivate,
-    checklist: checklist
-  };
-  
-  await saveCardToAPI(data);
-  closeSidebar();
-}
 
 // ==========================================
 // 專案管理（資料庫優先，localStorage 容錯）
@@ -1880,32 +941,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderProjectSelect();
   injectProjectStyles();
   loadCards();
-  
-  // 初始化手機版 Tab（預設顯示「今日專注」）
-  initMobileTabs();
-  
-  // 窗口大小改變時重新初始化
-  window.addEventListener('resize', () => {
-    if (window.innerWidth <= 768) {
-      initMobileTabs();
-    } else {
-      // 桌面版：移除所有 active class（讓 CSS 正常工作）
-      document.querySelectorAll('.col').forEach(col => {
-        col.classList.remove('active');
-      });
-    }
-  });
 });
 
 // ==========================================
 // Quill 全螢幕編輯器
 // ==========================================
 function openFullscreenEditor() {
-  // 检测是在侧边栏还是modal中
-  const sidebarOpen = document.getElementById('editor-sidebar').classList.contains('open');
-  const inputId = sidebarOpen ? 'sidebar-input-body' : 'input-body';
-  
-  const content = document.getElementById(inputId).value;
+  const content = document.getElementById('input-body').value;
   quill.root.innerHTML = content || '';
   document.getElementById('fullscreen-editor').classList.add('open');
   quill.focus();
@@ -1917,16 +959,10 @@ function closeFullscreenEditor() {
 
 function saveFullscreenContent() {
   const html = quill.root.innerHTML;
-  
-  // 检测是在侧边栏还是modal中
-  const sidebarOpen = document.getElementById('editor-sidebar').classList.contains('open');
-  const inputId = sidebarOpen ? 'sidebar-input-body' : 'input-body';
-  const previewId = sidebarOpen ? 'sidebar-word-preview' : 'word-preview';
-  
-  document.getElementById(inputId).value = html;
+  document.getElementById('input-body').value = html;
   
   // 更新預覽
-  const preview = document.getElementById(previewId);
+  const preview = document.getElementById('word-preview');
   if (html && html.trim() && html !== '<p><br></p>') {
     preview.innerHTML = html;
     preview.classList.remove('empty');
@@ -1955,17 +991,6 @@ function closeProjectSettings() {
   renderProjectSelect();
   injectProjectStyles();
   render();
-}
-
-// ==========================================
-// 更新日志功能
-// ==========================================
-function openChangelog() {
-  document.getElementById('changelog-overlay').classList.add('open');
-}
-
-function closeChangelog() {
-  document.getElementById('changelog-overlay').classList.remove('open');
 }
 
 function handleProjectSettingsClick(e) {
@@ -2166,115 +1191,34 @@ function injectProjectStyles() {
   styleEl.textContent = styles;
 }
 
-function redirectToLogin(message = '登入已過期，請重新登入') {
-  toast(message);
-  setTimeout(() => {
-    window.location.href = 'login.php';
-  }, 800);
-}
-
-function isSessionExpiredError(err) {
-  return err && err.message === 'SESSION_EXPIRED';
-}
-
-async function fetchWithSession(url, options = {}) {
-  const headers = {
-    'X-Requested-With': 'XMLHttpRequest',
-    ...(options.headers || {})
-  };
-
-  const response = await fetch(url, {
-    credentials: 'include',
-    redirect: 'follow',
-    ...options,
-    headers
-  });
-
-  const finalUrl = response.url || '';
-  const contentType = (response.headers.get('content-type') || '').toLowerCase();
-
-  if (finalUrl.includes('login.php')) {
-    redirectToLogin();
-    throw new Error('SESSION_EXPIRED');
-  }
-
-  if (url.includes('api/') && !contentType.includes('application/json')) {
-    const rawText = await response.text();
-
-    if (
-      rawText.includes('登入已過期') ||
-      rawText.includes('login.php') ||
-      rawText.includes('<!DOCTYPE html') ||
-      rawText.includes('<html')
-    ) {
-      redirectToLogin();
-      throw new Error('SESSION_EXPIRED');
-    }
-
-    throw new Error('INVALID_API_RESPONSE');
-  }
-
-  return response;
-}
-
-async function apiJson(url, options = {}) {
-  const response = await fetchWithSession(url, options);
-  const data = await response.json();
-
-  if (data && data.error === '登入已過期，請重新登入') {
-    redirectToLogin(data.error);
-    throw new Error('SESSION_EXPIRED');
-  }
-
-  return data;
-}
-
 // ==========================================
 // API 連線層
 // ==========================================
 async function loadCards() {
   try {
-    const data = await apiJson('api/cards.php?action=list');
-    if (data.error) {
-      toast(data.error);
-      return;
-    }
-
-    state = {
-      lib: data.lib || [],
-      week: data.week || [],
-      focus: data.focus || [],
-      done: data.done || []
-    };
+    const res = await fetch('api/cards.php?action=list');
+    const data = await res.json();
+    if (data.error) { toast(data.error); return; }
+    state = { lib: data.lib || [], week: data.week || [], focus: data.focus || [], done: data.done || [] };
     
     // ⭐ 重要：在渲染前更新專案標籤
     updateProjectLabels();
     
     render();
-  } catch (err) {
-    if (isSessionExpiredError(err)) return;
-    toast('連線異常，無法讀取卡片');
-  }
+  } catch (err) { toast('連線異常，無法讀取卡片'); }
 }
 
 async function saveCardToAPI(cardData) {
   try {
-    const data = await apiJson('api/cards.php?action=save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cardData)
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cardData)
     });
+    const data = await res.json();
     if (data.success) {
       toast(cardData.id ? '✅ 卡片更新成功' : '✅ 卡片新增成功');
-      await loadCards();
-      closeModal();
-    } else {
-      toast('❌ ' + (data.error || '儲存失敗'));
-    }
-  } catch (err) {
-    if (isSessionExpiredError(err)) return;
-    toast('❌ 連線錯誤，儲存失敗');
-  }
+      await loadCards(); closeModal();
+    } else toast('❌ ' + (data.error || '儲存失敗'));
+  } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
 }
 
 async function moveAPI(id, toCol) {
@@ -2294,21 +1238,7 @@ async function moveAPI(id, toCol) {
 }
 
 async function deleteAPI(id) {
-  // 查找卡片信息
-  let card = null;
-  for (const col of ['lib', 'week', 'focus', 'done']) {
-    card = state[col].find(c => c.id === id);
-    if (card) break;
-  }
-  
-  // 检查是否是自己创建的卡片
-  let confirmMessage = '確定要刪除這張卡片嗎？此動作無法復原。';
-  if (card && card.createdByUsername && card.createdByUsername !== CURRENT_USERNAME) {
-    confirmMessage = `⚠️ 注意：這張卡片是 ${card.createdByUsername} 創建的！\n\n確定要刪除嗎？此動作無法復原。`;
-  }
-  
-  if (!confirm(confirmMessage)) return;
-  
+  if (!confirm('確定要刪除這張卡片嗎？此動作無法復原。')) return;
   try {
     const res = await fetch(`api/cards.php?action=delete&id=${id}`, { method: 'GET' });
     const data = await res.json();
@@ -2393,41 +1323,6 @@ function renderFilterTags() {
   });
 }
 
-// 手機版 Tab 切換功能
-function switchMobileTab(colName) {
-  // 移除所有 active 狀態
-  document.querySelectorAll('.mobile-tab').forEach(tab => {
-    tab.classList.remove('active');
-  });
-  document.querySelectorAll('.col').forEach(col => {
-    col.classList.remove('active');
-  });
-  
-  // 添加選中的 active 狀態
-  const selectedTab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
-  const selectedCol = document.querySelector(`.col[data-col="${colName}"]`);
-  
-  if (selectedTab) selectedTab.classList.add('active');
-  if (selectedCol) selectedCol.classList.add('active');
-  
-  // 滾動到頂部
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// 頁面載入時初始化手機版 Tab（預設顯示「今日專注」）
-function initMobileTabs() {
-  if (window.innerWidth <= 768) {
-    // 先隱藏所有欄位
-    document.querySelectorAll('.col').forEach(col => {
-      col.classList.remove('active');
-    });
-    
-    // 顯示「今日專注」
-    const focusCol = document.querySelector('.col[data-col="focus"]');
-    if (focusCol) focusCol.classList.add('active');
-  }
-}
-
 function buildCard(card, col) {
   const div = document.createElement('div');
   div.className = 'card'; div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
@@ -2435,34 +1330,9 @@ function buildCard(card, col) {
 
   const hasBody = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
-  if (card.project || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt) || card.priority || card.postponedCount) {
+  if (card.project || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
     metaHTML = '<div class="card-meta">';
     if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
-    
-    // 优先级标记（四象限）
-    if (card.priority) {
-      const priorityLabels = {
-        'urgent_important': '🔥 重要緊急',
-        'important_not_urgent': '⭐ 重要不緊急',
-        'urgent_not_important': '⚡ 緊急不重要',
-        'not_urgent_not_important': '💤 不重要不緊急'
-      };
-      const priorityColors = {
-        'urgent_important': '#FF4444',
-        'important_not_urgent': '#FF9800',
-        'urgent_not_important': '#2196F3',
-        'not_urgent_not_important': '#9E9E9E'
-      };
-      const label = priorityLabels[card.priority] || card.priority;
-      const color = priorityColors[card.priority] || '#666';
-      metaHTML += `<span class="priority-tag" style="background: ${color}20; color: ${color}; border: 1px solid ${color}40;">${label}</span>`;
-    }
-    
-    // 延期次数
-    if (card.postponedCount && card.postponedCount > 0) {
-      metaHTML += `<span class="postponed-tag">🔄 已延期 ${card.postponedCount}次</span>`;
-    }
-    
     if (card.createdByUsername) metaHTML += `<span class="created-by">by ${card.createdByUsername}</span>`;
     // 只在私人卡片显示标记
     if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒 私人</span>`;
@@ -2500,7 +1370,7 @@ function buildCard(card, col) {
     if (col === 'lib' && state.week.length < 3) actsHTML += `<button class="act-btn postpone" onclick="moveAPI(${card.id},'week');event.stopPropagation()">→ 本週目標</button>`;
     if (col !== 'focus' && state.focus.length < 1) actsHTML += `<button class="act-btn focus" onclick="moveAPI(${card.id},'focus');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') actsHTML += `<button class="act-btn back" onclick="moveAPI(${card.id},'lib');event.stopPropagation()">↩ 退回策略庫</button>`;
-    if (col === 'week') actsHTML += `<button class="act-btn postpone" onclick="postponeCard(${card.id},'${col}');event.stopPropagation()">⏭ 延到下週</button>`;
+    if (col === 'week') actsHTML += `<button class="act-btn postpone" onclick="postponeCard();event.stopPropagation()">⏭ 延到下週</button>`;
     actsHTML += `<button class="act-btn done" onclick="moveAPI(${card.id},'done');event.stopPropagation()">✓ 完成</button> <button class="act-btn" onclick="editCard(${card.id},'${col}');event.stopPropagation()">編輯</button> <button class="act-btn del" onclick="deleteAPI(${card.id});event.stopPropagation()">刪除</button></div>`;
   } else {
     actsHTML += `<button class="act-btn del" onclick="deleteAPI(${card.id});event.stopPropagation()">移除</button></div>`;
@@ -2545,35 +1415,7 @@ function handleDrop(e) {
   if (draggedCard.fromCol !== toCol) moveAPI(draggedCard.id, toCol);
   this.closest('.col').classList.remove('drag-over'); draggedCard = null;
 }
-async function postponeCard(id, currentCol) { 
-  if (currentCol !== 'week') {
-    toast('只有本週目標可以延期');
-    return;
-  }
-  
-  // 检查本周目标数量
-  if (state.week.length <= 3) {
-    if (!confirm('本週目標只有 ' + state.week.length + ' 個，確定要延期嗎？')) return;
-  }
-  
-  try {
-    // 移动到策略库并增加延期次数
-    const res = await fetch('api/cards.php?action=postpone', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: id })
-    });
-    const data = await res.json();
-    if (data.success) { 
-      toast('⏭ 已延到下週（移回策略庫）'); 
-      await loadCards(); 
-    } else {
-      toast('❌ ' + (data.error || '延期失敗'));
-    }
-  } catch (err) { 
-    toast('連線錯誤'); 
-  }
-}
+function postponeCard() { toast('⏭ 已標記延到下週'); }
 async function clearDone() {
   if (!confirm('確定永久清空已完成區塊嗎？')) return;
   toast('清空中...'); for (const c of state.done) await fetch(`api/cards.php?action=delete&id=${c.id}`);
@@ -2601,12 +1443,6 @@ function openModal(col) {
 }
 
 function editCard(id, col) {
-  // 桌面版使用侧边编辑栏
-  if (openSidebar(id, col)) {
-    return; // 成功打开侧边栏，结束函数
-  }
-  
-  // 手机版或侧边栏打开失败，使用全屏modal
   const card = state[col].find(c => c.id === id); if (!card) return;
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
   document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || '';
@@ -2631,149 +1467,21 @@ function editCard(id, col) {
   }
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
-  document.getElementById('overlay').classList.add('open'); 
-  
-  // 启用自动保存（手机版编辑时）
-  enableAutoSave();
-  
-  setTimeout(() => document.getElementById('input-title').focus(), 60);
+  document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
 async function saveCard() {
   const t = document.getElementById('input-title').value.trim(); if (!t) { document.getElementById('input-title').focus(); return; }
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
   const checklist = getChecklistData(); // 获取待办清单数据
-  const priority = document.getElementById('input-priority')?.value || null; // 获取优先级
-  const data = { 
-    col: document.getElementById('input-col').value, 
-    title: t, 
-    project: document.getElementById('input-project').value, 
-    priority: priority, // 添加优先级
-    sourceLink: document.getElementById('input-source').value.trim(), 
-    summary: document.getElementById('input-summary').value.trim(), 
-    nextStep: document.getElementById('input-nextstep').value.trim(), 
-    body: document.getElementById('input-body').value.trim(), 
-    bgcolor: document.getElementById('input-bgcolor').value, 
-    textcolor: document.getElementById('input-textcolor').value, 
-    isPrivate: isPrivate, 
-    checklist: checklist 
-  };
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: document.getElementById('input-body').value.trim(), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
   btn.disabled = false; btn.textContent = '儲存';
 }
 
-// 自动保存相关
-let autoSaveTimer = null;
-let autoSaveEnabled = false;
-let currentEditingCardId = null;
-
-// 启用自动保存监听（Notion 方式）
-function enableAutoSave() {
-  if (autoSaveEnabled) return;
-  autoSaveEnabled = true;
-  
-  // 保存当前编辑的卡片 ID
-  currentEditingCardId = document.getElementById('input-edit-id').value;
-  
-  // 监听所有输入字段的失焦事件（立即保存）
-  const inputs = ['input-title', 'input-project', 'input-source', 'input-summary', 'input-nextstep'];
-  inputs.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      // 失焦时立即保存
-      element.addEventListener('blur', () => {
-        silentAutoSave();
-      });
-      
-      // 输入时 3 秒防抖保存（备份机制）
-      element.addEventListener('input', triggerAutoSave);
-    }
-  });
-  
-  // 特殊处理：select 选择后立即保存
-  const projectSelect = document.getElementById('input-project');
-  if (projectSelect) {
-    projectSelect.addEventListener('change', () => {
-      silentAutoSave();
-    });
-  }
-  
-  // 隐私选项改变时立即保存
-  const privacyInputs = document.querySelectorAll('input[name="privacy"]');
-  privacyInputs.forEach(input => {
-    input.addEventListener('change', () => {
-      silentAutoSave();
-    });
-  });
-}
-
-// 触发自动保存（3秒延迟 - 备份机制）
-function triggerAutoSave() {
-  if (autoSaveTimer) clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => {
-    silentAutoSave();
-  }, 3000);
-}
-
-// 静默自动保存（不显示提示）
-async function silentAutoSave() {
-  const editId = document.getElementById('input-edit-id').value;
-  if (!editId) return; // 如果是新增卡片，不自动保存
-  
-  const title = document.getElementById('input-title').value.trim();
-  if (!title) return; // 标题为空，不保存
-  
-  try {
-    const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
-    const checklist = getChecklistData();
-    
-    const data = {
-      id: editId,
-      col: document.getElementById('input-col').value,
-      title: title,
-      project: document.getElementById('input-project').value,
-      sourceLink: document.getElementById('input-source').value.trim(),
-      summary: document.getElementById('input-summary').value.trim(),
-      nextStep: document.getElementById('input-nextstep').value.trim(),
-      body: document.getElementById('input-body').value.trim(),
-      bgcolor: document.getElementById('input-bgcolor').value,
-      textcolor: document.getElementById('input-textcolor').value,
-      isPrivate: isPrivate,
-      checklist: checklist
-    };
-    
-    const result = await apiJson('api/cards.php?action=save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    
-    if (result.success) {
-      await loadCards();
-    }
-  } catch (err) {
-    if (isSessionExpiredError(err)) return;
-    console.log('自动保存失败:', err);
-  }
-}
-
-// 关闭modal并保存（手机版返回按钮）
-async function closeModalWithSave() {
-  const editId = document.getElementById('input-edit-id').value;
-  
-  if (editId) {
-    // 编辑模式：静默保存后关闭
-    await silentAutoSave();
-    closeModal();
-  } else {
-    // 新增模式：直接关闭
-    closeModal();
-  }
-}
-
-function closeModal() { document.getElementById('overlay').classList.remove('open'); autoSaveEnabled = false; if (autoSaveTimer) clearTimeout(autoSaveTimer); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
 document.addEventListener('keydown', e => { 
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
@@ -2789,141 +1497,26 @@ function setPrivacyFilter(filter) {
   render();
 }
 
-function toggleHelp() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleHelp() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('help-btn').classList.toggle('active'); }
 function toggleExportMenu() { document.getElementById('export-dropdown').classList.toggle('open'); }
-function toggleHelpMenu() { document.getElementById('help-dropdown').classList.toggle('open'); }
-
-// 手機版「更多」菜單控制
-function toggleMobileMoreMenu() {
-  const dropdown = document.getElementById('mobile-more-dropdown');
-  dropdown.classList.toggle('show');
-}
-
-function closeMobileMoreMenu() {
-  const dropdown = document.getElementById('mobile-more-dropdown');
-  dropdown.classList.remove('show');
-}
-
-// 點擊外部關閉「更多」菜單
-document.addEventListener('click', function(e) {
-  const moreMenu = document.querySelector('.mobile-more-menu');
-  const dropdown = document.getElementById('mobile-more-dropdown');
-  if (moreMenu && dropdown && !moreMenu.contains(e.target)) {
-    dropdown.classList.remove('show');
-  }
-});
 document.addEventListener('click', e => { if (!e.target.closest('.export-btn') && !e.target.closest('.export-dropdown')) document.getElementById('export-dropdown').classList.remove('open'); });
-document.addEventListener('click', e => { if (!e.target.closest('.help-toggle') && !e.target.closest('.help-dropdown')) document.getElementById('help-dropdown').classList.remove('open'); });
 
 // 色票
 const BG_COLORS = [{val:'',label:'預設'},{val:'#FFFFFF',label:'白'},{val:'#FFF9C4',label:'黃'},{val:'#FAECE7',label:'橘'},{val:'#EEEDFE',label:'紫'},{val:'#E1F5EE',label:'綠'},{val:'#E6F1FB',label:'藍'},{val:'#FBEAF0',label:'粉'},{val:'#EFEDE8',label:'米'},{val:'#2C2C2A',label:'黑'}];
 const TEXT_COLORS = [{val:'',label:'預設'},{val:'#1A1A18',label:'黑'},{val:'#FFFFFF',label:'白'},{val:'#534AB7',label:'紫'},{val:'#D85A30',label:'橘'},{val:'#1D9E75',label:'綠'},{val:'#185FA5',label:'藍'},{val:'#993556',label:'粉'},{val:'#BA7517',label:'金'},{val:'#E24B4A',label:'紅'}];
-function initSwatches(curBg, curText, prefix = '') {
-  const bgElId = prefix ? `${prefix}-bg-swatches` : 'bg-swatches';
-  const textElId = prefix ? `${prefix}-text-swatches` : 'text-swatches';
-  const bgInputId = prefix ? `${prefix}-input-bgcolor` : 'input-bgcolor';
-  const textInputId = prefix ? `${prefix}-input-textcolor` : 'input-textcolor';
-  
-  const bgEl = document.getElementById(bgElId);
-  const textEl = document.getElementById(textElId);
-  
-  if (!bgEl || !textEl) return; // 如果元素不存在，直接返回
-  
-  bgEl.innerHTML = ''; textEl.innerHTML = '';
-  BG_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curBg?' selected':''); s.title=label; s.style.background=val||'#F5F3EE'; if(!val) s.style.border='2px dashed #ccc'; s.onclick=()=>{ bgEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById(bgInputId).value=val; }; bgEl.appendChild(s); });
-  TEXT_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curText?' selected':''); s.title=label; s.style.background=val||'#1A1A18'; if(!val){ s.style.background='linear-gradient(135deg, #fff 50%, #333 50%)'; s.style.border='2px dashed #ccc'; } s.onclick=()=>{ textEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById(textInputId).value=val; }; textEl.appendChild(s); });
+function initSwatches(curBg, curText) {
+  const bgEl = document.getElementById('bg-swatches'), textEl = document.getElementById('text-swatches'); bgEl.innerHTML = ''; textEl.innerHTML = '';
+  BG_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curBg?' selected':''); s.title=label; s.style.background=val||'#F5F3EE'; if(!val) s.style.border='2px dashed #ccc'; s.onclick=()=>{ bgEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById('input-bgcolor').value=val; }; bgEl.appendChild(s); });
+  TEXT_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curText?' selected':''); s.title=label; s.style.background=val||'#1A1A18'; if(!val){ s.style.background='linear-gradient(135deg, #fff 50%, #333 50%)'; s.style.border='2px dashed #ccc'; } s.onclick=()=>{ textEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById('input-textcolor').value=val; }; textEl.appendChild(s); });
 }
 
 // ==========================================
 // 專注計時與匯出
 // ==========================================
 function toggleTimer(id) { timerRunning ? pauseTimer(id) : startTimer(id); }
-
-async function startTimer(id) { 
-  timerRunning = true; 
-  currentFocusCardId = id;
-  document.getElementById(`timer-btn-${id}`).textContent = '暫停'; 
-  
-  // 添加閃爍效果到今日專注區
-  const focusCol = document.querySelector('.col-focus');
-  if (focusCol) focusCol.classList.add('timer-active');
-  
-  // 保存开始时间到数据库
-  const card = state.focus.find(c => c.id === id);
-  if (card && !currentFocusLogId) {
-    try {
-      const res = await fetch('api/focus-logs.php?action=start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          card_id: id,
-          task_title: card.title,
-          task_project: card.project || ''
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentFocusLogId = data.log_id;
-      }
-    } catch (err) {
-      console.error('保存专注记录失败:', err);
-    }
-  }
-  
-  focusTimer = setInterval(() => { timerSeconds++; updateTimerDisplay(id); }, 1000); 
-}
-
-async function pauseTimer(id) { 
-  timerRunning = false; 
-  document.getElementById(`timer-btn-${id}`).textContent = '繼續'; 
-  clearInterval(focusTimer); 
-  
-  // 移除閃爍效果
-  const focusCol = document.querySelector('.col-focus');
-  if (focusCol) focusCol.classList.remove('timer-active');
-  
-  // 暂停时保存时长
-  if (currentFocusLogId && timerSeconds > 0) {
-    await saveTimerDuration();
-  }
-}
-
-async function resetTimer(id) { 
-  timerRunning = false; 
-  timerSeconds = 0; 
-  clearInterval(focusTimer); 
-  updateTimerDisplay(id); 
-  document.getElementById(`timer-btn-${id}`).textContent = '開始專注'; 
-  
-  // 移除閃爍效果
-  const focusCol = document.querySelector('.col-focus');
-  if (focusCol) focusCol.classList.remove('timer-active');
-  
-  // 重置时保存并清除记录ID
-  if (currentFocusLogId) {
-    await saveTimerDuration();
-    currentFocusLogId = null;
-    currentFocusCardId = null;
-  }
-}
-
-async function saveTimerDuration() {
-  if (!currentFocusLogId || timerSeconds === 0) return;
-  
-  try {
-    await fetch('api/focus-logs.php?action=stop', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        log_id: currentFocusLogId,
-        duration_seconds: timerSeconds
-      })
-    });
-  } catch (err) {
-    console.error('保存时长失败:', err);
-  }
-}
-
+function startTimer(id) { timerRunning = true; document.getElementById(`timer-btn-${id}`).textContent = '暫停'; focusTimer = setInterval(() => { timerSeconds++; updateTimerDisplay(id); }, 1000); }
+function pauseTimer(id) { timerRunning = false; document.getElementById(`timer-btn-${id}`).textContent = '繼續'; clearInterval(focusTimer); }
+function resetTimer(id) { timerRunning = false; timerSeconds = 0; clearInterval(focusTimer); updateTimerDisplay(id); document.getElementById(`timer-btn-${id}`).textContent = '開始專注'; }
 function updateTimerDisplay(id) { const el = document.getElementById(`timer-display-${id}`); if(el) el.textContent = String(Math.floor(timerSeconds/3600)).padStart(2,'0')+':'+String(Math.floor((timerSeconds%3600)/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0'); }
 
 function exportToExcel() {
@@ -3244,17 +1837,6 @@ function formatNotificationTime(dateString) {
 // 页面加载时初始化通知
 document.addEventListener('DOMContentLoaded', function() {
   initNotifications();
-});
-
-// ESC键关闭侧边编辑栏
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' || e.keyCode === 27) {
-    const sidebar = document.getElementById('editor-sidebar');
-    if (sidebar && sidebar.classList.contains('open')) {
-      closeSidebar();
-      e.preventDefault();
-    }
-  }
 });
 
 </script>
