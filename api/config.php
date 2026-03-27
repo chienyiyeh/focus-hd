@@ -159,9 +159,10 @@ function cleanInput($data) {
 // ============================================
 
 if (session_status() === PHP_SESSION_NONE) {
-    $isHttps = (
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+   $isHttps = (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
     );
 
     ini_set('session.use_strict_mode', '1');
