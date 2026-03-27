@@ -320,4 +320,6 @@ if (APP_DEBUG && isset($_GET['session_debug']) && $_GET['session_debug'] === '1'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     exit;
 }
+    // 把萬能板手還給舊系統
+$pdo = getDB();
 ?>
