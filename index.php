@@ -37,72 +37,58 @@ $username = $_SESSION['username'] ?? 'User';
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* =========================================
-       UI v2: Notion-like Theme Variables
-       ========================================= */
-    --bg-main: #fcfcfc;
-    --bg-card: #ffffff;
-    --border-light: #eaeaea;
-    --text-main: #333333;
-    --text-muted: #888888;
-
-    --accent-strategy: #e3f2fd;
-    --accent-weekly: #f3e5f5;
-    --accent-today: #ff9800;
-    --accent-done: #e8f5e9;
-
-    --radius-soft: 8px;
-    --radius-card: 6px;
-    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-    /* Backward-compatible aliases */
-    --bg: var(--bg-main);
-    --surface: var(--bg-card);
-    --surface2: #f5f5f5;
-    --border: var(--border-light);
-    --border-strong: #dddddd;
-    --text: var(--text-main);
-    --text-secondary: #666666;
-
+    --bg: #F8F8F6;
+    --surface: #FFFFFF;
+    --surface2: #F3F3F1;
+    --border: rgba(0,0,0,0.06);
+    --border-strong: rgba(0,0,0,0.10);
+    --text: #2A2A28;
+    --text-secondary: #737371;
+    --text-muted: #A8A8A5;
+    
+    /* 策略筆記 - 淡藍色系 */
     --accent-lib: #7BA5D6;
-    --accent-lib-bg: var(--accent-strategy);
+    --accent-lib-bg: #EFF5FB;
     --accent-lib-text: #3A5A7A;
-
+    
+    /* 本週目標 - 淡紫色系 */
     --accent-week: #9B8FD9;
-    --accent-week-bg: var(--accent-weekly);
+    --accent-week-bg: #F3F1FC;
     --accent-week-text: #524A8C;
-
+    
+    /* 今日專注 - 醒目橙色系（不變淡！） */
     --accent-focus: #E8763E;
     --accent-focus-bg: #FFF3ED;
     --accent-focus-text: #B85828;
-
-    --accent-done-bg: var(--accent-done);
+    
+    /* 已完成 - 淡綠色系 */
+    --accent-done: #8FBC8F;
+    --accent-done-bg: #F2F8F2;
     --accent-done-text: #4A6B4A;
-
-    --radius: var(--radius-soft);
+    
+    --radius: 10px;
     --radius-lg: 14px;
   }
 
-  body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
 
-  .ui-v2-header { background: var(--bg-card); border-bottom: 1px solid var(--border-light); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; gap: 16px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 12px; }
   .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
   .logo span { color: var(--accent-focus); }
   
   .header-center { display: flex; gap: 12px; align-items: center; flex: 1; justify-content: center; min-width: 0; }
-  .search-input { width: 100%; padding: 6px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-soft); font-size: 13px; font-family: inherit; color: var(--text-main); background: var(--bg-main); }
+  .search-box { position: relative; max-width: 300px; width: 100%; flex-shrink: 1; }
+  .search-input { width: 100%; padding: 6px 12px 6px 32px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface); }
   .search-input:focus { outline: none; border-color: var(--accent-week); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
   
-  .filter-tags { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; max-width: 100%; align-items: center; }
-  .filter-tags::-webkit-scrollbar { display: none; }
-  .filter-tag { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all 0.12s; white-space: nowrap; flex-shrink: 0; }
-  .filter-tag.custom { opacity: 0.88; }
-  .filter-divider { width: 1px; height: 18px; background: var(--border-strong); margin: 0 2px; flex-shrink: 0; }
+  .filter-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-tag { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all 0.12s; white-space: nowrap; }
   .filter-tag:hover { background: var(--surface2); }
   .filter-tag.active { background: var(--accent-week); color: white; border-color: var(--accent-week); }
 
-  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
-  .user-info { font-size: 12px; color: var(--text-secondary); padding: 6px 12px; background: var(--surface2); border-radius: var(--radius); white-space: nowrap; }
+  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+  .header-user { font-size: 12px; color: var(--text-secondary); padding: 6px 12px; background: var(--surface2); border-radius: var(--radius); white-space: nowrap; }
   
   /* 通知按钮 */
   .notification-btn { position: relative; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 16px; cursor: pointer; transition: background 0.12s; }
@@ -141,23 +127,6 @@ $username = $_SESSION['username'] ?? 'User';
   
   .logout-btn { background: #FFF3F2; color: #991B1B; border-color: #FCA5A5; }
   .logout-btn:hover { background: #FEE2E2; }
-
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  .header-right { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.9rem; }
-  .icon-btn, .text-btn, .privacy-select {
-    padding: 6px 10px;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-soft);
-    background: var(--bg-main);
-    color: var(--text-main);
-    cursor: pointer;
-    font-size: 12px;
-    font-family: inherit;
-  }
-  .text-btn { text-decoration: none; display: inline-flex; align-items: center; }
-  .icon-btn:hover, .text-btn:hover, .privacy-select:hover { box-shadow: var(--shadow-hover); }
-  .user-info { font-weight: 500; color: var(--text-main); }
-  .logout-link { color: #d32f2f; }
   
   .privacy-filters { display: flex; gap: 6px; margin-left: 12px; }
   .privacy-filter-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 10px; font-size: 12px; font-family: inherit; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
@@ -336,13 +305,6 @@ $username = $_SESSION['username'] ?? 'User';
   .field-input, .field-textarea, .field-select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface); }
   .field-input:focus, .field-textarea:focus, .field-select:focus { outline: none; border-color: var(--accent-week); }
   .field-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-  .priority-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .priority-btn { padding: 9px 12px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
-  .priority-btn:hover { background: var(--surface2); }
-  .priority-btn.active { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); font-weight: 600; }
-
-  /* 手機觸控優化：降低點擊延遲，避免按鈕難點 */
-  button, .priority-btn, .add-checklist-item-btn, .checklist-item-delete, .card-checklist-item input[type="checkbox"] { touch-action: manipulation; }
   
   /* Word 編輯器預覽區 */
   .word-preview { min-height: 100px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #FAFAFA; cursor: pointer; transition: all 0.2s; }
@@ -377,7 +339,6 @@ $username = $_SESSION['username'] ?? 'User';
   .modal-btn { padding: 12px 24px; border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
   .modal-btn.primary { background: var(--accent-week); color: white; }
   .modal-btn.secondary { background: var(--surface2); color: var(--text-secondary); }
-  .modal-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
   /* 專案管理 Modal */
   .project-list { margin-top: 16px; }
@@ -547,7 +508,7 @@ $username = $_SESSION['username'] ?? 'User';
       padding: 0 16px; /* 內部元素有 padding */
     }
     
-    .header-right { 
+    .header-actions { 
       order: 2; 
       flex: 1; 
       justify-content: flex-end;
@@ -555,16 +516,20 @@ $username = $_SESSION['username'] ?? 'User';
       padding-right: 16px; /* 右側 padding */
     }
     
-    .user-info { display: none; }
+    .header-user { display: none; }
     
     /* 手機版 header-center 只保留搜尋框 */
     .search-box { max-width: 100%; }
     .search-input {
       font-size: 15px; /* 搜尋框字體加大 */
-      padding: 10px 12px;
+      padding: 10px 12px 10px 38px;
+    }
+    .search-icon {
+      font-size: 16px;
+      left: 12px;
     }
     .filter-tags { display: none !important; } /* 隱藏專案標籤 */
-    #privacyFilter { display: none !important; } /* 隱藏隱私篩選 */
+    .privacy-filters { display: none !important; } /* 隱藏隱私篩選 */
     
     .sidebar { 
       width: 100%; 
@@ -694,29 +659,29 @@ $username = $_SESSION['username'] ?? 'User';
     .filter-tag { flex-shrink: 0; }
     
     /* 手機版 header-actions 優化 */
-    .header-right { 
+    .header-actions { 
       gap: 8px; 
       flex-wrap: nowrap; 
       overflow: visible; /* 改為 visible */
     }
     
     /* 手機版隱藏部分按鈕 */
-    .header-right .export-menu,
-    .header-right .help-menu,
-    .header-right .settings-btn,
-    .header-right .logout-btn,
-    .header-right #notification-sound-toggle {
+    .header-actions .export-menu,
+    .header-actions .help-menu,
+    .header-actions .settings-btn,
+    .header-actions .logout-btn,
+    .header-actions #notification-sound-toggle {
       display: none !important;
     }
     
     /* 手機版通知按鈕 */
-    .header-right .notification-btn { 
+    .header-actions .notification-btn { 
       padding: 8px; 
       font-size: 18px;
     }
     
     /* 手機版統計按鈕 - 隱藏，移到選單 */
-    .header-right .settings-btn[href*="stats"] {
+    .header-actions .settings-btn[href*="stats"] {
       display: none !important;
     }
     
@@ -875,32 +840,35 @@ $username = $_SESSION['username'] ?? 'User';
 </head>
 <body>
 
-<header class="ui-v2-header">
-  <div class="header-left">
-    <div class="logo">FOCUS <span>HD</span></div>
-  </div>
-
+<header>
+  <div class="logo">FOCUS <span>HD</span></div>
+  
   <div class="header-center">
-    <input type="text" id="searchInput" class="search-input" placeholder="搜尋卡片...">
-    <div id="projectFilterContainer" class="filter-tags"></div>
-    <select id="privacyFilter" class="privacy-select">
-      <option value="all">全部</option>
-      <option value="shared">共用</option>
-      <option value="private">私人</option>
-    </select>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片...">
+    </div>
+    <div class="filter-tags" id="filter-tags"></div>
+    <div class="privacy-filters">
+      <button class="privacy-filter-btn active" data-filter="all" onclick="setPrivacyFilter('all')">全部</button>
+      <button class="privacy-filter-btn" data-filter="shared" onclick="setPrivacyFilter('shared')">👥 共用</button>
+      <button class="privacy-filter-btn" data-filter="private" onclick="setPrivacyFilter('private')">🔒 私人</button>
+    </div>
   </div>
 
-  <div class="header-right">
-    <button id="notification-sound-toggle" class="icon-btn" onclick="toggleNotificationSound()" title="點擊關閉提示音">🔔 通知音</button>
-    <button class="icon-btn notification-btn" id="notification-btn" onclick="toggleNotifications()">
-      🔔 通知
+  <div class="header-actions">
+    <button class="notification-btn" id="notification-sound-toggle" onclick="toggleNotificationSound()" title="點擊關閉提示音" style="border: none; background: none; font-size: 14px; cursor: pointer; padding: 6px;">
+      🔔
+    </button>
+    <button class="notification-btn" id="notification-btn" onclick="toggleNotifications()">
+      🔔
       <span class="notification-badge" id="notification-badge" style="display:none;">0</span>
     </button>
-    <div class="user-info"><?php echo htmlspecialchars($username); ?></div>
-    <a href="stats.php" class="text-btn settings-btn" style="text-decoration: none;">統計</a>
-    <button class="text-btn settings-btn" onclick="openProjectSettings()">設定</button>
+    <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
+    <a href="stats.php" class="settings-btn" style="text-decoration: none; display: inline-flex; align-items: center;">📊 統計</a>
+    <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
     <div class="export-menu">
-      <button id="btnExport" class="text-btn export-btn" onclick="toggleExportMenu()">匯出 ▾</button>
+      <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
         <div class="export-option" onclick="exportToExcel()">
           <div class="export-option-title">📊 匯出 Excel</div>
@@ -921,7 +889,7 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
     </div>
     <div class="help-menu">
-      <button class="text-btn help-toggle" onclick="toggleHelpMenu()">說明</button>
+      <button class="help-toggle" onclick="toggleHelpMenu()">💡 說明</button>
       <div class="help-dropdown" id="help-dropdown">
         <div class="export-option" onclick="openChangelog()">
           <div class="export-option-title">📋 更新日誌</div>
@@ -933,7 +901,8 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-
+    
+    <!-- 手機版「更多」菜單 -->
     <div class="mobile-more-menu">
       <button class="mobile-more-btn" onclick="toggleMobileMoreMenu()">⋯</button>
       <div class="mobile-more-dropdown" id="mobile-more-dropdown">
@@ -963,8 +932,8 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-
-    <button class="text-btn logout-link" onclick="logout()">登出</button>
+    
+    <button class="logout-btn" onclick="logout()">登出</button>
   </div>
 </header>
 
@@ -1106,13 +1075,13 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
       <div class="field">
         <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
-        <input type="hidden" id="input-priority" value="">
-        <div class="priority-group" id="input-priority-group">
-          <button type="button" class="priority-btn" onclick="selectPriorityValue('input-priority','input-priority-group','urgent_important')">🔥 重要且緊急</button>
-          <button type="button" class="priority-btn" onclick="selectPriorityValue('input-priority','input-priority-group','important_not_urgent')">⭐ 重要但不緊急</button>
-          <button type="button" class="priority-btn" onclick="selectPriorityValue('input-priority','input-priority-group','urgent_not_important')">⚡ 緊急但不重要</button>
-          <button type="button" class="priority-btn" onclick="selectPriorityValue('input-priority','input-priority-group','not_urgent_not_important')">💤 不重要不緊急</button>
-        </div>
+        <select class="field-select" id="input-priority">
+          <option value="">-- 未設定 --</option>
+          <option value="urgent_important">🔥 重要且緊急（第一象限）</option>
+          <option value="important_not_urgent">⭐ 重要但不緊急（第二象限）</option>
+          <option value="urgent_not_important">⚡ 緊急但不重要（第三象限）</option>
+          <option value="not_urgent_not_important">💤 不重要不緊急（第四象限）</option>
+        </select>
         <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
           💡 第一象限：立即處理 | 第二象限：重點規劃 | 第三象限：授權處理 | 第四象限：盡量避免
         </div>
@@ -1147,7 +1116,7 @@ $username = $_SESSION['username'] ?? 'User';
         <div class="checklist-container" id="checklist-container">
           <!-- 待办项会动态添加到这里 -->
         </div>
-        <button type="button" class="add-checklist-item-btn" data-checklist-container="checklist-container">+ 新增待辦項目</button>
+        <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
       </div>
       <div class="field">
         <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟 Word 編輯器)</span></label>
@@ -1165,7 +1134,7 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
     <div class="modal-footer">
       <button class="modal-btn secondary" onclick="closeModal()">取消</button>
-      <button class="modal-btn primary" id="modal-save-btn" onclick="saveCard()">儲存</button>
+      <button class="modal-btn primary" onclick="saveCard()">儲存</button>
     </div>
   </div>
 </div>
@@ -1333,14 +1302,13 @@ let searchQuery = '';
 
 // 預設專案類型（容錯備份）
 const DEFAULT_PROJECTS = {
+  seo: { label: 'SEO', bg: '#E3F2FD', color: '#1565C0', default: true },
+  product: { label: '商品頁', bg: '#F3E5F5', color: '#6A1B9A', default: true },
+  client: { label: '客戶', bg: '#FFF3E0', color: '#E65100', default: true },
+  family: { label: '家庭', bg: '#FCE4EC', color: '#C2185B', default: true },
+  sop: { label: 'SOP', bg: '#E8F5E9', color: '#2E7D32', default: true },
   finance: { label: '財務', bg: '#FFF9C4', color: '#F57F17', default: true },
-  company: { label: '公司', bg: '#E3F2FD', color: '#1565C0', default: true },
-  family: { label: '家庭', bg: '#FCE4EC', color: '#C2185B', default: true }
-};
-
-// 舊專案名稱顯示修正（不影響 project key）
-const PROJECT_LABEL_MIGRATION = {
-  '筆記': '商品頁'
+  other: { label: '其他', bg: '#ECEFF1', color: '#455A64', default: true }
 };
 
 // 專案資料（優先從資料庫載入，失敗則使用預設）
@@ -1352,16 +1320,6 @@ let currentFocusCardId = null; // 当前专注的卡片ID
 let quill = null;
 let isDBMode = false; // 追蹤是否成功使用資料庫
 let currentEditingCard = null; // 当前正在编辑的卡片
-let suppressSidebarAutosaveUntil = 0; // checklist 互動期間，暫停 blur 自動儲存
-let modalInitialSnapshot = null;
-let sidebarInitialSnapshot = null;
-
-function fetchWithSession(url, options = {}) {
-  return fetch(url, {
-    credentials: 'include',
-    ...options
-  });
-}
 
 // ==========================================
 // 侧边编辑栏相关函数
@@ -1398,12 +1356,9 @@ function openSidebar(cardId, col) {
   
   // 初始化表单
   setTimeout(() => {
-    syncPriorityButtons('sidebar-priority-group', card.priority || '');
-    renderChecklistEdit(card.checklist, 'sidebar-checklist-container');
-    initSwatches(card.bgcolor || '', card.textcolor || '#1A1A18', 'sidebar');
+    renderChecklistEdit(card.checklist);
+    initSwatches(card.bgcolor || '', card.textcolor || '', 'sidebar');
     updateWordPreview(card.body || '');
-    sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
-    updateSaveButtonDirtyState('sidebar');
     
     // 为侧边栏添加自动保存监听（Notion 方式）
     enableSidebarAutoSave();
@@ -1420,70 +1375,6 @@ async function closeSidebar() {
   document.getElementById('editor-sidebar').classList.remove('open');
   document.querySelectorAll('.card').forEach(c => c.classList.remove('editing'));
   currentEditingCard = null;
-  sidebarInitialSnapshot = null;
-}
-
-function getChecklistDraftState(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return [];
-
-  return Array.from(container.querySelectorAll('.checklist-item')).map(item => ({
-    text: item.querySelector('input[type="text"]')?.value ?? '',
-    checked: !!item.querySelector('input[type="checkbox"]')?.checked
-  }));
-}
-
-function buildEditorSnapshot(mode = 'modal') {
-  const isSidebar = mode === 'sidebar';
-  const prefix = isSidebar ? 'sidebar-' : '';
-  const checklistContainer = isSidebar ? 'sidebar-checklist-container' : 'checklist-container';
-  const privacyPrivateId = isSidebar ? 'sidebar-privacy-private' : 'privacy-private';
-  const titleEl = document.getElementById(`${prefix}input-title`);
-  if (!titleEl) return null;
-
-  return JSON.stringify({
-    title: titleEl.value,
-    project: document.getElementById(`${prefix}input-project`)?.value || '',
-    priority: document.getElementById(`${prefix}input-priority`)?.value || '',
-    sourceLink: document.getElementById(`${prefix}input-source`)?.value || '',
-    summary: document.getElementById(`${prefix}input-summary`)?.value || '',
-    nextStep: document.getElementById(`${prefix}input-nextstep`)?.value || '',
-    body: document.getElementById(`${prefix}input-body`)?.value || '',
-    bgcolor: document.getElementById(`${prefix}input-bgcolor`)?.value || '',
-    textcolor: document.getElementById(`${prefix}input-textcolor`)?.value || '',
-    isPrivate: !!document.getElementById(privacyPrivateId)?.checked,
-    checklistDraft: getChecklistDraftState(checklistContainer)
-  });
-}
-
-function updateSaveButtonDirtyState(mode = 'modal') {
-  const isSidebar = mode === 'sidebar';
-  const btn = document.getElementById(isSidebar ? 'sidebar-save-btn' : 'modal-save-btn');
-  if (!btn) return;
-
-  const currentSnapshot = buildEditorSnapshot(mode);
-  if (!currentSnapshot) {
-    btn.disabled = true;
-    return;
-  }
-
-  const editId = document.getElementById(isSidebar ? 'sidebar-input-edit-id' : 'input-edit-id')?.value;
-  if (editId) {
-    const baseline = isSidebar ? sidebarInitialSnapshot : modalInitialSnapshot;
-    btn.disabled = baseline !== null && currentSnapshot === baseline;
-    return;
-  }
-
-  const title = document.getElementById(isSidebar ? 'sidebar-input-title' : 'input-title')?.value.trim();
-  btn.disabled = !title;
-}
-
-function refreshDirtyStateByContainer(containerId) {
-  if (containerId === 'sidebar-checklist-container') {
-    updateSaveButtonDirtyState('sidebar');
-    return;
-  }
-  updateSaveButtonDirtyState('modal');
 }
 
 // 启用侧边栏自动保存监听（Notion 方式）
@@ -1520,21 +1411,19 @@ function enableSidebarAutoSave() {
 // 侧边栏静默保存
 async function silentSaveSidebar() {
   if (!currentEditingCard) return;
-  if (Date.now() < suppressSidebarAutosaveUntil) return;
   
   const title = document.getElementById('sidebar-input-title')?.value.trim();
   if (!title) return;
   
   try {
     const isPrivate = document.getElementById('sidebar-privacy-private')?.checked ? 1 : 0;
-    const priority = document.getElementById('sidebar-input-priority')?.value || null;
-
+    const checklist = getChecklistData();
+    
     const data = {
       id: currentEditingCard.id,
       col: currentEditingCard.col,
       title: title,
       project: document.getElementById('sidebar-input-project')?.value || '',
-      priority: priority,
       sourceLink: document.getElementById('sidebar-input-source')?.value.trim() || '',
       summary: document.getElementById('sidebar-input-summary')?.value.trim() || '',
       nextStep: document.getElementById('sidebar-input-nextstep')?.value.trim() || '',
@@ -1542,24 +1431,20 @@ async function silentSaveSidebar() {
       bgcolor: document.getElementById('sidebar-input-bgcolor')?.value || '',
       textcolor: document.getElementById('sidebar-input-textcolor')?.value || '',
       isPrivate: isPrivate,
-      checklist: getChecklistData('sidebar-checklist-container')
+      checklist: checklist
     };
     
-    // 静默保存：不显示 toast 提示
-    const res = await fetchWithSession('api/cards.php?action=save', {
+    const result = await apiJson('api/cards.php?action=save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
     
-    const result = await res.json();
     if (result.success) {
-      // 静默更新数据，不显示提示，不关闭侧边栏
-      sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
-      updateSaveButtonDirtyState('sidebar');
       await loadCards();
     }
   } catch (err) {
+    if (isSessionExpiredError(err)) return;
     console.log('侧边栏自动保存失败:', err);
   }
 }
@@ -1579,13 +1464,13 @@ function generateEditForm(card, cardId, col) {
     </div>
     <div class="field">
       <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
-      <input type="hidden" id="sidebar-input-priority" value="${escHtml(card.priority || '')}">
-      <div class="priority-group" id="sidebar-priority-group">
-        <button type="button" class="priority-btn" onclick="selectPriorityValue('sidebar-input-priority','sidebar-priority-group','urgent_important')">🔥 重要且緊急</button>
-        <button type="button" class="priority-btn" onclick="selectPriorityValue('sidebar-input-priority','sidebar-priority-group','important_not_urgent')">⭐ 重要但不緊急</button>
-        <button type="button" class="priority-btn" onclick="selectPriorityValue('sidebar-input-priority','sidebar-priority-group','urgent_not_important')">⚡ 緊急但不重要</button>
-        <button type="button" class="priority-btn" onclick="selectPriorityValue('sidebar-input-priority','sidebar-priority-group','not_urgent_not_important')">💤 不重要不緊急</button>
-      </div>
+      <select class="field-select" id="sidebar-input-priority">
+        <option value="">-- 未設定 --</option>
+        <option value="urgent_important" ${card.priority === 'urgent_important' ? 'selected' : ''}>🔥 重要且緊急</option>
+        <option value="important_not_urgent" ${card.priority === 'important_not_urgent' ? 'selected' : ''}>⭐ 重要但不緊急</option>
+        <option value="urgent_not_important" ${card.priority === 'urgent_not_important' ? 'selected' : ''}>⚡ 緊急但不重要</option>
+        <option value="not_urgent_not_important" ${card.priority === 'not_urgent_not_important' ? 'selected' : ''}>💤 不重要不緊急</option>
+      </select>
     </div>
     <div class="field">
       <label class="field-label">隱私設定</label>
@@ -1614,8 +1499,8 @@ function generateEditForm(card, cardId, col) {
     </div>
     <div class="field">
       <label class="field-label">✓ 待辦清單 <span class="optional">(選填)</span></label>
-      <div class="checklist-container" id="sidebar-checklist-container"></div>
-      <button type="button" class="add-checklist-item-btn" data-checklist-container="sidebar-checklist-container">+ 新增待辦項目</button>
+      <div class="checklist-container" id="checklist-container"></div>
+      <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
     </div>
     <div class="field">
       <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟編輯器)</span></label>
@@ -1638,7 +1523,7 @@ function generateEditForm(card, cardId, col) {
     <input type="hidden" id="sidebar-input-edit-id" value="${cardId}">
     
     <div style="display: flex; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
-      <button class="modal-btn primary" id="sidebar-save-btn" onclick="saveSidebarCard()" style="flex: 1;">儲存</button>
+      <button class="modal-btn primary" onclick="saveSidebarCard()" style="flex: 1;">儲存</button>
       <button class="modal-btn secondary" onclick="closeSidebar()">取消</button>
     </div>
   `;
@@ -1667,7 +1552,7 @@ async function saveSidebarCard() {
   }
   
   const isPrivate = document.getElementById('sidebar-privacy-private').checked ? 1 : 0;
-  const checklist = getChecklistData('sidebar-checklist-container');
+  const checklist = getChecklistData();
   const priority = document.getElementById('sidebar-input-priority')?.value || null; // 获取优先级
   
   const data = {
@@ -1687,8 +1572,6 @@ async function saveSidebarCard() {
   };
   
   await saveCardToAPI(data);
-  sidebarInitialSnapshot = buildEditorSnapshot('sidebar');
-  updateSaveButtonDirtyState('sidebar');
   closeSidebar();
 }
 
@@ -1699,56 +1582,50 @@ async function saveSidebarCard() {
 // 從資料庫載入專案
 async function loadProjectsFromDB() {
   try {
-    const res = await fetchWithSession('api/projects.php?action=list');
-
+    const res = await fetch('api/projects.php?action=list');
+    
     if (!res.ok) {
       console.warn('API 回應錯誤:', res.status);
       return null;
     }
-
+    
     const data = await res.json();
+    
+    // ⭐ 支援兩種格式：{success, data: [...]} 或直接 [...]
     let projectsArray;
-
+    
     if (data.error) {
       console.warn('API 錯誤:', data.error);
       return null;
     }
-
+    
     if (Array.isArray(data)) {
+      // 直接是陣列
       projectsArray = data;
     } else if (data.data && Array.isArray(data.data)) {
+      // 包裹在 data 屬性中
       projectsArray = data.data;
     } else {
       console.warn('API 回應格式錯誤:', data);
       return null;
     }
-
-    const allowedDefaultKeys = ['finance', 'company', 'family'];
-    const projects = { ...DEFAULT_PROJECTS };
-
+    
+    // 轉換格式
+    const projects = {};
     projectsArray.forEach(proj => {
-      const normalized = {
+      projects[proj.key] = {
         id: proj.id,
         label: proj.label,
         bg: proj.bgColor,
         color: proj.textColor,
         default: proj.isDefault
       };
-
-      if (proj.isDefault) {
-        if (allowedDefaultKeys.includes(proj.key)) {
-          projects[proj.key] = { ...projects[proj.key], ...normalized };
-        }
-        return;
-      }
-
-      projects[proj.key] = normalized;
     });
-
+    
     console.log('✅ 資料庫載入成功:', Object.keys(projects).length, '個專案');
     isDBMode = true;
     return projects;
-
+    
   } catch (err) {
     console.warn('資料庫連線失敗:', err);
     return null;
@@ -1759,18 +1636,7 @@ async function loadProjectsFromDB() {
 function loadCustomProjects() {
   try {
     const saved = localStorage.getItem('customProjects');
-    if (!saved) return {};
-
-    const parsed = JSON.parse(saved);
-    const customProjects = {};
-
-    Object.keys(parsed || {}).forEach(key => {
-      if (!parsed[key]?.default) {
-        customProjects[key] = parsed[key];
-      }
-    });
-
-    return customProjects;
+    return saved ? JSON.parse(saved) : {};
   } catch (err) {
     console.error('localStorage 讀取失敗:', err);
     return {};
@@ -1810,15 +1676,11 @@ function getAllProjects() {
   return ALL_PROJECTS;
 }
 
-function normalizeProjectLabel(label) {
-  return PROJECT_LABEL_MIGRATION[label] || label;
-}
-
 // 更新專案標籤
 function updateProjectLabels() {
   PROJECT_LABELS = {};
   Object.keys(ALL_PROJECTS).forEach(key => {
-    PROJECT_LABELS[key] = normalizeProjectLabel(ALL_PROJECTS[key].label);
+    PROJECT_LABELS[key] = ALL_PROJECTS[key].label;
   });
 }
 
@@ -2123,7 +1985,7 @@ function renderProjectList() {
       <div class="project-info">
         <div class="project-color-preview" style="background: ${proj.bg}; color: ${proj.color};">●</div>
         <div>
-          <div class="project-name">${normalizeProjectLabel(proj.label)}</div>
+          <div class="project-name">${proj.label}</div>
           ${proj.default ? '<div class="project-default">預設類型</div>' : ''}
         </div>
       </div>
@@ -2147,7 +2009,7 @@ async function addCustomProject() {
   if (isDBMode) {
     // ✅ 資料庫模式
     try {
-      const res = await fetchWithSession('api/projects.php?action=add', {
+      const res = await fetch('api/projects.php?action=add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2228,7 +2090,7 @@ async function deleteCustomProject(key) {
   if (isDBMode) {
     // ✅ 資料庫模式
     try {
-      const res = await fetchWithSession(`api/projects.php?action=delete&id=${project.id}`, {
+      const res = await fetch(`api/projects.php?action=delete&id=${project.id}`, {
         method: 'POST'
       });
       
@@ -2280,7 +2142,7 @@ function renderProjectSelect() {
   Object.keys(allProjects).forEach(key => {
     const option = document.createElement('option');
     option.value = key;
-    option.textContent = normalizeProjectLabel(allProjects[key].label);
+    option.textContent = allProjects[key].label;
     select.appendChild(option);
   });
 }
@@ -2304,39 +2166,120 @@ function injectProjectStyles() {
   styleEl.textContent = styles;
 }
 
+function redirectToLogin(message = '登入已過期，請重新登入') {
+  toast(message);
+  setTimeout(() => {
+    window.location.href = 'login.php';
+  }, 800);
+}
+
+function isSessionExpiredError(err) {
+  return err && err.message === 'SESSION_EXPIRED';
+}
+
+async function fetchWithSession(url, options = {}) {
+  const headers = {
+    'X-Requested-With': 'XMLHttpRequest',
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(url, {
+    credentials: 'include',
+    redirect: 'follow',
+    ...options,
+    headers
+  });
+
+  const finalUrl = response.url || '';
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+
+  if (finalUrl.includes('login.php')) {
+    redirectToLogin();
+    throw new Error('SESSION_EXPIRED');
+  }
+
+  if (url.includes('api/') && !contentType.includes('application/json')) {
+    const rawText = await response.text();
+
+    if (
+      rawText.includes('登入已過期') ||
+      rawText.includes('login.php') ||
+      rawText.includes('<!DOCTYPE html') ||
+      rawText.includes('<html')
+    ) {
+      redirectToLogin();
+      throw new Error('SESSION_EXPIRED');
+    }
+
+    throw new Error('INVALID_API_RESPONSE');
+  }
+
+  return response;
+}
+
+async function apiJson(url, options = {}) {
+  const response = await fetchWithSession(url, options);
+  const data = await response.json();
+
+  if (data && data.error === '登入已過期，請重新登入') {
+    redirectToLogin(data.error);
+    throw new Error('SESSION_EXPIRED');
+  }
+
+  return data;
+}
+
 // ==========================================
 // API 連線層
 // ==========================================
 async function loadCards() {
   try {
-    const res = await fetchWithSession('api/cards.php?action=list');
-    const data = await res.json();
-    if (data.error) { toast(data.error); return; }
-    state = { lib: data.lib || [], week: data.week || [], focus: data.focus || [], done: data.done || [] };
+    const data = await apiJson('api/cards.php?action=list');
+    if (data.error) {
+      toast(data.error);
+      return;
+    }
+
+    state = {
+      lib: data.lib || [],
+      week: data.week || [],
+      focus: data.focus || [],
+      done: data.done || []
+    };
     
     // ⭐ 重要：在渲染前更新專案標籤
     updateProjectLabels();
     
     render();
-  } catch (err) { toast('連線異常，無法讀取卡片'); }
+  } catch (err) {
+    if (isSessionExpiredError(err)) return;
+    toast('連線異常，無法讀取卡片');
+  }
 }
 
 async function saveCardToAPI(cardData) {
   try {
-    const res = await fetchWithSession('api/cards.php?action=save', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cardData)
+    const data = await apiJson('api/cards.php?action=save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cardData)
     });
-    const data = await res.json();
     if (data.success) {
       toast(cardData.id ? '✅ 卡片更新成功' : '✅ 卡片新增成功');
-      await loadCards(); closeModal();
-    } else toast('❌ ' + (data.error || '儲存失敗'));
-  } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
+      await loadCards();
+      closeModal();
+    } else {
+      toast('❌ ' + (data.error || '儲存失敗'));
+    }
+  } catch (err) {
+    if (isSessionExpiredError(err)) return;
+    toast('❌ 連線錯誤，儲存失敗');
+  }
 }
 
 async function moveAPI(id, toCol) {
   try {
-    const res = await fetchWithSession('api/cards.php?action=move', {
+    const res = await fetch('api/cards.php?action=move', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, col: toCol })
     });
     const data = await res.json();
@@ -2367,7 +2310,7 @@ async function deleteAPI(id) {
   if (!confirm(confirmMessage)) return;
   
   try {
-    const res = await fetchWithSession(`api/cards.php?action=delete&id=${id}`, { method: 'GET' });
+    const res = await fetch(`api/cards.php?action=delete&id=${id}`, { method: 'GET' });
     const data = await res.json();
     if (data.success) { toast('🗑️ 卡片已刪除'); await loadCards(); } 
     else toast('❌ ' + (data.error || '刪除失敗'));
@@ -2377,7 +2320,7 @@ async function deleteAPI(id) {
 async function logout() {
   if (!confirm('確定要登出嗎？')) return;
   try {
-    const res = await fetchWithSession('api/auth.php?action=logout', { method: 'POST' });
+    const res = await fetch('api/auth.php?action=logout', { method: 'POST' });
     const data = await res.json();
     if (data.success) window.location.href = 'login.php';
     else toast('登出失敗');
@@ -2438,38 +2381,16 @@ function render() {
 }
 
 function renderFilterTags() {
-  const container = document.getElementById('projectFilterContainer');
-  container.innerHTML = '';
-
-  const fixedOrder = [
-    { key: null, label: '全部' },
-    { key: 'company', label: '公司' },
-    { key: 'finance', label: '財務' },
-    { key: 'family', label: '家庭' }
-  ];
-
-  fixedOrder.forEach(item => {
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag' + (((item.key === null && !currentFilter) || currentFilter === item.key) ? ' active' : '');
-    tag.textContent = item.label;
-    tag.onclick = () => { currentFilter = item.key; render(); };
-    container.appendChild(tag);
+  const container = document.getElementById('filter-tags'); container.innerHTML = '';
+  const projects = new Set(); ['lib', 'week', 'focus', 'done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
+  
+  const allTag = document.createElement('div'); allTag.className = 'filter-tag' + (!currentFilter ? ' active' : ''); allTag.textContent = '全部';
+  allTag.onclick = () => { currentFilter = null; render(); }; container.appendChild(allTag);
+  
+  projects.forEach(p => {
+    const tag = document.createElement('div'); tag.className = 'filter-tag' + (currentFilter === p ? ' active' : ''); tag.textContent = PROJECT_LABELS[p] || p;
+    tag.onclick = () => { currentFilter = p; render(); }; container.appendChild(tag);
   });
-
-  const customKeys = Object.keys(ALL_PROJECTS).filter(key => !['company', 'finance', 'family'].includes(key));
-  if (customKeys.length) {
-    const divider = document.createElement('div');
-    divider.className = 'filter-divider';
-    container.appendChild(divider);
-
-    customKeys.forEach(key => {
-      const tag = document.createElement('div');
-      tag.className = 'filter-tag custom' + (currentFilter === key ? ' active' : '');
-      tag.textContent = PROJECT_LABELS[key] || key;
-      tag.onclick = () => { currentFilter = key; render(); };
-      container.appendChild(tag);
-    });
-  }
 }
 
 // 手機版 Tab 切換功能
@@ -2555,15 +2476,14 @@ function buildCard(card, col) {
   
   // 待办清单显示
   let checklistHTML = '';
-  const checklistItems = normalizeChecklistItems(card.checklist);
-  if (checklistItems.length > 0) {
-    const completed = checklistItems.filter(item => item.checked).length;
-    const total = checklistItems.length;
+  if (card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0) {
+    const completed = card.checklist.filter(item => item.checked).length;
+    const total = card.checklist.length;
     checklistHTML = '<div class="card-checklist">';
     checklistHTML += `<div class="card-checklist-header">✓ 待辦清單 <span class="card-checklist-progress">${completed}/${total}</span></div>`;
-    checklistItems.forEach((item, idx) => {
+    card.checklist.forEach((item, idx) => {
       checklistHTML += `<div class="card-checklist-item${item.checked ? ' checked' : ''}">`;
-      checklistHTML += `<input type="checkbox" class="card-checklist-toggle" data-card-id="${card.id}" data-item-index="${idx}" data-col="${col}" ${item.checked ? 'checked' : ''}>`;
+      checklistHTML += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem(${card.id}, ${idx}, '${col}'); event.stopPropagation();">`;
       checklistHTML += `<label>${escHtml(item.text)}</label>`;
       checklistHTML += '</div>';
     });
@@ -2638,7 +2558,7 @@ async function postponeCard(id, currentCol) {
   
   try {
     // 移动到策略库并增加延期次数
-    const res = await fetchWithSession('api/cards.php?action=postpone', {
+    const res = await fetch('api/cards.php?action=postpone', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id })
@@ -2656,7 +2576,7 @@ async function postponeCard(id, currentCol) {
 }
 async function clearDone() {
   if (!confirm('確定永久清空已完成區塊嗎？')) return;
-  toast('清空中...'); for (const c of state.done) await fetchWithSession(`api/cards.php?action=delete&id=${c.id}`);
+  toast('清空中...'); for (const c of state.done) await fetch(`api/cards.php?action=delete&id=${c.id}`);
   toast('已清除完成區'); await loadCards();
 }
 
@@ -2667,53 +2587,62 @@ function openModal(col) {
   if (col === 'focus' && state.focus.length >= 1) { toast('今日專注只能 1 張！'); return; }
   if (col === 'week' && state.week.length >= 3) { toast('本週目標已滿 3 張！'); return; }
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
-  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-priority').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = '';
+  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = '';
+  
+  // 清空待办清单
   document.getElementById('checklist-container').innerHTML = '';
-  document.getElementById('privacy-shared').checked = true;
-  updateWordPreview('');
-  initSwatches('', '#1A1A18');
-  syncPriorityButtons('input-priority-group', '');
-  document.getElementById('input-textcolor').value = '#1A1A18';
-  document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
+  
+  const preview = document.getElementById('word-preview');
+  preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
+  preview.classList.add('empty');
+  
+  initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
-  modalInitialSnapshot = buildEditorSnapshot('modal');
-  updateSaveButtonDirtyState('modal');
 }
 
 function editCard(id, col) {
+  // 桌面版使用侧边编辑栏
   if (openSidebar(id, col)) {
-    return;
+    return; // 成功打开侧边栏，结束函数
   }
+  
+  // 手机版或侧边栏打开失败，使用全屏modal
   const card = state[col].find(c => c.id === id); if (!card) return;
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
   document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || '';
+  
+  // 设置隐私选项
   if (card.isPrivate) {
     document.getElementById('privacy-private').checked = true;
   } else {
     document.getElementById('privacy-shared').checked = true;
   }
-  document.getElementById('input-priority').value = card.priority || '';
-  syncPriorityButtons('input-priority-group', card.priority || '');
-  renderChecklistEdit(card.checklist, 'checklist-container');
+  
+  // 加载待办清单
+  renderChecklistEdit(card.checklist);
+  
   const preview = document.getElementById('word-preview');
   if (card.body && card.body.trim()) {
-    preview.textContent = card.body;
+    preview.innerHTML = card.body;
     preview.classList.remove('empty');
   } else {
-    preview.textContent = '點擊此處使用 Word 編輯器撰寫...';
+    preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
     preview.classList.add('empty');
   }
-  initSwatches(card.bgcolor || '', card.textcolor || '#1A1A18'); document.getElementById('modal-title').textContent = '編輯卡片';
-  document.getElementById('overlay').classList.add('open');
+  
+  initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
+  document.getElementById('overlay').classList.add('open'); 
+  
+  // 启用自动保存（手机版编辑时）
+  enableAutoSave();
+  
   setTimeout(() => document.getElementById('input-title').focus(), 60);
-  modalInitialSnapshot = buildEditorSnapshot('modal');
-  updateSaveButtonDirtyState('modal');
 }
 
 async function saveCard() {
   const t = document.getElementById('input-title').value.trim(); if (!t) { document.getElementById('input-title').focus(); return; }
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
-  const checklist = getChecklistData('checklist-container'); // 获取待办清单数据
+  const checklist = getChecklistData(); // 获取待办清单数据
   const priority = document.getElementById('input-priority')?.value || null; // 获取优先级
   const data = { 
     col: document.getElementById('input-col').value, 
@@ -2730,11 +2659,9 @@ async function saveCard() {
     checklist: checklist 
   };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
-  const btn = document.getElementById('modal-save-btn'); btn.disabled = true; btn.textContent = '儲存中...';
+  const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
-  modalInitialSnapshot = buildEditorSnapshot('modal');
   btn.disabled = false; btn.textContent = '儲存';
-  updateSaveButtonDirtyState('modal');
 }
 
 // 自动保存相关
@@ -2800,14 +2727,13 @@ async function silentAutoSave() {
   
   try {
     const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
-    const priority = document.getElementById('input-priority')?.value || null;
-
+    const checklist = getChecklistData();
+    
     const data = {
       id: editId,
       col: document.getElementById('input-col').value,
       title: title,
       project: document.getElementById('input-project').value,
-      priority: priority,
       sourceLink: document.getElementById('input-source').value.trim(),
       summary: document.getElementById('input-summary').value.trim(),
       nextStep: document.getElementById('input-nextstep').value.trim(),
@@ -2815,23 +2741,20 @@ async function silentAutoSave() {
       bgcolor: document.getElementById('input-bgcolor').value,
       textcolor: document.getElementById('input-textcolor').value,
       isPrivate: isPrivate,
-      checklist: getChecklistData('checklist-container')
+      checklist: checklist
     };
     
-    // 静默保存：不显示 toast 提示
-    const res = await fetchWithSession('api/cards.php?action=save', {
+    const result = await apiJson('api/cards.php?action=save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
     
-    const result = await res.json();
     if (result.success) {
-      // 静默更新数据，不显示提示
       await loadCards();
     }
   } catch (err) {
-    // 静默失败，不显示错误
+    if (isSessionExpiredError(err)) return;
     console.log('自动保存失败:', err);
   }
 }
@@ -2850,24 +2773,21 @@ async function closeModalWithSave() {
   }
 }
 
-function closeModal() { document.getElementById('overlay').classList.remove('open'); autoSaveEnabled = false; if (autoSaveTimer) clearTimeout(autoSaveTimer); modalInitialSnapshot = null; }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); autoSaveEnabled = false; if (autoSaveTimer) clearTimeout(autoSaveTimer); }
 function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
 document.addEventListener('keydown', e => { 
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
 });
 document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
-document.getElementById('searchInput').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
 
 function setPrivacyFilter(filter) {
   privacyFilter = filter;
-  const privacySelect = document.getElementById('privacyFilter');
-  if (privacySelect && privacySelect.value !== filter) privacySelect.value = filter;
+  document.querySelectorAll('.privacy-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
   render();
 }
-
-document.getElementById('privacyFilter').addEventListener('change', e => {
-  setPrivacyFilter(e.target.value);
-});
 
 function toggleHelp() { document.getElementById('sidebar').classList.toggle('open'); }
 function toggleExportMenu() { document.getElementById('export-dropdown').classList.toggle('open'); }
@@ -2897,7 +2817,7 @@ document.addEventListener('click', e => { if (!e.target.closest('.help-toggle') 
 
 // 色票
 const BG_COLORS = [{val:'',label:'預設'},{val:'#FFFFFF',label:'白'},{val:'#FFF9C4',label:'黃'},{val:'#FAECE7',label:'橘'},{val:'#EEEDFE',label:'紫'},{val:'#E1F5EE',label:'綠'},{val:'#E6F1FB',label:'藍'},{val:'#FBEAF0',label:'粉'},{val:'#EFEDE8',label:'米'},{val:'#2C2C2A',label:'黑'}];
-const TEXT_COLORS = [{val:'#E24B4A',label:'紅'},{val:'#185FA5',label:'藍'},{val:'#1A1A18',label:'黑'}];
+const TEXT_COLORS = [{val:'',label:'預設'},{val:'#1A1A18',label:'黑'},{val:'#FFFFFF',label:'白'},{val:'#534AB7',label:'紫'},{val:'#D85A30',label:'橘'},{val:'#1D9E75',label:'綠'},{val:'#185FA5',label:'藍'},{val:'#993556',label:'粉'},{val:'#BA7517',label:'金'},{val:'#E24B4A',label:'紅'}];
 function initSwatches(curBg, curText, prefix = '') {
   const bgElId = prefix ? `${prefix}-bg-swatches` : 'bg-swatches';
   const textElId = prefix ? `${prefix}-text-swatches` : 'text-swatches';
@@ -2911,9 +2831,7 @@ function initSwatches(curBg, curText, prefix = '') {
   
   bgEl.innerHTML = ''; textEl.innerHTML = '';
   BG_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curBg?' selected':''); s.title=label; s.style.background=val||'#F5F3EE'; if(!val) s.style.border='2px dashed #ccc'; s.onclick=()=>{ bgEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById(bgInputId).value=val; }; bgEl.appendChild(s); });
-  const selectedText = curText || '#1A1A18';
-  TEXT_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===selectedText?' selected':''); s.title=label; s.style.background=val; s.onclick=()=>{ textEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById(textInputId).value=val; }; textEl.appendChild(s); });
-  document.getElementById(textInputId).value = selectedText;
+  TEXT_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curText?' selected':''); s.title=label; s.style.background=val||'#1A1A18'; if(!val){ s.style.background='linear-gradient(135deg, #fff 50%, #333 50%)'; s.style.border='2px dashed #ccc'; } s.onclick=()=>{ textEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById(textInputId).value=val; }; textEl.appendChild(s); });
 }
 
 // ==========================================
@@ -2934,7 +2852,7 @@ async function startTimer(id) {
   const card = state.focus.find(c => c.id === id);
   if (card && !currentFocusLogId) {
     try {
-      const res = await fetchWithSession('api/focus-logs.php?action=start', {
+      const res = await fetch('api/focus-logs.php?action=start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2993,7 +2911,7 @@ async function saveTimerDuration() {
   if (!currentFocusLogId || timerSeconds === 0) return;
   
   try {
-    await fetchWithSession('api/focus-logs.php?action=stop', {
+    await fetch('api/focus-logs.php?action=stop', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3025,45 +2943,13 @@ function backupData() { downloadFile(JSON.stringify({v:'2.0',data:state},null,2)
 function restoreData(e) { alert("已升級為 MySQL 雲端版，請聯絡管理員手動匯入。"); e.target.value = ''; toggleExportMenu(); }
 function downloadFile(content, filename, mime) { const b = new Blob([content], {type:mime}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); }
 
-function syncPriorityButtons(groupId, selectedValue) {
-  const group = document.getElementById(groupId);
-  if (!group) return;
-
-  const values = [
-    'urgent_important',
-    'important_not_urgent',
-    'urgent_not_important',
-    'not_urgent_not_important'
-  ];
-
-  group.querySelectorAll('.priority-btn').forEach((btn, idx) => {
-    btn.classList.toggle('active', values[idx] === selectedValue);
-  });
-}
-
-function selectPriorityValue(inputId, groupId, value) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-
-  const nextValue = input.value === value ? '' : value;
-  input.value = nextValue;
-  syncPriorityButtons(groupId, nextValue);
-
-  if (inputId.startsWith('sidebar-')) {
-    updateSaveButtonDirtyState('sidebar');
-  } else {
-    updateSaveButtonDirtyState('modal');
-  }
-}
-
 // ==========================================
 // 待办清单相关函数
 // ==========================================
 
 // 添加待办项到编辑界面
-function addChecklistItem(text = '', checked = false, containerId = 'checklist-container') {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+function addChecklistItem(text = '', checked = false) {
+  const container = document.getElementById('checklist-container');
   const id = 'checklist-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   
   const item = document.createElement('div');
@@ -3071,47 +2957,30 @@ function addChecklistItem(text = '', checked = false, containerId = 'checklist-c
   item.dataset.id = id;
   item.innerHTML = `
     <input type="checkbox" ${checked ? 'checked' : ''}>
-    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}">
-    <button type="button" class="checklist-item-delete" data-checklist-id="${id}">刪除</button>
+    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
+    <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();">刪除</button>
   `;
   
   container.appendChild(item);
-
-  const textInput = item.querySelector('input[type="text"]');
-  if (textInput) {
-    textInput.addEventListener('keydown', (evt) => {
-      if (evt.key === 'Enter') {
-        evt.preventDefault();
-        addChecklistItem('', false, containerId);
-      }
-    });
-  }
   
   // 自动聚焦到新添加的输入框
   if (!text) {
-    textInput?.focus();
+    item.querySelector('input[type="text"]').focus();
   }
-
-  refreshDirtyStateByContainer(containerId);
 }
 
 // 删除待办项
 function deleteChecklistItem(id) {
   const item = document.querySelector(`.checklist-item[data-id="${id}"]`);
   if (item) {
-    const containerId = item.parentElement?.id || 'checklist-container';
     item.remove();
-    refreshDirtyStateByContainer(containerId);
   }
 }
 
 // 获取当前编辑界面的待办清单数据
-function getChecklistData(containerId = 'checklist-container') {
-  const container = document.getElementById(containerId);
-  if (!container) return null;
-
+function getChecklistData() {
   const items = [];
-  container.querySelectorAll('.checklist-item').forEach(item => {
+  document.querySelectorAll('#checklist-container .checklist-item').forEach(item => {
     const checkbox = item.querySelector('input[type="checkbox"]');
     const textInput = item.querySelector('input[type="text"]');
     const text = textInput.value.trim();
@@ -3126,30 +2995,14 @@ function getChecklistData(containerId = 'checklist-container') {
   return items.length > 0 ? items : null;
 }
 
-function normalizeChecklistItems(checklist) {
-  if (!checklist) return [];
-  const list = Array.isArray(checklist) ? checklist : (() => {
-    if (typeof checklist === 'string') {
-      try { return JSON.parse(checklist); } catch (e) { return []; }
-    }
-    return [];
-  })();
-  return list.filter(item => item && typeof item.text === 'string' && item.text.trim() !== '').map(item => ({
-    text: item.text.trim(),
-    checked: !!item.checked
-  }));
-}
-
 // 在编辑界面渲染待办清单
-function renderChecklistEdit(checklist, containerId = 'checklist-container') {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+function renderChecklistEdit(checklist) {
+  const container = document.getElementById('checklist-container');
   container.innerHTML = '';
   
-  const normalizedChecklist = normalizeChecklistItems(checklist);
-  if (normalizedChecklist.length > 0) {
-    normalizedChecklist.forEach(item => {
-      addChecklistItem(item.text, item.checked, containerId);
+  if (checklist && Array.isArray(checklist)) {
+    checklist.forEach(item => {
+      addChecklistItem(item.text, item.checked);
     });
   }
 }
@@ -3157,12 +3010,10 @@ function renderChecklistEdit(checklist, containerId = 'checklist-container') {
 // 在卡片上切换待办项的勾选状态
 async function toggleChecklistItem(cardId, itemIndex, col) {
   const card = state[col].find(c => c.id === cardId);
-  const checklist = normalizeChecklistItems(card?.checklist);
-  if (!card || !checklist[itemIndex]) return;
+  if (!card || !card.checklist || !card.checklist[itemIndex]) return;
   
   // 切换状态
-  checklist[itemIndex].checked = !checklist[itemIndex].checked;
-  card.checklist = checklist;
+  card.checklist[itemIndex].checked = !card.checklist[itemIndex].checked;
   
   // 保存到服务器
   await saveCardToAPI({
@@ -3170,7 +3021,6 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
     col: col,
     title: card.title,
     project: card.project,
-    priority: card.priority || null,
     sourceLink: card.sourceLink,
     summary: card.summary,
     nextStep: card.nextStep,
@@ -3178,91 +3028,12 @@ async function toggleChecklistItem(cardId, itemIndex, col) {
     bgcolor: card.bgcolor,
     textcolor: card.textcolor,
     isPrivate: card.isPrivate ? 1 : 0,
-    checklist: checklist
+    checklist: card.checklist
   });
   
   // 重新渲染
   render();
 }
-
-function handleChecklistClick(event) {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-
-  const addBtn = target.closest('.add-checklist-item-btn');
-  if (addBtn) {
-    event.preventDefault();
-    event.stopPropagation();
-    addChecklistItem('', false, addBtn.dataset.checklistContainer || 'checklist-container');
-    return;
-  }
-
-  const deleteBtn = target.closest('.checklist-item-delete');
-  if (deleteBtn) {
-    event.preventDefault();
-    event.stopPropagation();
-    deleteChecklistItem(deleteBtn.dataset.checklistId);
-  }
-}
-
-function handleChecklistMouseDown(event) {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-
-  // 先於 blur 事件觸發，避免在新增/編輯側欄 checklist 時被自動儲存清空
-  const addBtn = target.closest('.add-checklist-item-btn[data-checklist-container="sidebar-checklist-container"]');
-  const deleteBtn = target.closest('.checklist-item-delete');
-  const inSidebarChecklistInput = target.closest('#sidebar-checklist-container .checklist-item input[type="text"]');
-
-  if (addBtn || deleteBtn || inSidebarChecklistInput) {
-    suppressSidebarAutosaveUntil = Date.now() + 1200;
-  }
-}
-
-function handleChecklistTouchStart(event) {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-
-  const checkbox = target.closest('.card-checklist-toggle');
-  if (!checkbox) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-  checkbox.click();
-}
-
-function handleChecklistChange(event) {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-
-  const checkbox = target.closest('.card-checklist-toggle');
-  if (!checkbox) return;
-
-  event.stopPropagation();
-  const cardId = Number(checkbox.dataset.cardId);
-  const itemIndex = Number(checkbox.dataset.itemIndex);
-  const col = checkbox.dataset.col;
-
-  if (!Number.isInteger(cardId) || !Number.isInteger(itemIndex) || !col) return;
-  toggleChecklistItem(cardId, itemIndex, col);
-}
-
-document.addEventListener('click', handleChecklistClick);
-document.addEventListener('mousedown', handleChecklistMouseDown, true);
-document.addEventListener('touchstart', handleChecklistTouchStart, { passive: false });
-document.addEventListener('change', handleChecklistChange);
-document.addEventListener('input', (event) => {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-  if (target.closest('#editor-sidebar.open')) updateSaveButtonDirtyState('sidebar');
-  if (target.closest('#overlay.open')) updateSaveButtonDirtyState('modal');
-}, true);
-document.addEventListener('change', (event) => {
-  const target = event.target instanceof Element ? event.target : null;
-  if (!target) return;
-  if (target.closest('#editor-sidebar.open')) updateSaveButtonDirtyState('sidebar');
-  if (target.closest('#overlay.open')) updateSaveButtonDirtyState('modal');
-}, true);
 
 // ==========================================
 // 通知功能
@@ -3302,19 +3073,15 @@ function playNotificationSound() {
   }
 }
 
-function updateNotificationSoundUI() {
-  const btn = document.getElementById('notification-sound-toggle');
-  if (!btn) return;
-  btn.textContent = notificationSoundEnabled ? '🔔' : '🔕';
-  btn.title = notificationSoundEnabled ? '點擊關閉提示音' : '點擊開啟提示音';
-  btn.setAttribute('aria-label', notificationSoundEnabled ? '關閉提示音' : '開啟提示音');
-}
-
 // 切换提示音开关
 function toggleNotificationSound() {
   notificationSoundEnabled = !notificationSoundEnabled;
   localStorage.setItem('notificationSoundEnabled', notificationSoundEnabled);
-  updateNotificationSoundUI();
+  const btn = document.getElementById('notification-sound-toggle');
+  if (btn) {
+    btn.textContent = notificationSoundEnabled ? '🔔' : '🔕';
+    btn.title = notificationSoundEnabled ? '點擊關閉提示音' : '點擊開啟提示音';
+  }
   toast(notificationSoundEnabled ? '✓ 已開啟提示音' : '✓ 已關閉提示音');
 }
 
@@ -3329,7 +3096,11 @@ function initNotifications() {
   }
   
   // 更新按钮状态
-  updateNotificationSoundUI();
+  const soundBtn = document.getElementById('notification-sound-toggle');
+  if (soundBtn) {
+    soundBtn.textContent = notificationSoundEnabled ? '🔔' : '🔕';
+    soundBtn.title = notificationSoundEnabled ? '點擊關閉提示音' : '點擊開啟提示音';
+  }
   
   // 启动定期检查（每30秒）
   checkNotifications();
@@ -3348,7 +3119,7 @@ function initNotifications() {
 // 检查未读通知数量
 async function checkNotifications() {
   try {
-    const res = await fetchWithSession('api/notifications.php?action=count');
+    const res = await fetch('api/notifications.php?action=count');
     const data = await res.json();
     
     if (data.success && data.count > 0) {
@@ -3399,7 +3170,7 @@ async function toggleNotifications() {
 // 加载通知列表
 async function loadNotifications() {
   try {
-    const res = await fetchWithSession('api/notifications.php?action=list');
+    const res = await fetch('api/notifications.php?action=list');
     const data = await res.json();
     
     const list = document.getElementById('notification-list');
@@ -3425,7 +3196,7 @@ async function loadNotifications() {
 // 处理通知点击
 async function handleNotificationClick(notificationId) {
   try {
-    await fetchWithSession('api/notifications.php?action=mark_read', {
+    await fetch('api/notifications.php?action=mark_read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: notificationId })
@@ -3442,7 +3213,7 @@ async function handleNotificationClick(notificationId) {
 // 全部标记为已读
 async function markAllNotificationsRead() {
   try {
-    await fetchWithSession('api/notifications.php?action=mark_all_read', {
+    await fetch('api/notifications.php?action=mark_all_read', {
       method: 'POST'
     });
     
