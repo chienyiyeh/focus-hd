@@ -169,13 +169,7 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
 
     session_name(SESSION_NAME);
-    session_set_cookie_params([
-        'lifetime' => SESSION_LIFETIME,
-        'path' => '/',
-        'secure' => $isHttps,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
+    session_set_cookie_params(SESSION_LIFETIME, '/');
     session_start();
 }
 
