@@ -167,19 +167,13 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_strict_mode', '1');
     ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
     ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
-
-    session_name(SESSION_NAME);
-    session_set_cookie_params([
+session_set_cookie_params([
         'lifetime' => SESSION_LIFETIME,
         'path' => '/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
-    session_start();
-}
-
-// 設定時區
 date_default_timezone_set(APP_TIMEZONE);
 
 // OPTIONS 請求處理（CORS 預檢）
