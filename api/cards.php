@@ -1,6 +1,6 @@
 <?php
 /**
- * 卡片 API - v2 <?php echo time(); ?>
+ * 卡片 API - v3-20260328
  */
 
 require_once 'config.php';
