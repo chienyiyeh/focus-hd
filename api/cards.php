@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $userId = $_SESSION['user_id'];
-$isAdmin = ($userId === 1 || true); // 暫時全員管理員測試用
+$isAdmin = ($userId === 1);
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
