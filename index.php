@@ -2285,9 +2285,7 @@ async function inlineAddChecklist(cardId, col) {
 
 // 儲存筆記
 async function inlineSaveNote(cardId, col, text) {
-  // 純文字轉成簡單段落
-  const body = text ? text.split('
-').map(l => `<p>${l || '<br>'}</p>`).join('') : '';
+  const body = text ? text.split('\n').map(l => `<p>${escHtml(l) || '<br>'}</p>`).join('') : '';
   await inlineSave(cardId, col, { body });
   toast('✅ 筆記已儲存');
 }
