@@ -1728,10 +1728,13 @@ function buildCard(card, col, cardNo) {
       <button class="mini-tb-btn" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()" title="有序列表">1.</button>
       <button class="mini-tb-btn" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()" title="無序列表">•</button>
       <div class="mini-tb-sep"></div>
-      <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()"></button>
-
+      <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()" title="紅色"></button>
+      <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()" title="藍色"></button>
+      <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色"></button>
+      <div class="mini-tb-sep"></div>
+      <button style="width:22px;height:22px;border-radius:4px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色"></button>
+      <button style="width:22px;height:22px;border-radius:4px;background:#FFFACC;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色"></button>
+      <button style="width:22px;height:22px;border-radius:4px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色"></button>
     </div>`;
 
   // 康乃爾展開區塊（可編輯版）
@@ -2416,6 +2419,35 @@ function selectCurrentLineBefore(note) {
 }
 
 // 設定游標所在行（游標前）的顏色
+// 底色筆：選取游標前這行文字加底色
+function setNoteBgColor(btn, color) {
+  const toolbar = btn.closest('.mini-toolbar');
+  if (!toolbar) return;
+  const noteId = 'note-' + toolbar.id.replace('mtb-', '');
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  note.focus();
+
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+
+  if (sel.toString().length > 0) {
+    document.execCommand('hiliteColor', false, color);
+  } else {
+    const lineRange = selectCurrentLineBefore(note);
+    if (lineRange) {
+      sel.removeAllRanges();
+      sel.addRange(lineRange);
+      document.execCommand('hiliteColor', false, color);
+      const endRange = document.createRange();
+      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
+      endRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(endRange);
+    }
+  }
+}
+
 function setNoteColor(btn, color) {
   const toolbar = btn.closest('.mini-toolbar');
   if (!toolbar) return;
