@@ -348,6 +348,18 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
+  /* 康乃爾筆記格式 */
+  .cornell-layout { display: none; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+  .card.open .cornell-layout { display: block; }
+  .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
+  .cornell-a { width: 38%; border-right: 1px solid var(--border); padding: 10px; background: var(--surface2); }
+  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; }
+  .cornell-b * { max-width: 100%; }
+  .cornell-b p { margin-bottom: 6px; }
+  .cornell-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .cornell-c { padding: 8px 12px; background: #FFFEF0; border-top: 2px solid var(--accent-week); font-size: 12px; color: var(--text-secondary); font-style: italic; line-height: 1.5; }
+  .cornell-c-label { font-size: 10px; font-weight: 700; color: var(--accent-week-text); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+
   /* 卡片動作選單 */
   .card-actions-menu { position: relative; display: inline-block; }
   .card-actions-toggle { background: none; border: 1px solid var(--border-strong); border-radius: 20px; padding: 3px 10px; font-size: 14px; color: var(--text-muted); cursor: pointer; line-height: 1; }
@@ -1548,7 +1560,7 @@ function buildCard(card, col, cardNo) {
   div.className = 'card'; div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
 
-  const hasBody = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
+  const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
   if (card.project || card.priority || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
     metaHTML = '<div class="card-meta">';
@@ -1605,19 +1617,59 @@ function buildCard(card, col, cardNo) {
   }
   const actsHTML = `<div class="card-actions-menu"><button class="card-actions-toggle" onclick="toggleCardMenu('${menuId}');event.stopPropagation()">⋯</button><div class="card-actions-dropdown" id="${menuId}">${menuItems}</div></div>`;
 
-  // 支援 HTML 內容顯示（保留格式）
-  let bodyHTML = '';
-  if (card.body && card.body.trim()) {
-    // 預覽區域也顯示 HTML，但限制高度
-    bodyHTML = `<div class="card-preview">${card.body}</div><div class="card-body">${card.body}</div>`;
-  }
-
   const noTag = (col === 'lib' && card.priority === 'urgent_important' && cardNo) 
     ? `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
     : '';
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}`;
+
+  // 康乃爾格式
+  const hasChecklist = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
+  const hasBody = card.body && card.body.trim();
+  const hasSummary = card.summary && card.summary.trim();
+  const hasNextStep = card.nextStep && card.nextStep.trim();
+  const hasExpandable = hasChecklist || hasBody || hasSummary || hasNextStep;
+
+  // A區：待辦清單
+  let cornellA = '';
+  if (hasChecklist) {
+    const completed = card.checklist.filter(i => i.checked).length;
+    cornellA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
+    card.checklist.forEach((item, idx) => {
+      cornellA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;">`;
+      cornellA += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem(${card.id}, ${idx}, '${col}'); event.stopPropagation();">`;
+      cornellA += `<label style="font-size:12px;">${escHtml(item.text)}</label></div>`;
+    });
+  } else {
+    cornellA = `<div class="cornell-label" style="opacity:0.4;">待辦清單</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">無</div>`;
+  }
+
+  // B區：筆記內容
+  let cornellB = '';
+  if (hasBody) {
+    cornellB = `<div class="cornell-label">📝 筆記</div>${card.body}`;
+  } else {
+    cornellB = `<div class="cornell-label" style="opacity:0.4;">筆記</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">無筆記</div>`;
+  }
+
+  // C區：摘要
+  let cornellC = '';
+  if (hasSummary) {
+    cornellC = `<div class="cornell-c"><div class="cornell-c-label">💡 摘要</div>${escHtml(card.summary)}</div>`;
+  }
+
+  // 下一步
+  let nsHTMLcornell = hasNextStep ? `<div class="card-next-step"><strong>下一步：</strong>${escHtml(card.nextStep)}</div>` : '';
+
+  // 康乃爾展開區塊
+  const cornellHTML = `<div class="cornell-layout"><div class="cornell-top"><div class="cornell-a">${cornellA}</div><div class="cornell-b">${cornellB}</div></div>${cornellC}</div>`;
+
+  // 收合預覽（只顯示摘要或body首行）
+  let previewHTML = '';
+  if (hasSummary) previewHTML = `<div class="card-summary">${escHtml(card.summary)}</div>`;
+  else if (hasBody) previewHTML = `<div class="card-preview">${card.body}</div>`;
+
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasExpandable ? '<div class="chevron">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${previewHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
   
-  if (hasBody) div.onclick = () => div.classList.toggle('open');
+  if (hasExpandable) div.onclick = () => div.classList.toggle('open');
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
