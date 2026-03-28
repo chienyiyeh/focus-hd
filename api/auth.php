@@ -41,6 +41,7 @@ function handleLogin() {
     $input = json_decode(file_get_contents('php://input'), true);
     $username = trim($input['username'] ?? '');
     $password = $input['password'] ?? '';
+    $rememberMe = !empty($input['remember_me']);
     
     if (empty($username) || empty($password)) {
         jsonResponse(['success' => false, 'error' => '請輸入帳號和密碼'], 200);
@@ -54,14 +55,22 @@ function handleLogin() {
         
         // 驗證密碼
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            // 這裡改用 jsonResponse 並自帶 success: false，確保前端能正常顯示「帳號或密碼錯誤」
             jsonResponse(['success' => false, 'error' => '帳號或密碼錯誤'], 200);
+        }
+        
+        // 記住我：將 session cookie 延長為 30 天
+        if ($rememberMe) {
+            $thirtyDays = 60 * 60 * 24 * 30;
+            ini_set('session.cookie_lifetime', $thirtyDays);
+            session_set_cookie_params($thirtyDays);
+            session_regenerate_id(true);
         }
         
         // 設定 SESSION
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['login_time'] = time();
+        $_SESSION['remember_me'] = $rememberMe;
         
         // 使用 config.php 裡的 successResponse (它自帶 'success' => true)
         successResponse([
