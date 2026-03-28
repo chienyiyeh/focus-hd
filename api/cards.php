@@ -202,4 +202,14 @@ function handleMove($userId) {
     try {
         $db = getDB();
         if ($newCol === 'done') {
-            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NOW() WHERE id=? AND user_id=?"
+            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NOW() WHERE id=? AND user_id=?");
+        } else {
+            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NULL WHERE id=? AND user_id=?");
+        }
+        $stmt->execute([$newCol, $id, $userId]);
+        if ($stmt->rowCount() > 0) successResponse(['id' => $id, 'col' => $newCol], '卡片移動成功');
+        else errorResponse('卡片不存在或無權限移動');
+    } catch (Exception $e) {
+        errorResponse('移動卡片失敗');
+    }
+}
