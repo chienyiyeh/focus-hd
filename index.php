@@ -16,7 +16,7 @@ $username = $_SESSION['username'] ?? 'User';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>我的專注看板</title>
+<title>FOCUS 專注看板</title>
 
 <!-- PWA 支援 -->
 <link rel="manifest" href="/manifest.json">
@@ -323,6 +323,31 @@ $username = $_SESSION['username'] ?? 'User';
   .export-option-title { font-weight: 600; margin-bottom: 4px; color: var(--text); }
   .export-option-desc { font-size: 11px; color: var(--text-muted); }
 
+  /* 四象限優先級 */
+  .priority-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .priority-btn { padding: 10px 8px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); }
+  .priority-btn:hover { background: var(--surface2); }
+  .priority-btn.active[data-value="urgent_important"] { background: #FFF0F0; border-color: #FF4444; color: #CC0000; }
+  .priority-btn.active[data-value="important_not_urgent"] { background: #FFF8EC; border-color: #FF9800; color: #CC7700; }
+  .priority-btn.active[data-value="urgent_not_important"] { background: #EEF5FF; border-color: #2196F3; color: #0D6EBF; }
+  .priority-btn.active[data-value="not_urgent_not_important"] { background: #F5F5F5; border-color: #9E9E9E; color: #555555; }
+
+  /* 手機版下拉選單 */
+  .mobile-menu-btn { display: none; }
+  .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300; }
+  .mobile-dropdown.open { display: block; }
+  .mobile-dropdown-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+  .mobile-dropdown-panel { position: absolute; top: 0; right: 0; width: 260px; height: 100%; background: var(--surface); display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.15); }
+  .mobile-dropdown-header { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .mobile-dropdown-title { font-size: 15px; font-weight: 700; }
+  .mobile-dropdown-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); padding: 4px; }
+  .mobile-dropdown-item { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 500; cursor: pointer; color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
+  .mobile-dropdown-item:hover { background: var(--surface2); }
+  .mobile-dropdown-item.danger { color: #991B1B; }
+
+  /* 卡片上的優先級標籤 */
+  .priority-tag { padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; display: inline-block; }
+
   /* 響應式 */
   @media (max-width: 1024px) { 
     .board-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); } 
@@ -344,7 +369,8 @@ $username = $_SESSION['username'] ?? 'User';
     .filter-tags { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .filter-tags::-webkit-scrollbar { display: none; }
     .filter-tag { flex-shrink: 0; }
-    .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn { padding: 6px 10px; font-size: 12px; }
+    .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn, .header-actions #notification-sound-toggle, .header-actions .notification-btn { display: none !important; }
+    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 20px; cursor: pointer; }
     .card { padding: 14px; border-radius: 12px; margin-bottom: 10px; }
     .act-btn { padding: 8px 12px; font-size: 12px; } 
   }
@@ -353,7 +379,7 @@ $username = $_SESSION['username'] ?? 'User';
 <body>
 
 <header>
-  <div class="logo">我的專注看板 <span>Ultra</span></div>
+  <div class="logo">🎯 <span>FOCUS</span></div>
   
   <div class="header-center">
     <div class="search-box">
@@ -400,7 +426,9 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
     </div>
     <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
-    <button class="logout-btn" onclick="logout()">登出</button>
+    <button class="notification-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border-color:#FCA5A5;">登出</button>
+    <!-- 手機版漢堡選單按鈕 -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
   </div>
 </header>
 
@@ -502,6 +530,16 @@ $username = $_SESSION['username'] ?? 'User';
         <select class="field-select" id="input-project"></select>
       </div>
       <div class="field">
+        <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
+        <div class="priority-grid" id="priority-grid">
+          <button type="button" class="priority-btn" data-value="urgent_important" onclick="selectPriority('urgent_important')">🔥 重要且緊急</button>
+          <button type="button" class="priority-btn" data-value="important_not_urgent" onclick="selectPriority('important_not_urgent')">⭐ 重要不緊急</button>
+          <button type="button" class="priority-btn" data-value="urgent_not_important" onclick="selectPriority('urgent_not_important')">⚡ 緊急不重要</button>
+          <button type="button" class="priority-btn" data-value="not_urgent_not_important" onclick="selectPriority('not_urgent_not_important')">💤 不重要不緊急</button>
+        </div>
+        <input type="hidden" id="input-priority">
+      </div>
+      <div class="field">
         <label class="field-label">隱私設定</label>
         <div style="display: flex; gap: 12px; margin-top: 8px;">
           <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
@@ -586,6 +624,23 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="modal-footer">
       <button class="modal-btn primary" onclick="closeProjectSettings()">完成</button>
     </div>
+  </div>
+</div>
+
+<!-- 手機版下拉選單 -->
+<div class="mobile-dropdown" id="mobile-dropdown">
+  <div class="mobile-dropdown-bg" onclick="closeMobileMenu()"></div>
+  <div class="mobile-dropdown-panel">
+    <div class="mobile-dropdown-header">
+      <span class="mobile-dropdown-title">👤 <?php echo htmlspecialchars($username); ?></span>
+      <button class="mobile-dropdown-close" onclick="closeMobileMenu()">✕</button>
+    </div>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleNotifications()">🔔 通知</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); openProjectSettings()">⚙️ 專案設定</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); exportToExcel()">📊 匯出 Excel</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); backupData()">💾 備份資料</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleHelp()">💡 使用說明</button>
+    <button class="mobile-dropdown-item danger" onclick="closeMobileMenu(); logout()">🚪 登出</button>
   </div>
 </div>
 
@@ -1330,11 +1385,16 @@ function buildCard(card, col) {
 
   const hasBody = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
-  if (card.project || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
+  if (card.project || card.priority || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
     metaHTML = '<div class="card-meta">';
     if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
+    if (card.priority) {
+      const pLabels = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
+      const pColors = { urgent_important:'#FF4444', important_not_urgent:'#FF9800', urgent_not_important:'#2196F3', not_urgent_not_important:'#9E9E9E' };
+      const pc = pColors[card.priority] || '#666';
+      metaHTML += `<span class="priority-tag" style="background:${pc}20;color:${pc};border:1px solid ${pc}40;">${pLabels[card.priority] || card.priority}</span>`;
+    }
     if (card.createdByUsername) metaHTML += `<span class="created-by">by ${card.createdByUsername}</span>`;
-    // 只在私人卡片显示标记
     if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒 私人</span>`;
     if (col === 'done' && card.completedAt) metaHTML += `<span class="completed-time">✓ ${formatDateTime(card.completedAt)}</span>`;
     metaHTML += '</div>';
@@ -1433,6 +1493,9 @@ function openModal(col) {
   
   // 清空待办清单
   document.getElementById('checklist-container').innerHTML = '';
+  // 清空優先級
+  document.getElementById('input-priority').value = '';
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
   
   const preview = document.getElementById('word-preview');
   preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
@@ -1456,6 +1519,11 @@ function editCard(id, col) {
   
   // 加载待办清单
   renderChecklistEdit(card.checklist);
+  // 載入優先級
+  document.getElementById('input-priority').value = card.priority || '';
+  document.querySelectorAll('.priority-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === card.priority);
+  });
   
   const preview = document.getElementById('word-preview');
   if (card.body && card.body.trim()) {
@@ -1473,8 +1541,9 @@ function editCard(id, col) {
 async function saveCard() {
   const t = document.getElementById('input-title').value.trim(); if (!t) { document.getElementById('input-title').focus(); return; }
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
-  const checklist = getChecklistData(); // 获取待办清单数据
-  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: document.getElementById('input-body').value.trim(), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
+  const checklist = getChecklistData();
+  const priority = document.getElementById('input-priority').value || null;
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: document.getElementById('input-body').value.trim(), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
@@ -1838,6 +1907,24 @@ function formatNotificationTime(dateString) {
 document.addEventListener('DOMContentLoaded', function() {
   initNotifications();
 });
+
+// 四象限優先級選擇
+function selectPriority(value) {
+  const current = document.getElementById('input-priority').value;
+  if (current === value) {
+    document.getElementById('input-priority').value = '';
+    document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    document.getElementById('input-priority').value = value;
+    document.querySelectorAll('.priority-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === value);
+    });
+  }
+}
+
+// 手機版選單
+function toggleMobileMenu() { document.getElementById('mobile-dropdown').classList.toggle('open'); }
+function closeMobileMenu() { document.getElementById('mobile-dropdown').classList.remove('open'); }
 
 </script>
 </body>
