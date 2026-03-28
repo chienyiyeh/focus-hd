@@ -1651,7 +1651,7 @@ function buildCard(card, col, cardNo) {
 
   // C區：摘要
   // 摘要顯示在卡片頂部，C區不再重複
-  const cornellC = '';
+  const cornellC = hasSummary ? `<div class="cornell-c"><div class="cornell-c-label">💡 摘要</div>${escHtml(card.summary)}</div>` : '';
 
   // 下一步
   let nsHTMLcornell = hasNextStep ? `<div class="card-next-step"><strong>下一步：</strong>${escHtml(card.nextStep)}</div>` : '';
