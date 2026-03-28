@@ -1330,12 +1330,15 @@ async function loadCards() {
   try {
     const res = await fetch('api/cards.php?action=list');
     const data = await res.json();
-    if (data.error) { toast(data.error); return; }
-    state = { lib: data.lib || [], week: data.week || [], focus: data.focus || [], done: data.done || [] };
-    
-    // ⭐ 重要：在渲染前更新專案標籤
+    // 支援兩種格式：直接 {lib,week,focus,done} 或 {success:false, error:'...'}
+    if (data.success === false) { toast('❌ ' + (data.error || '讀取失敗')); return; }
+    state = { 
+      lib: data.lib || [], 
+      week: data.week || [], 
+      focus: data.focus || [], 
+      done: data.done || [] 
+    };
     updateProjectLabels();
-    
     render();
   } catch (err) { toast('連線異常，無法讀取卡片'); }
 }
@@ -1348,7 +1351,11 @@ async function saveCardToAPI(cardData) {
     const data = await res.json();
     if (data.success) {
       toast(cardData.id ? '✅ 卡片更新成功' : '✅ 卡片新增成功');
-      await loadCards(); closeModal();
+      // 記住當前分頁，儲存後不跳走
+      const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+      await loadCards();
+      if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+      closeModal();
     } else toast('❌ ' + (data.error || '儲存失敗'));
   } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
 }
@@ -1990,32 +1997,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 手機版 Tab 切換
 function switchMobileTab(colName) {
-  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
-  const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
-  const col = document.querySelector(`.col[data-col="${colName}"]`);
-  if (tab) tab.classList.add('active');
-  if (col) col.classList.add('active');
+  // 使用者手動切換：記住分頁
+  setMobileTab(colName);
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // 記住最後看的分頁
-  try { localStorage.setItem('lastMobileTab', colName); } catch(e) {}
 }
 
-function initMobileTabs(forceReset = false) {
+function initMobileTabs() {
+  // 重整/首次載入：固定跳今日專注
   if (window.innerWidth <= 768) {
-    // 如果已經有 active 的分頁且不強制重置，就不動它
-    const currentActive = document.querySelector('.mobile-tab.active');
-    if (currentActive && !forceReset) return;
-
-    let lastTab = 'focus';
-    try { lastTab = localStorage.getItem('lastMobileTab') || 'focus'; } catch(e) {}
-    document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
-    const col = document.querySelector(`.col[data-col="${lastTab}"]`);
-    const tab = document.querySelector(`.mobile-tab[data-col="${lastTab}"]`);
-    if (col) col.classList.add('active');
-    if (tab) tab.classList.add('active');
+    setMobileTab('focus');
   }
+}
+
+function setMobileTab(colName) {
+  // 切換分頁的核心函數，不改 localStorage
+  document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+  const col = document.querySelector(`.col[data-col="${colName}"]`);
+  const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
+  if (col) col.classList.add('active');
+  if (tab) tab.classList.add('active');
 }
 
 // 四象限優先級選擇
