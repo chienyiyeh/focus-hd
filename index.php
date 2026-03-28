@@ -408,7 +408,7 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
   .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
   .cornell-a { width: 45%; border-right: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
-  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; }
+  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; }
   .cornell-b * { max-width: 100%; }
   .cornell-b p { margin-bottom: 6px; }
   .cornell-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
@@ -1712,7 +1712,7 @@ function buildCard(card, col, cardNo) {
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
   const noteHTML = card.body || '';
-  const editableB = `<div class="cornell-label">📝 筆記</div>
+  const editableB = `<div class="cornell-label" onclick="document.getElementById('note-${cardIdStr}').focus();event.stopPropagation()">📝 筆記</div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
@@ -1731,7 +1731,7 @@ function buildCard(card, col, cardNo) {
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
-  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
+  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b" onclick="var n=document.getElementById('note-${cardIdStr}');if(n)n.focus();event.stopPropagation();">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
   let previewHTML = '';
