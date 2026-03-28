@@ -1732,9 +1732,9 @@ function buildCard(card, col, cardNo) {
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()" title="藍色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色"></button>
       <div class="mini-tb-sep"></div>
-      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#DAEEFF;text-shadow:0 2px 0 #DAEEFF,0 3px 0 #DAEEFF;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色">A</button>
-      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#FFFACC;text-shadow:0 2px 0 #FFFACC,0 3px 0 #FFFACC;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色">A</button>
-      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#FFE4EC;text-shadow:0 2px 0 #FFE4EC,0 3px 0 #FFE4EC;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色">A</button>
+      <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#DAEEFF" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#DAEEFF"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
+      <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#FFFACC" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#FFFACC"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
+      <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#FFE4EC" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#FFE4EC"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
     </div>`;
 
   // 康乃爾展開區塊（可編輯版）
@@ -2365,148 +2365,78 @@ function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
 // 選取游標所在行從行首到游標位置
-function selectCurrentLineBefore(note) {
+// 找游標所在的行元素（li, p, div）
+function getCurrentLineEl(note) {
   const sel = window.getSelection();
-  if (!sel || !sel.rangeCount) return null;
-  const range = sel.getRangeAt(0);
-  
-  // 找到游標所在的文字節點
-  const curNode = range.startContainer;
-  const curOffset = range.startOffset;
-  
-  // find line start (scan back for br or block)
-  const newRange = document.createRange();
-  
-  // 找當前行的起點
-  let lineStart = null;
-  let lineStartOffset = 0;
-  
-  // 從游標往前掃描找換行點
-  const walker = document.createTreeWalker(note, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
-  let found = false;
-  let nodes = [];
-  let node = walker.nextNode();
-  while (node) {
-    if (node === curNode) { found = true; break; }
-    nodes.push(node);
-    node = walker.nextNode();
+  if (!sel || !sel.rangeCount) return note;
+  let node = sel.getRangeAt(0).startContainer;
+  while (node && node !== note) {
+    if (node.nodeType === 1 && ['LI','P','DIV'].includes(node.nodeName)) return node;
+    node = node.parentNode;
   }
-  
-  // find last br or block element
-  lineStart = note;
-  lineStartOffset = 0;
-  for (let i = nodes.length - 1; i >= 0; i--) {
-    const n = nodes[i];
-    if (n.nodeName === 'BR' || n.nodeName === 'P' || n.nodeName === 'DIV') {
-      if (n.nodeName === 'BR') {
-        lineStart = n.parentNode;
-        lineStartOffset = Array.from(n.parentNode.childNodes).indexOf(n) + 1;
-      } else {
-        lineStart = n;
-        lineStartOffset = 0;
-      }
-      break;
-    }
-  }
-  
-  try {
-    newRange.setStart(lineStart, lineStartOffset);
-    newRange.setEnd(curNode, curOffset);
-    return newRange;
-  } catch(e) {
-    return null;
-  }
+  return note;
 }
 
-// 設定游標所在行（游標前）的顏色
-// 底色筆：選取游標前這行文字加底色
-function setNoteBgColor(btn, color) {
-  const toolbar = btn.closest('.mini-toolbar');
-  if (!toolbar) return;
-  const noteId = 'note-' + toolbar.id.replace('mtb-', '');
-  const note = document.getElementById(noteId);
-  if (!note) return;
-  note.focus();
-
+// 選取整行文字並執行指令，再恢復游標
+function applyToCurrentLine(note, cmd, value) {
   const sel = window.getSelection();
   if (!sel || !sel.rangeCount) return;
-
-  if (sel.toString().length > 0) {
-    document.execCommand('hiliteColor', false, color);
-  } else {
-    const lineRange = selectCurrentLineBefore(note);
-    if (lineRange) {
-      sel.removeAllRanges();
-      sel.addRange(lineRange);
-      document.execCommand('hiliteColor', false, color);
-      const endRange = document.createRange();
-      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
-      endRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(endRange);
-    }
-  }
+  const savedRange = sel.getRangeAt(0).cloneRange();
+  const lineEl = getCurrentLineEl(note);
+  const range = document.createRange();
+  range.selectNodeContents(lineEl);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  document.execCommand(cmd, false, value || null);
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
 }
 
+// 文字顏色：整行
 function setNoteColor(btn, color) {
   const toolbar = btn.closest('.mini-toolbar');
   if (!toolbar) return;
-  const noteId = 'note-' + toolbar.id.replace('mtb-', '');
-  const note = document.getElementById(noteId);
+  const note = document.getElementById('note-' + toolbar.id.replace('mtb-', ''));
   if (!note) return;
   note.focus();
-
   const sel = window.getSelection();
   if (!sel || !sel.rangeCount) return;
-
-  // 如果有選取文字，只改選取範圍
   if (sel.toString().length > 0) {
     document.execCommand('foreColor', false, color);
   } else {
-    // 選取游標所在行的游標前文字
-    const lineRange = selectCurrentLineBefore(note);
-    if (lineRange) {
-      sel.removeAllRanges();
-      sel.addRange(lineRange);
-      document.execCommand('foreColor', false, color);
-      // 游標移回行末
-      const endRange = document.createRange();
-      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
-      endRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(endRange);
-    }
+    applyToCurrentLine(note, 'foreColor', color);
   }
-
-  // 標記選中的顏色按鈕
-  toolbar.querySelectorAll('button[onmousedown*="setNoteColor"]').forEach(b => {
-    b.style.border = '2px solid rgba(255,255,255,0.4)';
-  });
-  btn.style.border = '3px solid white';
 }
 
-// 粗體也套用游標前的文字
+// 底色筆：整行
+function setNoteBgColor(btn, color) {
+  const toolbar = btn.closest('.mini-toolbar');
+  if (!toolbar) return;
+  const note = document.getElementById('note-' + toolbar.id.replace('mtb-', ''));
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (sel.toString().length > 0) {
+    document.execCommand('hiliteColor', false, color);
+  } else {
+    applyToCurrentLine(note, 'hiliteColor', color);
+  }
+}
+
+// 粗體：整行
 function applyFormatBefore(cmd) {
   const sel = window.getSelection();
   if (!sel || !sel.rangeCount) { document.execCommand(cmd, false, null); return; }
   if (sel.toString().length > 0) {
     document.execCommand(cmd, false, null);
   } else {
-    const activeNote = document.activeElement;
-    if (!activeNote || !activeNote.classList.contains('note-editable')) return;
-    const lineRange = selectCurrentLineBefore(activeNote);
-    if (lineRange) {
-      sel.removeAllRanges();
-      sel.addRange(lineRange);
-      document.execCommand(cmd, false, null);
-      const endRange = document.createRange();
-      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
-      endRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(endRange);
-    }
+    const note = document.activeElement;
+    if (!note || !note.classList.contains('note-editable')) return;
+    applyToCurrentLine(note, cmd, null);
   }
 }
+
 
 // 筆記欄開關
 function toggleNoteEdit(cardId) {
