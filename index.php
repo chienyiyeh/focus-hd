@@ -715,6 +715,7 @@ $username = $_SESSION['username'] ?? 'User';
 // 狀態與基礎設定
 // ==========================================
 let state = { lib: [], week: [], focus: [], done: [] };
+const CURRENT_USERNAME = <?php echo json_encode($_SESSION['username'] ?? ''); ?>;
 let privacyFilter = 'all'; // 隐私筛选：'all', 'shared', 'private'
 let searchQuery = '';
 
@@ -1481,7 +1482,8 @@ function buildCard(card, col) {
   let actsHTML = '<div class="card-actions">';
   if (col !== 'done') {
     if (col === 'lib' && state.week.length < 3) actsHTML += `<button class="act-btn postpone" onclick="moveAPI(${card.id},'week');event.stopPropagation()">→ 本週目標</button>`;
-    if (col !== 'focus' && state.focus.length < 1) actsHTML += `<button class="act-btn focus" onclick="moveAPI(${card.id},'focus');event.stopPropagation()">→ 今日專注</button>`;
+    const myFocusCnt = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+    if (col !== 'focus' && myFocusCnt < 1) actsHTML += `<button class="act-btn focus" onclick="moveAPI(${card.id},'focus');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') actsHTML += `<button class="act-btn back" onclick="moveAPI(${card.id},'lib');event.stopPropagation()">↩ 退回策略庫</button>`;
     if (col === 'week') actsHTML += `<button class="act-btn postpone" onclick="postponeCard();event.stopPropagation()">⏭ 延到下週</button>`;
     actsHTML += `<button class="act-btn done" onclick="moveAPI(${card.id},'done');event.stopPropagation()">✓ 完成</button> <button class="act-btn" onclick="editCard(${card.id},'${col}');event.stopPropagation()">編輯</button> <button class="act-btn del" onclick="deleteAPI(${card.id});event.stopPropagation()">刪除</button></div>`;
@@ -1523,7 +1525,8 @@ function handleDragLeave(e) { if (e.target === this) this.closest('.col').classL
 function handleDrop(e) {
   e.preventDefault(); if (!draggedCard) return;
   const toCol = this.closest('.col').dataset.col;
-  if (toCol === 'focus' && state.focus.length >= 1 && draggedCard.fromCol !== 'focus') { toast('今日專注只能 1 張！'); this.closest('.col').classList.remove('drag-over'); return; }
+  const myFocus = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (toCol === 'focus' && myFocus >= 1 && draggedCard.fromCol !== 'focus') { toast('你的今日專注已有 1 張！'); this.closest('.col').classList.remove('drag-over'); return; }
   if (toCol === 'week' && state.week.length >= 3 && draggedCard.fromCol !== 'week') { toast('本週目標已滿 3 張！'); this.closest('.col').classList.remove('drag-over'); return; }
   if (draggedCard.fromCol !== toCol) moveAPI(draggedCard.id, toCol);
   this.closest('.col').classList.remove('drag-over'); draggedCard = null;
@@ -1539,7 +1542,8 @@ async function clearDone() {
 // 表單與 UI
 // ==========================================
 function openModal(col) {
-  if (col === 'focus' && state.focus.length >= 1) { toast('今日專注只能 1 張！'); return; }
+  const myFocusCount = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (col === 'focus' && myFocusCount >= 1) { toast('你的今日專注已有 1 張！'); return; }
   if (col === 'week' && state.week.length >= 3) { toast('本週目標已滿 3 張！'); return; }
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
   document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = '';
