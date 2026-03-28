@@ -2,7 +2,7 @@
 /**
  * 登入頁面
  */
-require_once __DIR__ . '/api/config.php';
+session_start();
 
 // 如果已經登入，轉到主頁
 if (isset($_SESSION['user_id'])) {
@@ -19,6 +19,12 @@ if (isset($_SESSION['user_id'])) {
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* 修復手機字體縮放導致版面跑掉 */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 
 :root {
   --bg: #F5F3EE;
@@ -99,6 +105,29 @@ body {
 .form-input:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+/* 記住我 */
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.remember-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remember-row label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
 }
 
 .btn-login {
@@ -196,6 +225,12 @@ body {
         required
       >
     </div>
+
+    <!-- 記住我 -->
+    <div class="remember-row">
+      <input type="checkbox" id="remember_me" name="remember_me">
+      <label for="remember_me">記住我（30 天不用重新登入）</label>
+    </div>
     
     <button type="submit" class="btn-login" id="btn-submit">登入</button>
   </form>
@@ -212,18 +247,12 @@ const loginForm = document.getElementById('login-form');
 const btnSubmit = document.getElementById('btn-submit');
 const errorMessage = document.getElementById('error-message');
 
-function fetchWithSession(url, options = {}) {
-  return fetch(url, {
-    credentials: 'include',
-    ...options
-  });
-}
-
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
+  const rememberMe = document.getElementById('remember_me').checked;
   
   if (!username || !password) {
     showError('請輸入帳號和密碼');
@@ -235,12 +264,12 @@ loginForm.addEventListener('submit', async (e) => {
   hideError();
   
   try {
-    const response = await fetchWithSession('api/auth.php?action=login', {
+    const response = await fetch('api/auth.php?action=login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, remember_me: rememberMe })
     });
     
     const data = await response.json();
