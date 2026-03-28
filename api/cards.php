@@ -1,6 +1,6 @@
 <?php
 /**
- * 卡片 API
+ * 卡片 API - v2 <?php echo time(); ?>
  */
 
 require_once 'config.php';
@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $userId = $_SESSION['user_id'];
-$isAdmin = ($userId === 1);
+$isAdmin = ($userId === 1); // chienyi 是管理員
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
