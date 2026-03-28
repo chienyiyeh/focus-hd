@@ -611,11 +611,11 @@ $username = $_SESSION['username'] ?? 'User';
         <label class="field-label">隱私設定</label>
         <div style="display: flex; gap: 12px; margin-top: 8px;">
           <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-            <input type="radio" name="privacy" id="privacy-shared" value="0" checked style="cursor: pointer;">
+            <input type="radio" name="privacy" id="privacy-shared" value="0" style="cursor: pointer;">
             <span style="font-size: 14px;">👥 共用（兩人都能看到）</span>
           </label>
           <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-            <input type="radio" name="privacy" id="privacy-private" value="1" style="cursor: pointer;">
+            <input type="radio" name="privacy" id="privacy-private" value="1" checked style="cursor: pointer;">
             <span style="font-size: 14px;">🔒 私人（只有自己能看到）</span>
           </label>
         </div>
