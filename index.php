@@ -1723,7 +1723,11 @@ function buildCard(card, col, cardNo) {
       <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
       <button class="mini-tb-btn" onmousedown="miniCmd('underline');event.preventDefault();event.stopPropagation()"><u>U</u></button>
       <div class="mini-tb-sep"></div>
-      <input type="color" class="mini-tb-color" value="#E24B4A" onchange="miniCmd('foreColor',this.value);event.stopPropagation()" title="顏色">
+      <input type="color" class="mini-tb-color" value="#E24B4A" 
+        onmousedown="event.stopPropagation()" 
+        onpointerdown="event.stopPropagation()"
+        onchange="event.stopPropagation(); var note=document.activeElement; miniCmd('foreColor',this.value); setTimeout(()=>{ if(note && note.classList.contains('note-editable')) note.focus(); },10);"
+        title="顏色">
       <div class="mini-tb-sep"></div>
       <button class="mini-tb-btn" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
     </div>`;
@@ -2363,7 +2367,7 @@ function hideMiniToolbar(id) {
   setTimeout(() => {
     const tb = document.getElementById(id);
     if (tb) tb.classList.remove('show');
-  }, 300);
+  }, 800);
 }
 
 // 儲存富文字筆記（保留 HTML）
