@@ -1732,9 +1732,9 @@ function buildCard(card, col, cardNo) {
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()" title="藍色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色"></button>
       <div class="mini-tb-sep"></div>
-      <button style="width:22px;height:22px;border-radius:4px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色"></button>
-      <button style="width:22px;height:22px;border-radius:4px;background:#FFFACC;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色"></button>
-      <button style="width:22px;height:22px;border-radius:4px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色"></button>
+      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#DAEEFF;text-shadow:0 2px 0 #DAEEFF,0 3px 0 #DAEEFF;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色">A</button>
+      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#FFFACC;text-shadow:0 2px 0 #FFFACC,0 3px 0 #FFFACC;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色">A</button>
+      <button style="padding:2px 6px;border-radius:4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;font-weight:900;font-size:14px;color:#FFE4EC;text-shadow:0 2px 0 #FFE4EC,0 3px 0 #FFE4EC;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色">A</button>
     </div>`;
 
   // 康乃爾展開區塊（可編輯版）
