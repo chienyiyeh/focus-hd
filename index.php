@@ -1696,11 +1696,11 @@ function buildCard(card, col, cardNo) {
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
   const noteHTML = card.body || '';
-  const editableB = `<div style="position:relative;min-height:60px;" onmousedown="if(!document.getElementById('note-${cardIdStr}').classList.contains('editing')){toggleNoteEdit('${cardIdStr}');}event.stopPropagation();">
+  const editableB = `<div style="position:relative;min-height:60px;" onmousedown="if(!document.getElementById('note-${cardIdStr}').classList.contains('editing')){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
       <div style="position:absolute;bottom:2px;right:2px;display:flex;align-items:center;gap:4px;z-index:2;">
         <span style="font-size:10px;color:var(--text-muted);">📝</span>
         <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--text-muted);cursor:pointer;" 
-          onmousedown="toggleNoteEdit('${cardIdStr}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
+          onmousedown="toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
       </div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}" style="position:absolute;right:-36px;top:0;border-radius:8px;padding:5px 4px;gap:5px;flex-direction:column;align-items:center;width:30px;z-index:10;">
       <button class="mini-tb-btn" style="padding:2px 4px;font-size:12px;width:24px;" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
@@ -1718,7 +1718,7 @@ function buildCard(card, col, cardNo) {
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點此輸入筆記..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
-      onmousedown="if(this.contentEditable!=='true'){toggleNoteEdit('${cardIdStr}');event.preventDefault();}event.stopPropagation()"
+      onmousedown="if(this.contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();}event.stopPropagation()"
       style="pointer-events:auto;opacity:1;cursor:text;"
     >${noteHTML}</div>
     </div>`;
@@ -2412,11 +2412,13 @@ function applyFormatBefore(cmd) {
 
 
 // 筆記欄開關
-function toggleNoteEdit(cardId) {
+function toggleNoteEdit(cardId, col) {
   const note = document.getElementById('note-' + cardId);
   const btn = document.getElementById('note-toggle-' + cardId);
   const tbId = 'mtb-' + cardId;
   if (!note || !btn) return;
+  // col 優先用傳入的，其次從 DOM 抓，最後 fallback
+  const cardCol = col || note.closest('.cornell-layout')?.dataset?.col || 'lib';
 
   const isEditing = note.contentEditable === 'true';
   const cornellTop = note.closest('.cornell-top');
@@ -2424,19 +2426,17 @@ function toggleNoteEdit(cardId) {
   const cornellB = cornellTop ? cornellTop.querySelector('.cornell-b') : null;
   if (isEditing) {
     note.contentEditable = 'false';
-    note.style.pointerEvents = 'none';
-    note.style.opacity = '0.8';
+    note.style.cursor = 'text';
     btn.textContent = '✏️ 編輯';
     btn.style.background = 'none';
     btn.style.color = '';
     if (cornellA) cornellA.style.width = '';
     if (cornellB) { cornellB.style.flex = '1'; cornellB.style.width = ''; }
     hideMiniToolbar(tbId);
-    inlineSaveNoteHTML(parseInt(cardId), note.closest('.cornell-layout')?.dataset?.col || 'lib', note.innerHTML);
+    inlineSaveNoteHTML(parseInt(cardId), cardCol, note.innerHTML);
   } else {
     note.contentEditable = 'true';
-    note.style.pointerEvents = 'auto';
-    note.style.opacity = '1';
+    note.style.cursor = 'text';
     btn.textContent = '✓ 完成';
     btn.style.background = '#E8F5E9';
     btn.style.color = '#2E7D32';
