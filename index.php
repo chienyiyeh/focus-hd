@@ -408,7 +408,7 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
   .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
   .cornell-a { width: 45%; border-right: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
-  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; }
+  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; position: relative; }
   .cornell-b * { max-width: 100%; }
   .cornell-b p { margin-bottom: 6px; }
   .cornell-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
@@ -1701,18 +1701,18 @@ function buildCard(card, col, cardNo) {
       <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:12px;padding:2px 8px;font-size:11px;color:var(--text-muted);cursor:pointer;" 
         onmousedown="toggleNoteEdit('${cardIdStr}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
     </div>
-    <div class="mini-toolbar" id="mtb-${cardIdStr}" style="margin-bottom:6px;border-radius:6px;padding:4px 6px;gap:4px;flex-wrap:wrap;">
-      <button class="mini-tb-btn" style="padding:2px 7px;" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
-      <button class="mini-tb-btn" style="padding:2px 7px;" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()">1.</button>
-      <button class="mini-tb-btn" style="padding:2px 7px;" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()">•</button>
-      <div class="mini-tb-sep"></div>
-      <button style="width:20px;height:20px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;padding:0;flex-shrink:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:20px;height:20px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;padding:0;flex-shrink:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:20px;height:20px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;padding:0;flex-shrink:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()"></button>
-      <div class="mini-tb-sep"></div>
-      <button style="padding:2px 3px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍"><svg width="16" height="16" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#DAEEFF"/><polygon points="4,12 7,4 11,4 14,12" fill="#DAEEFF" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
-      <button style="padding:2px 3px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃"><svg width="16" height="16" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#FFFACC"/><polygon points="4,12 7,4 11,4 14,12" fill="#FFFACC" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
-      <button style="padding:2px 3px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉"><svg width="16" height="16" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#FFE4EC"/><polygon points="4,12 7,4 11,4 14,12" fill="#FFE4EC" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
+    <div class="mini-toolbar" id="mtb-${cardIdStr}" style="position:absolute;right:-36px;top:0;border-radius:8px;padding:5px 4px;gap:5px;flex-direction:column;align-items:center;width:30px;z-index:10;">
+      <button class="mini-tb-btn" style="padding:2px 4px;font-size:12px;width:24px;" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
+      <button class="mini-tb-btn" style="padding:2px 4px;font-size:11px;width:24px;" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()">1.</button>
+      <button class="mini-tb-btn" style="padding:2px 4px;font-size:12px;width:24px;" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()">•</button>
+      <div style="width:18px;height:1px;background:rgba(255,255,255,0.3);"></div>
+      <button style="width:20px;height:20px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()"></button>
+      <button style="width:20px;height:20px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()"></button>
+      <button style="width:20px;height:20px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()"></button>
+      <div style="width:18px;height:1px;background:rgba(255,255,255,0.3);"></div>
+      <button style="padding:1px;background:transparent;border:none;cursor:pointer;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()"><svg width="20" height="20" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#DAEEFF"/><polygon points="4,12 7,4 11,4 14,12" fill="#DAEEFF" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
+      <button style="padding:1px;background:transparent;border:none;cursor:pointer;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()"><svg width="20" height="20" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#FFFACC"/><polygon points="4,12 7,4 11,4 14,12" fill="#FFFACC" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
+      <button style="padding:1px;background:transparent;border:none;cursor:pointer;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()"><svg width="20" height="20" viewBox="0 0 18 18"><rect x="2" y="12" width="14" height="4" rx="1" fill="#FFE4EC"/><polygon points="4,12 7,4 11,4 14,12" fill="#FFE4EC" opacity="0.8"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.6)"/></svg></button>
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點「編輯」開始輸入..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
@@ -1723,7 +1723,7 @@ function buildCard(card, col, cardNo) {
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
-  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
+  const cornellHTML = `<div class="cornell-layout" data-col="${col}" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
   let previewHTML = '';
