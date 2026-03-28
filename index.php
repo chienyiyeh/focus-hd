@@ -1723,11 +1723,11 @@ function buildCard(card, col, cardNo) {
       <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
       <button class="mini-tb-btn" onmousedown="miniCmd('underline');event.preventDefault();event.stopPropagation()"><u>U</u></button>
       <div class="mini-tb-sep"></div>
-      <button class="mini-tb-btn" style="color:#E24B4A;font-weight:900;" onmousedown="miniCmd('foreColor','#E24B4A');event.preventDefault();event.stopPropagation()" title="紅色">A</button>
-      <button class="mini-tb-btn" style="color:#185FA5;font-weight:900;" onmousedown="miniCmd('foreColor','#185FA5');event.preventDefault();event.stopPropagation()" title="藍色">A</button>
-      <button class="mini-tb-btn" style="color:#1A1A18;font-weight:900;" onmousedown="miniCmd('foreColor','#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色">A</button>
+      <button class="mini-tb-btn" style="color:#FF6B6B;font-weight:900;font-size:16px;" onmousedown="miniCmd('foreColor','#E24B4A');event.preventDefault();event.stopPropagation()" title="紅色">A</button>
+      <button class="mini-tb-btn" style="color:#5BA4F5;font-weight:900;font-size:16px;" onmousedown="miniCmd('foreColor','#185FA5');event.preventDefault();event.stopPropagation()" title="藍色">A</button>
+      <button class="mini-tb-btn" style="color:#FFFFFF;font-weight:900;font-size:16px;text-shadow:0 0 1px #999;" onmousedown="miniCmd('foreColor','#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色">A</button>
       <div class="mini-tb-sep"></div>
-      <button class="mini-tb-btn" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
+      <button class="mini-tb-btn" style="font-size:16px;" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
     </div>`;
 
   // 康乃爾展開區塊（可編輯版）
