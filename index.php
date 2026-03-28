@@ -1632,7 +1632,7 @@ function buildCard(card, col, cardNo) {
     const doneLabel = isSubtaskFocus
       ? `<button class="timer-btn" style="background:var(--accent-done);margin-top:6px;" onclick="completeSubtask(${card.id});event.stopPropagation()">✓ 完成子任務</button>`
       : `<button class="timer-btn done" onclick="moveAPI(${card.id},'done');event.stopPropagation()">✓ 完成</button>`;
-    timerHTML = `<div class="focus-timer">${focusLabel}<div class="timer-display" id="timer-display-${card.id}">00:00:00</div><div class="timer-controls"><button class="timer-btn" id="timer-btn-${card.id}" onclick="toggleTimer(${card.id});event.stopPropagation()">開始專注</button><button class="timer-btn secondary" onclick="resetTimer(${card.id});event.stopPropagation()">重置</button></div>${doneLabel}</div>`;
+    timerHTML = `<div class="focus-timer">${focusLabel}<div class="timer-display" id="timer-display-${card.id}">00:00:00</div><div class="timer-controls"><button class="timer-btn" id="timer-btn-${card.id}" onclick="toggleTimer(${card.id});event.stopPropagation()">開始專注</button><button class="timer-btn secondary" onclick="resetTimer(${card.id});event.stopPropagation()">重置</button></div></div>${doneLabel}`;
   }
 
   const myFocusCnt = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
@@ -2452,8 +2452,7 @@ function toggleSubMenu(menuId) {
   const menu = document.getElementById(menuId);
   if (!menu) return;
   const isOpen = menu.style.display === 'flex';
-  // 關所有子選單
-  document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"]').forEach(m => m.style.display = 'none');
+  document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"],[id^="fmt-menu-"]').forEach(m => m.style.display = 'none');
   if (!isOpen) menu.style.display = 'flex';
 }
 function hideSubMenu(menuId) {
