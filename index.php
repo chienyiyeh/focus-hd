@@ -355,7 +355,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item.danger { color: #991B1B; }
 
   /* 迷你富文字工具列（聚焦時顯示在頂部） */
-  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; margin-top: 6px; flex-wrap: nowrap; align-items: center; }
+  .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #2C2C2A; border-radius: 8px; margin-top: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
   .mini-toolbar.show { display: flex; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
