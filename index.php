@@ -2263,8 +2263,10 @@ async function inlineSave(cardId, col, updates) {
   const found = getCard(cardId);
   if (!found) return;
   const card = found.card;
+  // 用 getCard 找到的 col，比傳入的更可靠
+  const actualCol = found.col || col;
   const data = {
-    id: cardId, col: col,
+    id: cardId, col: actualCol,
     title: card.title,
     project: card.project,
     priority: card.priority,
@@ -2474,12 +2476,12 @@ function hideMiniToolbar(id) {
 // 儲存富文字筆記（保留 HTML）
 async function inlineSaveNoteHTML(cardId, col, html) {
   if (html === '<br>' || html === '') html = '';
-  // 把整體顏色樣式也一起存
-  const note = document.getElementById('note-' + cardId);
-  if (note && note.style.color) {
-    html = `<span style="color:${note.style.color}">${html}</span>`;
+  // col 防呆：從 state 找卡片在哪個欄位
+  if (!col || col === 'undefined') {
+    const found = getCard(parseInt(cardId));
+    col = found ? found.col : 'lib';
   }
-  await inlineSave(cardId, col, { body: html });
+  await inlineSave(parseInt(cardId), col, { body: html });
 }
 
 // 編輯待辦項目文字
