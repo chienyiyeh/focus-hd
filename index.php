@@ -358,20 +358,43 @@ $username = $_SESSION['username'] ?? 'User';
 
   @media (max-width: 768px) { 
     body { background: var(--surface2); }
-    header { padding: 10px 12px; gap: 10px; }
-    .header-center { order: 3; width: 100%; margin-top: 4px; }
-    .header-actions { order: 2; flex: 1; justify-content: flex-end; }
-    .header-user { display: none; }
-    .search-box { max-width: 100%; }
+
+    /* Header 簡化：Logo 左、搜尋中、漢堡右，單行排列 */
+    header { 
+      padding: 10px 12px; 
+      gap: 8px; 
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+    .logo { flex-shrink: 0; font-size: 16px; }
+    .header-center { 
+      flex: 1; 
+      min-width: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+    .search-box { max-width: 100%; width: 100%; }
+    .header-actions { flex-shrink: 0; gap: 6px; }
+
+    /* 手機版隱藏不需要的元素 */
+    .header-user { display: none !important; }
+    .filter-tags { display: none !important; }
+    .privacy-filters { display: none !important; }
+    .header-actions .help-toggle,
+    .header-actions .export-btn,
+    .header-actions .logout-btn,
+    .header-actions .settings-btn,
+    .header-actions #notification-sound-toggle,
+    .header-actions .notification-btn { display: none !important; }
+
+    /* 漢堡按鈕顯示 */
+    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; }
+
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
     .col-header { padding: 14px 16px; }
     .cards-area { padding: 8px 16px; }
-    .filter-tags { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .filter-tags::-webkit-scrollbar { display: none; }
-    .filter-tag { flex-shrink: 0; }
-    .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn, .header-actions #notification-sound-toggle, .header-actions .notification-btn { display: none !important; }
-    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 20px; cursor: pointer; }
     body { padding-bottom: 70px !important; }
     .board-wrap { display: block !important; grid-template-columns: none !important; gap: 0 !important; padding: 0 !important; }
     .board-wrap .col { display: none !important; width: 100vw !important; max-width: 100vw !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: none !important; }
