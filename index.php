@@ -331,8 +331,8 @@ $username = $_SESSION['username'] ?? 'User';
   
   .color-section { margin-bottom: 16px; }
   .color-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; display: block; }
-  .swatches { display: flex; gap: 12px; flex-wrap: wrap; }
-  .swatch { width: 48px; height: 48px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .swatch { width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
   .swatch.selected { border-color: var(--accent-week); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-week); }
 
   .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; }
@@ -712,9 +712,18 @@ $username = $_SESSION['username'] ?? 'User';
     }
     
     .act-btn { 
-      padding: 10px 14px; 
-      font-size: 15px; /* 14px → 15px */
+      padding: 7px 10px; 
+      font-size: 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
+    .card-actions {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .card-actions::-webkit-scrollbar { display: none; }
     
     /* 手机版modal显示返回按钮 */
     .modal-back-btn { display: flex !important; }
