@@ -1678,10 +1678,14 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${hasExpandable ? '<div class="chevron" style="margin-left:auto;">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${previewHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
   
-  // 點卡片直接進編輯（點 ⋯ 選單或 drag handle 不觸發）
+  // 點 ▾ chevron 展開康乃爾；點其他地方進編輯
   if (hasExpandable) {
     div.onclick = (e) => {
       if (e.target.closest('.card-actions-menu') || e.target.closest('.drag-handle') || e.target.closest('input') || e.target.closest('label')) return;
+      if (e.target.closest('.chevron')) {
+        div.classList.toggle('open');
+        return;
+      }
       editCard(card.id, col);
     };
   }
