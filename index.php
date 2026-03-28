@@ -358,6 +358,12 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-add-btn { padding: 8px 12px; border: none; background: var(--accent-lib); color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .card-checklist-item .del-item { opacity: 0; background: none; border: none; color: #E24B4A; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; }
   .card-checklist-item:hover .del-item { opacity: 1; }
+  /* 康乃爾裡的 checkbox 加大 */
+  .cornell-a .card-checklist-item input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; flex-shrink: 0; accent-color: var(--accent-lib); }
+  .cornell-a .card-checklist-item { gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--border); }
+  .cornell-a .card-checklist-item:last-of-type { border-bottom: none; }
+  .cornell-a .card-checklist-item label { font-size: 13px; line-height: 1.4; cursor: pointer; }
+  .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
   .saving-indicator.show { display: block; }
 
