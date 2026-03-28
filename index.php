@@ -354,6 +354,17 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
+  /* 迷你富文字工具列 */
+  .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.12); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; margin-bottom: 6px; }
+  .mini-toolbar.show { display: flex; }
+  .mini-tb-btn { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); font-size: 13px; cursor: pointer; font-family: inherit; color: var(--text); }
+  .mini-tb-btn:hover { background: var(--border); }
+  .mini-tb-btn.active { background: var(--accent-week); color: white; border-color: var(--accent-week); }
+  .mini-tb-color { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0; }
+  .note-editable { width: 100%; min-height: 80px; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; }
+  .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
+  .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
+
   /* 行內直接編輯 */
   .cornell-note-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); resize: none; outline: none; min-height: 80px; }
   .cornell-note-input:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
@@ -1700,7 +1711,20 @@ function buildCard(card, col, cardNo) {
 
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
-  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea>`;
+  const noteHTML = card.body || '';
+  const editableB = `<div class="cornell-label">📝 筆記</div>
+    <div class="mini-toolbar" id="mtb-${cardIdStr}">
+      <button class="mini-tb-btn" onclick="miniCmd('bold');event.stopPropagation()" title="粗體"><b>B</b></button>
+      <button class="mini-tb-btn" onclick="miniCmd('italic');event.stopPropagation()" title="斜體"><i>I</i></button>
+      <button class="mini-tb-btn" onclick="miniCmd('underline');event.stopPropagation()" title="底線"><u>U</u></button>
+      <input type="color" class="mini-tb-color" value="#E24B4A" onchange="miniCmd('foreColor',this.value);event.stopPropagation()" title="文字顏色">
+      <button class="mini-tb-btn" onclick="miniCmd('removeFormat');event.stopPropagation()" title="清除格式">✕</button>
+    </div>
+    <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
+      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+      onclick="event.stopPropagation()"
+    >${noteHTML}</div>`;
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
@@ -2323,6 +2347,27 @@ async function inlineSaveNote(cardId, col, text) {
   const body = text ? text.split('\n').map(l => `<p>${escHtml(l) || '<br>'}</p>`).join('') : '';
   await inlineSave(cardId, col, { body });
   toast('✅ 筆記已儲存');
+}
+
+// 迷你富文字工具列
+function miniCmd(cmd, value) {
+  document.execCommand(cmd, false, value || null);
+}
+function showMiniToolbar(id) {
+  const tb = document.getElementById(id);
+  if (tb) tb.classList.add('show');
+}
+function hideMiniToolbar(id) {
+  setTimeout(() => {
+    const tb = document.getElementById(id);
+    if (tb) tb.classList.remove('show');
+  }, 200);
+}
+
+// 儲存富文字筆記（保留 HTML）
+async function inlineSaveNoteHTML(cardId, col, html) {
+  if (html === '<br>' || html === '') html = '';
+  await inlineSave(cardId, col, { body: html });
 }
 
 // 編輯待辦項目文字
