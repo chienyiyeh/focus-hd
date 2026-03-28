@@ -1458,22 +1458,53 @@ function render() {
     const area = document.getElementById('cards-' + col); area.innerHTML = '';
     let visibleCards = state[col].filter(shouldShowCard);
 
-    // lib 欄位：重要且緊急排最上面，其餘維持原順序
     if (col === 'lib') {
-      visibleCards = [...visibleCards].sort((a, b) => {
+      // 分成自己和別人兩組，各自內部重要緊急排前面
+      const sortByPriority = arr => [...arr].sort((a, b) => {
         const pa = a.priority === 'urgent_important' ? 0 : 1;
         const pb = b.priority === 'urgent_important' ? 0 : 1;
         return pa - pb;
       });
+      const myCards = sortByPriority(visibleCards.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername));
+      const otherCards = sortByPriority(visibleCards.filter(c => c.createdByUsername && c.createdByUsername !== CURRENT_USERNAME));
+
+      if (visibleCards.length === 0) {
+        const empty = document.createElement('div'); empty.className = 'empty';
+        empty.textContent = searchQuery || currentFilter ? '沒有符合的卡片' : '把筆記、策略存在這裡';
+        area.appendChild(empty);
+      }
+
+      // 顯示自己的卡片
+      let myUrgentNo = 0;
+      myCards.forEach(card => {
+        if (card.priority === 'urgent_important') myUrgentNo++;
+        area.appendChild(buildCard(card, col, card.priority === 'urgent_important' ? myUrgentNo : null));
+      });
+
+      // 分隔線（只有兩邊都有卡片時才顯示）
+      if (myCards.length > 0 && otherCards.length > 0) {
+        const divider = document.createElement('div');
+        divider.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;margin:4px 0;';
+        divider.innerHTML = `<div style="flex:1;height:1px;background:var(--border);"></div><span style="font-size:10px;color:var(--text-muted);white-space:nowrap;">👥 共用卡片</span><div style="flex:1;height:1px;background:var(--border);"></div>`;
+        area.appendChild(divider);
+      }
+
+      // 顯示別人的卡片
+      let otherUrgentNo = 0;
+      otherCards.forEach(card => {
+        if (card.priority === 'urgent_important') otherUrgentNo++;
+        area.appendChild(buildCard(card, col, card.priority === 'urgent_important' ? otherUrgentNo : null));
+      });
+
+    } else {
+      if (visibleCards.length === 0) {
+        const empty = document.createElement('div'); empty.className = 'empty';
+        if (searchQuery || currentFilter) empty.textContent = '沒有符合的卡片';
+        else empty.textContent = { week: '設定這週最重要的事', focus: '選一件事，現在就去做', done: '完成的事情會出現在這' }[col];
+        area.appendChild(empty);
+      }
+      visibleCards.forEach((card, idx) => area.appendChild(buildCard(card, col, idx + 1)));
     }
-    
-    if (visibleCards.length === 0) {
-      const empty = document.createElement('div'); empty.className = 'empty';
-      if (searchQuery || currentFilter) empty.textContent = '沒有符合的卡片';
-      else empty.textContent = { lib: '把筆記、策略存在這裡', week: '設定這週最重要的事', focus: '選一件事，現在就去做', done: '完成的事情會出現在這' }[col];
-      area.appendChild(empty);
-    }
-    visibleCards.forEach((card, idx) => area.appendChild(buildCard(card, col, idx + 1)));
   });
 
   document.getElementById('badge-lib').textContent = state.lib.length + ' 則';
