@@ -519,8 +519,8 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
         <div class="col-sub">長期儲存 • 無限制</div>
       </div>
+      <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib')">+ 新增筆記</button></div>
       <div class="cards-area" id="cards-lib"></div>
-      <div style="padding: 0 16px 16px;"><button class="add-card-btn" onclick="openModal('lib')">+ 新增筆記</button></div>
     </div>
 
     <div class="col col-week" data-col="week">
@@ -532,8 +532,8 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
         <div class="col-sub">這週最重要的事</div>
       </div>
+      <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week')">+ 新增目標</button></div>
       <div class="cards-area" id="cards-week"></div>
-      <div style="padding: 0 16px 16px;"><button class="add-card-btn" id="add-week" onclick="openModal('week')">+ 新增目標</button></div>
     </div>
 
     <div class="col col-focus" data-col="focus">
@@ -1458,11 +1458,11 @@ function render() {
     const area = document.getElementById('cards-' + col); area.innerHTML = '';
     let visibleCards = state[col].filter(shouldShowCard);
 
-    // lib 欄位按優先級排序
+    // lib 欄位：重要且緊急排最上面，其餘維持原順序
     if (col === 'lib') {
       visibleCards = [...visibleCards].sort((a, b) => {
-        const pa = PRIORITY_ORDER[a.priority] ?? 5;
-        const pb = PRIORITY_ORDER[b.priority] ?? 5;
+        const pa = a.priority === 'urgent_important' ? 0 : 1;
+        const pb = b.priority === 'urgent_important' ? 0 : 1;
         return pa - pb;
       });
     }
@@ -1565,8 +1565,8 @@ function buildCard(card, col, cardNo) {
     bodyHTML = `<div class="card-preview">${card.body}</div><div class="card-body">${card.body}</div>`;
   }
 
-  const noTag = (col === 'lib' && card.priority && cardNo) 
-    ? `<span style="font-size:10px;font-weight:700;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
+  const noTag = (col === 'lib' && card.priority === 'urgent_important' && cardNo) 
+    ? `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
     : '';
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}${actsHTML}`;
   
