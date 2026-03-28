@@ -354,13 +354,13 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
-  /* 浮動迷你富文字工具列 */
-  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); position: fixed; z-index: 9999; flex-wrap: nowrap; align-items: center; }
+  /* 迷你富文字工具列（聚焦時顯示在頂部） */
+  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; margin-bottom: 6px; flex-wrap: nowrap; align-items: center; }
   .mini-toolbar.show { display: flex; }
-  .mini-tb-btn { padding: 4px 8px; border: none; border-radius: 5px; background: transparent; font-size: 13px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
+  .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
-  .mini-tb-color { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; padding: 0; background: #E24B4A; }
+  .mini-tb-color { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; padding: 0; background: #E24B4A; }
   .note-editable { width: 100%; min-height: 80px; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; }
   .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
@@ -1723,9 +1723,7 @@ function buildCard(card, col, cardNo) {
       <button class="mini-tb-btn" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
-      onmouseup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
-      ontouchend="setTimeout(()=>checkNoteSelection('mtb-${cardIdStr}'),100);event.stopPropagation()"
-      onkeyup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
+      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
       onclick="event.stopPropagation()"
     >${noteHTML}</div>`;
@@ -2357,21 +2355,9 @@ async function inlineSaveNote(cardId, col, text) {
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
-function checkNoteSelection(tbId) {
-  const sel = window.getSelection();
-  const tb = document.getElementById(tbId);
-  if (!tb) return;
-  if (sel && sel.toString().length > 0) {
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    // 用 fixed 定位，避免 scroll 偏移問題
-    tb.style.position = 'fixed';
-    tb.style.top = Math.max(4, rect.top - 44) + 'px';
-    tb.style.left = Math.min(Math.max(4, rect.left), window.innerWidth - 210) + 'px';
-    tb.classList.add('show');
-  } else {
-    tb.classList.remove('show');
-  }
+function showMiniToolbar(id) {
+  const tb = document.getElementById(id);
+  if (tb) tb.classList.add('show');
 }
 function hideMiniToolbar(id) {
   setTimeout(() => {
