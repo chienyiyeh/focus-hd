@@ -366,6 +366,8 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
   .saving-indicator.show { display: block; }
+  .subtask-focus-btn { opacity: 0; background: none; border: none; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; transition: opacity 0.15s; }
+  .card-checklist-item:hover .subtask-focus-btn { opacity: 1; }
 
   /* 康乃爾筆記格式 */
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
@@ -1651,7 +1653,8 @@ function buildCard(card, col, cardNo) {
       const cbId = `cb-${cardIdStr}-${idx}`;
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
-      editableA += `<label for="${cbId}" style="font-size:13px;flex:1;cursor:pointer;">${escHtml(item.text)}</label>`;
+      editableA += `<label for="${cbId}" style="font-size:12px;flex:1;cursor:pointer;">${escHtml(item.text)}</label>`;
+      editableA += `<button class="subtask-focus-btn" title="升格為今日專注" onclick="promoteSubtaskToFocus(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">🎯</button>`;
       editableA += `<button class="del-item" onclick="inlineDeleteChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">×</button>`;
       editableA += `</div>`;
     });
@@ -2284,6 +2287,51 @@ async function inlineSaveNote(cardId, col, text) {
   const body = text ? text.split('\n').map(l => `<p>${escHtml(l) || '<br>'}</p>`).join('') : '';
   await inlineSave(cardId, col, { body });
   toast('✅ 筆記已儲存');
+}
+
+// 子任務升格為今日專注
+async function promoteSubtaskToFocus(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const card = found.card;
+  const item = card.checklist[idx];
+  if (!item) return;
+
+  // 檢查自己的今日專注是否已滿
+  const myFocusCount = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (myFocusCount >= 1) {
+    toast('❌ 你的今日專注已有 1 張，請先完成或移出');
+    return;
+  }
+
+  // 建立新卡片到今日專注
+  const newCard = {
+    col: 'focus',
+    title: item.text,
+    project: card.project,
+    priority: 'urgent_important',
+    summary: `來自：${card.title}`,
+    isPrivate: card.isPrivate ? 1 : 0,
+  };
+
+  try {
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCard)
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('🎯 子任務已升格為今日專注！');
+      const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+      await loadCards();
+      if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+    } else {
+      toast('❌ ' + (data.error || '升格失敗'));
+    }
+  } catch(e) {
+    toast('❌ 連線錯誤');
+  }
 }
 
 // 卡片動作選單
