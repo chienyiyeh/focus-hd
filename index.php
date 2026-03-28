@@ -354,13 +354,13 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
-  /* 迷你富文字工具列 */
-  .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.12); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; margin-bottom: 6px; }
+  /* 浮動迷你富文字工具列 */
+  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); position: fixed; z-index: 9999; flex-wrap: nowrap; align-items: center; }
   .mini-toolbar.show { display: flex; }
-  .mini-tb-btn { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); font-size: 13px; cursor: pointer; font-family: inherit; color: var(--text); }
-  .mini-tb-btn:hover { background: var(--border); }
-  .mini-tb-btn.active { background: var(--accent-week); color: white; border-color: var(--accent-week); }
-  .mini-tb-color { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0; }
+  .mini-tb-btn { padding: 4px 8px; border: none; border-radius: 5px; background: transparent; font-size: 13px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
+  .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
+  .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
+  .mini-tb-color { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; padding: 0; background: #E24B4A; }
   .note-editable { width: 100%; min-height: 80px; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; }
   .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
@@ -1714,14 +1714,17 @@ function buildCard(card, col, cardNo) {
   const noteHTML = card.body || '';
   const editableB = `<div class="cornell-label">📝 筆記</div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}">
-      <button class="mini-tb-btn" onclick="miniCmd('bold');event.stopPropagation()" title="粗體"><b>B</b></button>
-      <button class="mini-tb-btn" onclick="miniCmd('italic');event.stopPropagation()" title="斜體"><i>I</i></button>
-      <button class="mini-tb-btn" onclick="miniCmd('underline');event.stopPropagation()" title="底線"><u>U</u></button>
-      <input type="color" class="mini-tb-color" value="#E24B4A" onchange="miniCmd('foreColor',this.value);event.stopPropagation()" title="文字顏色">
-      <button class="mini-tb-btn" onclick="miniCmd('removeFormat');event.stopPropagation()" title="清除格式">✕</button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('underline');event.preventDefault();event.stopPropagation()"><u>U</u></button>
+      <div class="mini-tb-sep"></div>
+      <input type="color" class="mini-tb-color" value="#E24B4A" onchange="miniCmd('foreColor',this.value);event.stopPropagation()" title="顏色">
+      <div class="mini-tb-sep"></div>
+      <button class="mini-tb-btn" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
-      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+      onmouseup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
+      onkeyup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
       onclick="event.stopPropagation()"
     >${noteHTML}</div>`;
@@ -2349,19 +2352,29 @@ async function inlineSaveNote(cardId, col, text) {
   toast('✅ 筆記已儲存');
 }
 
-// 迷你富文字工具列
+// 浮動迷你富文字工具列
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
-function showMiniToolbar(id) {
-  const tb = document.getElementById(id);
-  if (tb) tb.classList.add('show');
+function checkNoteSelection(tbId) {
+  const sel = window.getSelection();
+  const tb = document.getElementById(tbId);
+  if (!tb) return;
+  if (sel && sel.toString().length > 0) {
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    tb.style.top = (rect.top - 44 + window.scrollY) + 'px';
+    tb.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+    tb.classList.add('show');
+  } else {
+    tb.classList.remove('show');
+  }
 }
 function hideMiniToolbar(id) {
   setTimeout(() => {
     const tb = document.getElementById(id);
     if (tb) tb.classList.remove('show');
-  }, 200);
+  }, 300);
 }
 
 // 儲存富文字筆記（保留 HTML）
