@@ -1703,7 +1703,7 @@ function buildCard(card, col, cardNo) {
         onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-          onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+          onblur="hideMiniToolbar('mtb-${cardIdStr}');const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           style="cursor:text;min-height:60px;"
         >${noteHTML}</div>
