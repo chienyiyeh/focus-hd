@@ -1702,7 +1702,7 @@ function buildCard(card, col, cardNo) {
         <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--text-muted);cursor:pointer;" 
           onmousedown="toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
       </div>
-    <div class="mini-toolbar" id="mtb-${cardIdStr}" style="position:absolute;right:-36px;top:0;border-radius:8px;padding:5px 4px;gap:5px;flex-direction:column;align-items:center;width:30px;z-index:10;">
+    <div class="mini-toolbar" id="mtb-${cardIdStr}" style="position:absolute;right:0;top:0;border-radius:8px;padding:5px 4px;gap:5px;flex-direction:column;align-items:center;width:30px;z-index:10;">
       <button class="mini-tb-btn" style="padding:2px 4px;font-size:12px;width:24px;" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
       <button class="mini-tb-btn" style="padding:2px 4px;font-size:11px;width:24px;" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()">1.</button>
       <button class="mini-tb-btn" style="padding:2px 4px;font-size:12px;width:24px;" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()">•</button>
@@ -1717,7 +1717,7 @@ function buildCard(card, col, cardNo) {
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點此輸入筆記..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+      onblur="hideMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
       onmousedown="if(this.contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();}event.stopPropagation()"
       style="pointer-events:auto;opacity:1;cursor:text;"
     >${noteHTML}</div>
@@ -2433,6 +2433,7 @@ function toggleNoteEdit(cardId, col) {
     if (cornellA) cornellA.style.width = '';
     if (cornellB) { cornellB.style.flex = '1'; cornellB.style.width = ''; }
     hideMiniToolbar(tbId);
+    // 儲存時靜默，不顯示 toast
     inlineSaveNoteHTML(parseInt(cardId), cardCol, note.innerHTML);
   } else {
     note.contentEditable = 'true';
