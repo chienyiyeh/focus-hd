@@ -1723,9 +1723,9 @@ function buildCard(card, col, cardNo) {
       <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
       <button class="mini-tb-btn" onmousedown="miniCmd('underline');event.preventDefault();event.stopPropagation()"><u>U</u></button>
       <div class="mini-tb-sep"></div>
-      <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#E24B4A');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#185FA5');event.preventDefault();event.stopPropagation()"></button>
-      <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#1A1A18');event.preventDefault();event.stopPropagation()"></button>
+      <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()"></button>
+      <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()"></button>
+      <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()"></button>
 
     </div>`;
 
@@ -2356,6 +2356,26 @@ async function inlineSaveNote(cardId, col, text) {
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
+// 設定整個筆記欄顏色
+function setNoteColor(btn, color) {
+  // 找到對應的 note-editable
+  const toolbar = btn.closest('.mini-toolbar');
+  if (!toolbar) return;
+  const tbId = toolbar.id; // mtb-{cardId}
+  const noteId = 'note-' + tbId.replace('mtb-', '');
+  const note = document.getElementById(noteId);
+  if (!note) return;
+
+  // 把整個筆記欄文字設為指定顏色
+  note.style.color = color;
+
+  // 標記選中的顏色按鈕（加白邊）
+  toolbar.querySelectorAll('[onmousedown*="setNoteColor"]').forEach(b => {
+    b.style.border = '2px solid rgba(255,255,255,0.4)';
+  });
+  btn.style.border = '3px solid white';
+}
+
 function showMiniToolbar(id) {
   const tb = document.getElementById(id);
   if (tb) tb.classList.add('show');
@@ -2370,6 +2390,11 @@ function hideMiniToolbar(id) {
 // 儲存富文字筆記（保留 HTML）
 async function inlineSaveNoteHTML(cardId, col, html) {
   if (html === '<br>' || html === '') html = '';
+  // 把整體顏色樣式也一起存
+  const note = document.getElementById('note-' + cardId);
+  if (note && note.style.color) {
+    html = `<span style="color:${note.style.color}">${html}</span>`;
+  }
   await inlineSave(cardId, col, { body: html });
 }
 
