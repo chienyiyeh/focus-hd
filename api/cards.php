@@ -69,23 +69,23 @@ function handleList($userId) {
             $col = $card['col'];
             if (!isset($result[$col])) continue;
             $result[$col][] = [
-                'id'               => (int)$card['id'],
-                'title'            => $card['title'],
-                'project'          => $card['project'],
-                'priority'         => $card['priority'],
-                'sourceLink'       => $card['source_link'],
-                'summary'          => $card['summary'],
-                'nextStep'         => $card['next_step'],
-                'body'             => $card['body'],
-                'checklist'        => $card['checklist'] ? json_decode($card['checklist'], true) : null,
-                'bgcolor'          => $card['bgcolor'],
-                'textcolor'        => $card['textcolor'],
-                'isPrivate'        => (bool)$card['is_private'],
-                'createdBy'        => $card['created_by'],
-                'createdByUsername'=> $card['created_by_username'],
-                'completedAt'      => $card['completed_at'],
-                'createdAt'        => $card['created_at'],
-                'updatedAt'        => $card['updated_at'],
+                'id'                => (int)$card['id'],
+                'title'             => $card['title'],
+                'project'           => $card['project'],
+                'priority'          => $card['priority'],
+                'sourceLink'        => $card['source_link'],
+                'summary'           => $card['summary'],
+                'nextStep'          => $card['next_step'],
+                'body'              => $card['body'],
+                'checklist'         => $card['checklist'] ? json_decode($card['checklist'], true) : null,
+                'bgcolor'           => $card['bgcolor'],
+                'textcolor'         => $card['textcolor'],
+                'isPrivate'         => (bool)$card['is_private'],
+                'createdBy'         => $card['created_by'],
+                'createdByUsername' => $card['created_by_username'],
+                'completedAt'       => $card['completed_at'],
+                'createdAt'         => $card['created_at'],
+                'updatedAt'         => $card['updated_at'],
             ];
         }
         jsonResponse($result);
@@ -108,26 +108,26 @@ function cleanHTML($html) {
 }
 
 // ============================================
-// 新增/更新卡片
+// 新增/更新卡片（只有自己的卡片才能改）
 // ============================================
 function handleSave($userId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
 
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $id          = isset($input['id']) ? (int)$input['id'] : null;
-    $col         = cleanInput($input['col'] ?? 'lib');
-    $title       = cleanInput($input['title'] ?? '');
-    $project     = cleanInput($input['project'] ?? null);
-    $priority    = cleanInput($input['priority'] ?? null);
-    $sourceLink  = cleanInput($input['sourceLink'] ?? null);
-    $summary     = cleanInput($input['summary'] ?? null);
-    $nextStep    = cleanInput($input['nextStep'] ?? null);
-    $body        = cleanHTML($input['body'] ?? null);
-    $bgcolor     = cleanInput($input['bgcolor'] ?? null);
-    $textcolor   = cleanInput($input['textcolor'] ?? null);
-    $isPrivate   = isset($input['isPrivate']) ? (int)$input['isPrivate'] : 0;
-    $checklist   = !empty($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
+    $id         = isset($input['id']) ? (int)$input['id'] : null;
+    $col        = cleanInput($input['col'] ?? 'lib');
+    $title      = cleanInput($input['title'] ?? '');
+    $project    = cleanInput($input['project'] ?? null);
+    $priority   = cleanInput($input['priority'] ?? null);
+    $sourceLink = cleanInput($input['sourceLink'] ?? null);
+    $summary    = cleanInput($input['summary'] ?? null);
+    $nextStep   = cleanInput($input['nextStep'] ?? null);
+    $body       = cleanHTML($input['body'] ?? null);
+    $bgcolor    = cleanInput($input['bgcolor'] ?? null);
+    $textcolor  = cleanInput($input['textcolor'] ?? null);
+    $isPrivate  = isset($input['isPrivate']) ? (int)$input['isPrivate'] : 0;
+    $checklist  = !empty($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
     $completedAt = $input['completedAt'] ?? null;
 
     if (empty($title)) errorResponse('標題不能為空');
@@ -151,7 +151,11 @@ function handleSave($userId) {
                 $bgcolor, $textcolor, $isPrivate, $completedAt,
                 $id, $userId
             ]);
-            successResponse(['id' => $id], '卡片更新成功');
+            if ($stmt->rowCount() > 0) {
+                successResponse(['id' => $id], '卡片更新成功');
+            } else {
+                errorResponse('卡片不存在或無權限編輯');
+            }
         } else {
             $stmt = $db->prepare("
                 INSERT INTO cards
@@ -173,7 +177,7 @@ function handleSave($userId) {
 }
 
 // ============================================
-// 刪除卡片
+// 刪除卡片（只有自己的卡片才能刪）
 // ============================================
 function handleDelete($userId) {
     $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
@@ -191,6 +195,8 @@ function handleDelete($userId) {
 
 // ============================================
 // 移動卡片
+// 規則：自己的卡片可以移到任何地方
+//       別人的卡片只能移出（不能移入 focus/week）
 // ============================================
 function handleMove($userId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
@@ -199,16 +205,52 @@ function handleMove($userId) {
     $newCol = cleanInput($input['col'] ?? '');
     if (!$id || !$newCol) errorResponse('缺少必要參數');
     if (!in_array($newCol, ['lib', 'week', 'focus', 'done'])) errorResponse('無效的欄位');
+
     try {
         $db = getDB();
-        if ($newCol === 'done') {
-            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NOW() WHERE id=? AND user_id=?");
-        } else {
-            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NULL WHERE id=? AND user_id=?");
+
+        // 先查這張卡片是誰的
+        $stmt = $db->prepare("SELECT user_id, col FROM cards WHERE id=?");
+        $stmt->execute([$id]);
+        $card = $stmt->fetch();
+
+        if (!$card) errorResponse('卡片不存在');
+
+        $isOwner = ((int)$card['user_id'] === (int)$userId);
+
+        // 不是自己的卡片，只能退回策略庫
+        if (!$isOwner && in_array($newCol, ['focus', 'week', 'done'])) {
+            errorResponse('只能將別人的卡片退回策略庫');
         }
-        $stmt->execute([$newCol, $id, $userId]);
+
+        // 移入 focus：每人各有 1 個額度
+        if ($newCol === 'focus' && $card['col'] !== 'focus') {
+            $checkStmt = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='focus' AND user_id=?");
+            $checkStmt->execute([$userId]);
+            if ((int)$checkStmt->fetchColumn() >= 1) {
+                errorResponse('你的今日專注已有 1 張，請先完成或移出');
+            }
+        }
+
+        // 移入 week：每人最多 3 張
+        if ($newCol === 'week' && $card['col'] !== 'week') {
+            $checkStmt = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='week' AND user_id=?");
+            $checkStmt->execute([$userId]);
+            if ((int)$checkStmt->fetchColumn() >= 3) {
+                errorResponse('你的本週目標已有 3 張');
+            }
+        }
+
+        if ($newCol === 'done') {
+            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NOW() WHERE id=?");
+        } else {
+            $stmt = $db->prepare("UPDATE cards SET col=?, completed_at=NULL WHERE id=?");
+        }
+        $stmt->execute([$newCol, $id]);
+
         if ($stmt->rowCount() > 0) successResponse(['id' => $id, 'col' => $newCol], '卡片移動成功');
-        else errorResponse('卡片不存在或無權限移動');
+        else errorResponse('移動失敗');
+
     } catch (Exception $e) {
         errorResponse('移動卡片失敗');
     }
