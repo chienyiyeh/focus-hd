@@ -1724,6 +1724,7 @@ function buildCard(card, col, cardNo) {
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
       onmouseup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
+      ontouchend="setTimeout(()=>checkNoteSelection('mtb-${cardIdStr}'),100);event.stopPropagation()"
       onkeyup="checkNoteSelection('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
       onclick="event.stopPropagation()"
@@ -2363,8 +2364,10 @@ function checkNoteSelection(tbId) {
   if (sel && sel.toString().length > 0) {
     const range = sel.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    tb.style.top = (rect.top - 44 + window.scrollY) + 'px';
-    tb.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+    // 用 fixed 定位，避免 scroll 偏移問題
+    tb.style.position = 'fixed';
+    tb.style.top = Math.max(4, rect.top - 44) + 'px';
+    tb.style.left = Math.min(Math.max(4, rect.left), window.innerWidth - 210) + 'px';
     tb.classList.add('show');
   } else {
     tb.classList.remove('show');
