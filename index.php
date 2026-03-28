@@ -348,6 +348,19 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
+  /* 行內直接編輯 */
+  .cornell-note-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); resize: none; outline: none; min-height: 80px; }
+  .cornell-note-input:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
+  .cornell-note-input::placeholder { color: var(--text-muted); font-style: italic; }
+  .cornell-add-item { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+  .cornell-add-input { flex: 1; border: 1px dashed var(--border-strong); border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; }
+  .cornell-add-input:focus { border-color: var(--accent-lib); border-style: solid; }
+  .cornell-add-btn { padding: 5px 10px; border: none; background: var(--accent-lib); color: white; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .card-checklist-item .del-item { opacity: 0; background: none; border: none; color: #E24B4A; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .card-checklist-item:hover .del-item { opacity: 1; }
+  .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
+  .saving-indicator.show { display: block; }
+
   /* 康乃爾筆記格式 */
   .cornell-layout { display: none; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
   .card.open .cornell-layout { display: block; }
@@ -1659,8 +1672,30 @@ function buildCard(card, col, cardNo) {
   // 下一步
   let nsHTMLcornell = hasNextStep ? `<div class="card-next-step"><strong>下一步：</strong>${escHtml(card.nextStep)}</div>` : '';
 
-  // 康乃爾展開區塊
-  const cornellHTML = `<div class="cornell-layout"><div class="cornell-top"><div class="cornell-a">${cornellA}</div><div class="cornell-b">${cornellB}</div></div>${cornellC}</div>`;
+  // A區可編輯：待辦清單 + 新增
+  const cardIdStr = card.id;
+  let editableA = '';
+  if (hasChecklist) {
+    const completed = card.checklist.filter(i => i.checked).length;
+    editableA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
+    card.checklist.forEach((item, idx) => {
+      editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
+      editableA += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
+      editableA += `<label style="font-size:12px;flex:1;">${escHtml(item.text)}</label>`;
+      editableA += `<button class="del-item" onclick="inlineDeleteChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">×</button>`;
+      editableA += `</div>`;
+    });
+  } else {
+    editableA = `<div class="cornell-label" style="opacity:0.4;">待辦清單</div>`;
+  }
+  editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onkeydown="if(event.key==='Enter'){inlineAddChecklist(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="inlineAddChecklist(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
+
+  // B區可編輯：筆記 textarea
+  const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
+  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea>`;
+
+  // 康乃爾展開區塊（可編輯版）
+  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
   let previewHTML = '';
@@ -2175,6 +2210,123 @@ function setMobileTab(colName) {
   const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
   if (col) col.classList.add('active');
   if (tab) tab.classList.add('active');
+}
+
+// ==========================================
+// 行內直接編輯函數
+// ==========================================
+
+// 取得卡片資料
+function getCard(cardId) {
+  for (const col of ['lib','week','focus','done']) {
+    const card = state[col].find(c => c.id === cardId);
+    if (card) return { card, col };
+  }
+  return null;
+}
+
+// 行內儲存（不重新渲染，保留展開狀態）
+async function inlineSave(cardId, col, updates) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const card = found.card;
+  const data = {
+    id: cardId, col: col,
+    title: card.title,
+    project: card.project,
+    priority: card.priority,
+    sourceLink: card.sourceLink,
+    summary: card.summary,
+    nextStep: card.nextStep,
+    body: card.body,
+    bgcolor: card.bgcolor,
+    textcolor: card.textcolor,
+    isPrivate: card.isPrivate ? 1 : 0,
+    checklist: card.checklist,
+    ...updates
+  };
+  try {
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      // 更新本地 state，不重新渲染
+      Object.assign(card, updates);
+      // 只更新 checklist 標頭數字
+      const cardEl = document.getElementById('card-' + cardId);
+      if (cardEl) {
+        const checkDone = (card.checklist||[]).filter(i=>i.checked).length;
+        const checkTotal = (card.checklist||[]).length;
+        const labels = cardEl.querySelectorAll('.cornell-label');
+        labels.forEach(l => { if (l.textContent.startsWith('✓ 待辦')) l.textContent = `✓ 待辦 ${checkDone}/${checkTotal}`; });
+      }
+    } else { toast('❌ ' + (result.error || '儲存失敗')); }
+  } catch(e) { toast('❌ 連線錯誤'); }
+}
+
+// 勾選待辦
+async function inlineToggleChecklist(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  if (checklist[idx]) checklist[idx].checked = !checklist[idx].checked;
+  await inlineSave(cardId, col, { checklist });
+  // 更新 label 樣式
+  const cardEl = document.getElementById('card-' + cardId);
+  if (cardEl) {
+    const items = cardEl.querySelectorAll('.card-checklist-item');
+    if (items[idx]) items[idx].classList.toggle('checked', checklist[idx].checked);
+  }
+}
+
+// 刪除待辦項
+async function inlineDeleteChecklist(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.splice(idx, 1);
+  await inlineSave(cardId, col, { checklist });
+  // 重新渲染這一欄
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  // 重新展開這張卡片
+  setTimeout(() => {
+    const cardEl = document.getElementById('card-' + cardId);
+    if (cardEl) { cardEl.classList.add('open'); cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  }, 150);
+}
+
+// 新增待辦項
+async function inlineAddChecklist(cardId, col) {
+  const input = document.getElementById('add-item-' + cardId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.push({ text, checked: false });
+  await inlineSave(cardId, col, { checklist });
+  input.value = '';
+  // 重新渲染並展開
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  setTimeout(() => {
+    const cardEl = document.getElementById('card-' + cardId);
+    if (cardEl) { cardEl.classList.add('open'); cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  }, 150);
+}
+
+// 儲存筆記
+async function inlineSaveNote(cardId, col, text) {
+  // 純文字轉成簡單段落
+  const body = text ? text.split('
+').map(l => `<p>${l || '<br>'}</p>`).join('') : '';
+  await inlineSave(cardId, col, { body });
+  toast('✅ 筆記已儲存');
 }
 
 // 卡片動作選單
