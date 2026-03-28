@@ -355,7 +355,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item.danger { color: #991B1B; }
 
   /* 迷你富文字工具列（聚焦時顯示在頂部） */
-  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; margin-bottom: 6px; flex-wrap: nowrap; align-items: center; }
+  .mini-toolbar { display: none; gap: 3px; padding: 5px 7px; background: #2C2C2A; border-radius: 8px; margin-top: 6px; flex-wrap: nowrap; align-items: center; }
   .mini-toolbar.show { display: flex; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
@@ -1713,6 +1713,11 @@ function buildCard(card, col, cardNo) {
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
   const noteHTML = card.body || '';
   const editableB = `<div class="cornell-label">📝 筆記</div>
+    <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
+      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+      onclick="event.stopPropagation()"
+    >${noteHTML}</div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}">
       <button class="mini-tb-btn" onmousedown="miniCmd('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
       <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
@@ -1721,12 +1726,7 @@ function buildCard(card, col, cardNo) {
       <input type="color" class="mini-tb-color" value="#E24B4A" onchange="miniCmd('foreColor',this.value);event.stopPropagation()" title="顏色">
       <div class="mini-tb-sep"></div>
       <button class="mini-tb-btn" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
-    </div>
-    <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
-      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
-      onclick="event.stopPropagation()"
-    >${noteHTML}</div>`;
+    </div>`;
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
