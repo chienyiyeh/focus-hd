@@ -1736,7 +1736,7 @@ function buildCard(card, col, cardNo) {
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
-  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b" onmousedown="event.preventDefault();var n=document.getElementById('note-${cardIdStr}');if(n){n.focus();showMiniToolbar('mtb-${cardIdStr}');}event.stopPropagation();">${editableB}</div></div>${cornellC}${editBtn}</div>`;
+  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
   let previewHTML = '';
