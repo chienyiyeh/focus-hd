@@ -1712,11 +1712,16 @@ function buildCard(card, col, cardNo) {
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
   const noteHTML = card.body || '';
-  const editableB = `<div class="cornell-label" onmousedown="event.preventDefault();var n=document.getElementById('note-${cardIdStr}');if(n){n.focus();showMiniToolbar('mtb-${cardIdStr}');}event.stopPropagation()">📝 筆記</div>
-    <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="在這裡記下筆記..."
+  const editableB = `<div class="cornell-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>📝 筆記</span>
+      <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--text-muted);cursor:pointer;" 
+        onmousedown="toggleNoteEdit('${cardIdStr}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
+    </div>
+    <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點「編輯」開始輸入..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
       onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
       onclick="event.stopPropagation()"
+      style="pointer-events:none;opacity:0.8;"
     >${noteHTML}</div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}">
       <button class="mini-tb-btn" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
@@ -2468,6 +2473,37 @@ function applyFormatBefore(cmd) {
       sel.removeAllRanges();
       sel.addRange(endRange);
     }
+  }
+}
+
+// 筆記欄開關
+function toggleNoteEdit(cardId) {
+  const note = document.getElementById('note-' + cardId);
+  const btn = document.getElementById('note-toggle-' + cardId);
+  const tbId = 'mtb-' + cardId;
+  if (!note || !btn) return;
+
+  const isEditing = note.contentEditable === 'true';
+  if (isEditing) {
+    // 關閉編輯
+    note.contentEditable = 'false';
+    note.style.pointerEvents = 'none';
+    note.style.opacity = '0.8';
+    btn.textContent = '✏️ 編輯';
+    btn.style.background = 'none';
+    hideMiniToolbar(tbId);
+    // 儲存
+    inlineSaveNoteHTML(parseInt(cardId), note.closest('.cornell-layout')?.dataset?.col || 'lib', note.innerHTML);
+  } else {
+    // 開啟編輯
+    note.contentEditable = 'true';
+    note.style.pointerEvents = 'auto';
+    note.style.opacity = '1';
+    btn.textContent = '✓ 完成';
+    btn.style.background = '#E8F5E9';
+    btn.style.color = '#2E7D32';
+    note.focus();
+    showMiniToolbar(tbId);
   }
 }
 
