@@ -355,7 +355,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item.danger { color: #991B1B; }
 
   /* 迷你富文字工具列（聚焦時顯示在頂部） */
-  .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #2C2C2A; border-radius: 8px; margin-top: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
+  .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #2C2C2A; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
   .mini-toolbar.show { display: flex; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
@@ -1716,18 +1716,12 @@ function buildCard(card, col, cardNo) {
       <span>📝 筆記</span>
       <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--text-muted);cursor:pointer;" 
         onmousedown="toggleNoteEdit('${cardIdStr}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
-      <div class="mini-tb-sep"></div>
+    </div>
+    <div class="mini-toolbar" id="mtb-${cardIdStr}">
       <button class="mini-tb-btn" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
       <button class="mini-tb-btn" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()" title="有序列表">1.</button>
       <button class="mini-tb-btn" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()" title="無序列表">•</button>
-    </div>
-    <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點「編輯」開始輸入..."
-      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
-      onclick="event.stopPropagation()"
-      style="pointer-events:none;opacity:0.8;"
-    >${noteHTML}</div>
-    <div class="mini-toolbar" id="mtb-${cardIdStr}">
+      <div class="mini-tb-sep"></div>
       <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()" title="紅色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()" title="藍色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色"></button>
@@ -1735,7 +1729,13 @@ function buildCard(card, col, cardNo) {
       <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');event.preventDefault();event.stopPropagation()" title="淡藍底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#DAEEFF" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#DAEEFF"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
       <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFFACC');event.preventDefault();event.stopPropagation()" title="淡黃底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#FFFACC" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#FFFACC"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
       <button style="padding:2px 4px;background:transparent;border:none;cursor:pointer;flex-shrink:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');event.preventDefault();event.stopPropagation()" title="淡粉底色"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="11" width="12" height="4" rx="1" fill="#FFE4EC" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/><rect x="5" y="4" width="8" height="8" rx="1" fill="rgba(255,255,255,0.25)"/><polygon points="5,12 7,8 11,8 13,12" fill="#FFE4EC"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.4)"/></svg></button>
-    </div>`;
+    </div>
+    <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點「編輯」開始輸入..."
+      onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+      onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+      onclick="event.stopPropagation()"
+      style="pointer-events:none;opacity:0.8;"
+    >${noteHTML}</div>`;
 
   // 康乃爾展開區塊（可編輯版）
   const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
