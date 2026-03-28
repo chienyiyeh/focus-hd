@@ -1641,8 +1641,8 @@ function buildCard(card, col, cardNo) {
     if (col === 'lib' && state.week.length < 3) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'week');closeCardMenu('${menuId}');event.stopPropagation()">→ 本週目標</button>`;
     if (col !== 'focus' && myFocusCnt < 1) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'focus');closeCardMenu('${menuId}');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') menuItems += `<button class="card-action-item" onclick="moveAPI(${card.id},'lib');closeCardMenu('${menuId}');event.stopPropagation()">↩ 退回策略庫</button>`;
+    menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯卡片</button>`;
     menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
-    menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯</button>`;
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 刪除</button>`;
   } else {
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 移除</button>`;
@@ -1692,9 +1692,9 @@ function buildCard(card, col, cardNo) {
   }
   editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onkeydown="if(event.key==='Enter'){inlineAddChecklist(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="inlineAddChecklist(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
 
-  // B區可編輯：筆記 textarea
+  // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
-  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea>`;
+  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea><div style="text-align:right;margin-top:6px;"><button style="font-size:11px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
 
   // 康乃爾展開區塊（可編輯版）
   const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}</div>`;
@@ -1713,19 +1713,8 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // 點卡片標題區進編輯（康乃爾區域不觸發）
-  div.onclick = (e) => {
-    if (e.target.closest('.card-actions-menu') || 
-        e.target.closest('.drag-handle') || 
-        e.target.closest('input') || 
-        e.target.closest('label') || 
-        e.target.closest('textarea') || 
-        e.target.closest('.cornell-add-btn') ||
-        e.target.closest('.cornell-layout') ||
-        e.target.closest('.subtask-menu-btn') ||
-        e.target.closest('.subtask-dropdown')) return;
-    editCard(card.id, col);
-  };
+  // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
+  div.onclick = (e) => { return; };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
