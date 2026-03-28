@@ -366,11 +366,14 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-text-edit { flex: 1; border: none; background: transparent; font-size: 12px; font-family: inherit; color: var(--text); padding: 0; outline: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; cursor: text; }
   .checklist-text-edit:focus { background: var(--surface); border-radius: 4px; padding: 2px 4px; border: 1px solid var(--accent-lib); white-space: normal; overflow: visible; width: 100%; box-sizing: border-box; }
   .checklist-text-edit:focus ~ .subtask-menu-btn { display: none; }
-  /* 編輯時左欄展開到 70% */
-  .cornell-top:has(.checklist-text-edit:focus) .cornell-a { width: 70%; transition: width 0.2s; }
-  .cornell-top:has(.checklist-text-edit:focus) .cornell-b { flex: none; width: 30%; transition: width 0.2s; overflow: hidden; }
+  /* 編輯待辦時左欄展開到 70% */
+  .cornell-top:has(.checklist-text-edit:focus) .cornell-a { width: 70%; }
+  .cornell-top:has(.checklist-text-edit:focus) .cornell-b { flex: none; width: 30%; overflow: hidden; }
+  /* 編輯筆記時右欄展開到 80% */
+  .cornell-top:has(.cornell-note-input:focus) .cornell-b { flex: none; width: 80%; }
+  .cornell-top:has(.cornell-note-input:focus) .cornell-a { width: 20%; overflow: hidden; }
   .cornell-a { transition: width 0.2s; }
-  .cornell-b { transition: width 0.2s; }
+  .cornell-b { transition: width 0.2s; flex: 1; }
   .card-checklist-item.checked .checklist-text-edit { text-decoration: line-through; color: var(--text-muted); }
   .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
