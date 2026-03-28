@@ -184,8 +184,15 @@ function handleDelete($userId) {
     if (!$id) errorResponse('缺少卡片 ID');
     try {
         $db = getDB();
-        $stmt = $db->prepare("DELETE FROM cards WHERE id=? AND user_id=?");
-        $stmt->execute([$id, $userId]);
+        // chienyi (user_id=1) 是管理員，可刪任何卡片
+        $isAdmin = ($userId === 1);
+        if ($isAdmin) {
+            $stmt = $db->prepare("DELETE FROM cards WHERE id=?");
+            $stmt->execute([$id]);
+        } else {
+            $stmt = $db->prepare("DELETE FROM cards WHERE id=? AND user_id=?");
+            $stmt->execute([$id, $userId]);
+        }
         if ($stmt->rowCount() > 0) successResponse([], '卡片刪除成功');
         else errorResponse('卡片不存在或無權限刪除');
     } catch (Exception $e) {
