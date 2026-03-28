@@ -1591,24 +1591,9 @@ function buildCard(card, col, cardNo) {
   }
 
   let sourceHTML = card.sourceLink ? `<a href="${escHtml(card.sourceLink)}" target="_blank" class="source-link" onclick="event.stopPropagation()">🔗 來源連結</a>` : '';
-  let sumHTML = card.summary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
-  let nsHTML = card.nextStep ? `<div class="card-next-step"><strong>下一步：</strong>${escHtml(card.nextStep)}</div>` : '';
+  // 摘要和下一步在康乃爾區塊處理
   
-  // 待办清单显示
-  let checklistHTML = '';
-  if (card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0) {
-    const completed = card.checklist.filter(item => item.checked).length;
-    const total = card.checklist.length;
-    checklistHTML = '<div class="card-checklist">';
-    checklistHTML += `<div class="card-checklist-header">✓ 待辦清單 <span class="card-checklist-progress">${completed}/${total}</span></div>`;
-    card.checklist.forEach((item, idx) => {
-      checklistHTML += `<div class="card-checklist-item${item.checked ? ' checked' : ''}">`;
-      checklistHTML += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem(${card.id}, ${idx}, '${col}'); event.stopPropagation();">`;
-      checklistHTML += `<label>${escHtml(item.text)}</label>`;
-      checklistHTML += '</div>';
-    });
-    checklistHTML += '</div>';
-  }
+
   
   let timerHTML = '';
   if (col === 'focus') {
@@ -1640,28 +1625,6 @@ function buildCard(card, col, cardNo) {
   const hasSummary = card.summary && card.summary.trim();
   const hasNextStep = card.nextStep && card.nextStep.trim();
   const hasExpandable = hasChecklist || hasBody || hasSummary || hasNextStep;
-
-  // A區：待辦清單
-  let cornellA = '';
-  if (hasChecklist) {
-    const completed = card.checklist.filter(i => i.checked).length;
-    cornellA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
-    card.checklist.forEach((item, idx) => {
-      cornellA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;">`;
-      cornellA += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem(${card.id}, ${idx}, '${col}'); event.stopPropagation();">`;
-      cornellA += `<label style="font-size:12px;">${escHtml(item.text)}</label></div>`;
-    });
-  } else {
-    cornellA = `<div class="cornell-label" style="opacity:0.4;">待辦清單</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">無</div>`;
-  }
-
-  // B區：筆記內容
-  let cornellB = '';
-  if (hasBody) {
-    cornellB = `<div class="cornell-label">📝 筆記</div>${card.body}`;
-  } else {
-    cornellB = `<div class="cornell-label" style="opacity:0.4;">筆記</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">無筆記</div>`;
-  }
 
   // C區：摘要
   let cornellC = '';
