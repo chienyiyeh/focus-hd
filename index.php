@@ -363,6 +363,9 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-a .card-checklist-item { gap: 7px; padding: 5px 2px; border-bottom: 1px solid var(--border); }
   .cornell-a .card-checklist-item:last-of-type { border-bottom: none; }
   .cornell-a .card-checklist-item label { font-size: 12px; line-height: 1.4; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .checklist-text-edit { flex: 1; border: none; background: transparent; font-size: 12px; font-family: inherit; color: var(--text); padding: 0; outline: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; cursor: text; }
+  .checklist-text-edit:focus { background: var(--surface); border-radius: 4px; padding: 2px 4px; border: 1px solid var(--accent-lib); white-space: normal; }
+  .card-checklist-item.checked .checklist-text-edit { text-decoration: line-through; color: var(--text-muted); }
   .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
   .saving-indicator.show { display: block; }
@@ -1664,10 +1667,10 @@ function buildCard(card, col, cardNo) {
     editableA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
     card.checklist.forEach((item, idx) => {
       const cbId = `cb-${cardIdStr}-${idx}`;
+      const smId = `sm-${cardIdStr}-${idx}`;
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
-      editableA += `<label for="${cbId}" style="font-size:12px;flex:1;cursor:pointer;">${escHtml(item.text)}</label>`;
-      const smId = `sm-${cardIdStr}-${idx}`;
+      editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
       editableA += `<button class="subtask-menu-btn" onclick="toggleSubtaskMenu('${smId}', event); event.stopPropagation();">⋯</button>`;
       editableA += `<div class="subtask-dropdown" id="${smId}">
         <button class="subtask-dropdown-item" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🎯 今日專注</button>
@@ -2315,6 +2318,16 @@ async function inlineSaveNote(cardId, col, text) {
   const body = text ? text.split('\n').map(l => `<p>${escHtml(l) || '<br>'}</p>`).join('') : '';
   await inlineSave(cardId, col, { body });
   toast('✅ 筆記已儲存');
+}
+
+// 編輯待辦項目文字
+async function inlineEditChecklistText(cardId, idx, col, newText) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  if (!checklist[idx] || checklist[idx].text === newText) return;
+  checklist[idx].text = newText;
+  await inlineSave(cardId, col, { checklist });
 }
 
 // 子任務選單
