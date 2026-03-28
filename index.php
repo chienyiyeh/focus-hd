@@ -1648,9 +1648,10 @@ function buildCard(card, col, cardNo) {
     const completed = card.checklist.filter(i => i.checked).length;
     editableA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
     card.checklist.forEach((item, idx) => {
+      const cbId = `cb-${cardIdStr}-${idx}`;
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
-      editableA += `<input type="checkbox" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
-      editableA += `<label style="font-size:12px;flex:1;">${escHtml(item.text)}</label>`;
+      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
+      editableA += `<label for="${cbId}" style="font-size:13px;flex:1;cursor:pointer;">${escHtml(item.text)}</label>`;
       editableA += `<button class="del-item" onclick="inlineDeleteChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">×</button>`;
       editableA += `</div>`;
     });
