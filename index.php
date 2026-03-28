@@ -1716,6 +1716,10 @@ function buildCard(card, col, cardNo) {
       <span>📝 筆記</span>
       <button id="note-toggle-${cardIdStr}" style="background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--text-muted);cursor:pointer;" 
         onmousedown="toggleNoteEdit('${cardIdStr}');event.preventDefault();event.stopPropagation()">✏️ 編輯</button>
+      <div class="mini-tb-sep"></div>
+      <button class="mini-tb-btn" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()" title="有序列表">1.</button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()" title="無序列表">•</button>
     </div>
     <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點「編輯」開始輸入..."
       onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
@@ -1724,10 +1728,6 @@ function buildCard(card, col, cardNo) {
       style="pointer-events:none;opacity:0.8;"
     >${noteHTML}</div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}">
-      <button class="mini-tb-btn" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
-      <button class="mini-tb-btn" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()" title="有序列表">1.</button>
-      <button class="mini-tb-btn" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()" title="無序列表">•</button>
-      <div class="mini-tb-sep"></div>
       <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()" title="紅色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()" title="藍色"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');event.preventDefault();event.stopPropagation()" title="黑色"></button>
@@ -2446,24 +2446,29 @@ function toggleNoteEdit(cardId) {
   if (!note || !btn) return;
 
   const isEditing = note.contentEditable === 'true';
+  const cornellTop = note.closest('.cornell-top');
+  const cornellA = cornellTop ? cornellTop.querySelector('.cornell-a') : null;
+  const cornellB = cornellTop ? cornellTop.querySelector('.cornell-b') : null;
   if (isEditing) {
-    // 關閉編輯
     note.contentEditable = 'false';
     note.style.pointerEvents = 'none';
     note.style.opacity = '0.8';
     btn.textContent = '✏️ 編輯';
     btn.style.background = 'none';
+    btn.style.color = '';
+    if (cornellA) cornellA.style.width = '';
+    if (cornellB) { cornellB.style.flex = '1'; cornellB.style.width = ''; }
     hideMiniToolbar(tbId);
-    // 儲存
     inlineSaveNoteHTML(parseInt(cardId), note.closest('.cornell-layout')?.dataset?.col || 'lib', note.innerHTML);
   } else {
-    // 開啟編輯
     note.contentEditable = 'true';
     note.style.pointerEvents = 'auto';
     note.style.opacity = '1';
     btn.textContent = '✓ 完成';
     btn.style.background = '#E8F5E9';
     btn.style.color = '#2E7D32';
+    if (cornellA) cornellA.style.width = '20%';
+    if (cornellB) { cornellB.style.flex = 'none'; cornellB.style.width = '80%'; }
     note.focus();
     showMiniToolbar(tbId);
   }
