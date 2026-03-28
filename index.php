@@ -1351,10 +1351,18 @@ async function saveCardToAPI(cardData) {
     const data = await res.json();
     if (data.success) {
       toast(cardData.id ? '✅ 卡片更新成功' : '✅ 卡片新增成功');
-      // 記住當前分頁，儲存後不跳走
+      // 記住當前分頁與卡片 ID，儲存後不跳走
       const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+      const editingId = cardData.id || null;
       await loadCards();
       if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+      // 儲存後捲回原本的卡片位置
+      if (editingId) {
+        setTimeout(() => {
+          const cardEl = document.getElementById('card-' + editingId);
+          if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
       closeModal();
     } else toast('❌ ' + (data.error || '儲存失敗'));
   } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
