@@ -1650,10 +1650,8 @@ function buildCard(card, col, cardNo) {
   const hasCornell = hasChecklist || hasBody;
 
   // C區：摘要
-  let cornellC = '';
-  if (hasSummary) {
-    cornellC = `<div class="cornell-c"><div class="cornell-c-label">💡 摘要</div>${escHtml(card.summary)}</div>`;
-  }
+  // 摘要顯示在卡片頂部，C區不再重複
+  const cornellC = '';
 
   // 下一步
   let nsHTMLcornell = hasNextStep ? `<div class="card-next-step"><strong>下一步：</strong>${escHtml(card.nextStep)}</div>` : '';
@@ -1698,11 +1696,22 @@ function buildCard(card, col, cardNo) {
   // 標題右側資訊（與 ⋯ 選單之間加 flex 間距）
   const noteIndicator = '';
 
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  // 摘要永遠顯示在卡片上（康乃爾外面）
+  const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  // 點卡片標題區進編輯
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+
+  // 點卡片標題區進編輯（康乃爾區域不觸發）
   div.onclick = (e) => {
-    if (e.target.closest('.card-actions-menu') || e.target.closest('.drag-handle') || e.target.closest('input') || e.target.closest('label') || e.target.closest('textarea') || e.target.closest('.cornell-add-btn')) return;
+    if (e.target.closest('.card-actions-menu') || 
+        e.target.closest('.drag-handle') || 
+        e.target.closest('input') || 
+        e.target.closest('label') || 
+        e.target.closest('textarea') || 
+        e.target.closest('.cornell-add-btn') ||
+        e.target.closest('.cornell-layout') ||
+        e.target.closest('.subtask-menu-btn') ||
+        e.target.closest('.subtask-dropdown')) return;
     editCard(card.id, col);
   };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
