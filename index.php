@@ -1667,9 +1667,24 @@ function buildCard(card, col, cardNo) {
   if (hasSummary) previewHTML = `<div class="card-summary">${escHtml(card.summary)}</div>`;
   else if (hasBody) previewHTML = `<div class="card-preview">${card.body}</div>`;
 
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasExpandable ? '<div class="chevron">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${previewHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  // 筆記指示圖示（收合時顯示）
+  const noteIcons = [];
+  if (hasBody) noteIcons.push('<span title="有筆記" style="font-size:13px;">📝</span>');
+  if (hasChecklist) {
+    const done = card.checklist.filter(i=>i.checked).length;
+    noteIcons.push(`<span title="待辦清單" style="font-size:11px;color:var(--accent-lib);font-weight:600;">☑ ${done}/${card.checklist.length}</span>`);
+  }
+  const noteIndicator = noteIcons.length ? `<div style="display:flex;gap:4px;align-items:center;margin-left:4px;">${noteIcons.join('')}</div>` : '';
+
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${hasExpandable ? '<div class="chevron" style="margin-left:auto;">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${previewHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
   
-  if (hasExpandable) div.onclick = () => div.classList.toggle('open');
+  // 點卡片直接進編輯（點 ⋯ 選單或 drag handle 不觸發）
+  if (hasExpandable) {
+    div.onclick = (e) => {
+      if (e.target.closest('.card-actions-menu') || e.target.closest('.drag-handle') || e.target.closest('input') || e.target.closest('label')) return;
+      editCard(card.id, col);
+    };
+  }
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
