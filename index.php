@@ -1701,22 +1701,26 @@ function buildCard(card, col, cardNo) {
       <!-- 筆記欄 -->
       <div style="flex:1;min-width:0;position:relative;padding:4px;"
         onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
-        <div class="note-editable" id="note-${cardIdStr}" contenteditable="false" placeholder="點此輸入筆記..."
+        <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-          onblur="hideMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-          onmousedown="if(this.contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();}event.stopPropagation()"
+          onblur="hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',this.innerHTML);event.stopPropagation()"
+          onclick="event.stopPropagation()"
           style="cursor:text;min-height:60px;"
         >${noteHTML}</div>
-        <button id="note-toggle-${cardIdStr}"
-          style="position:absolute;bottom:4px;right:4px;background:rgba(240,240,240,0.9);border:1px solid var(--border);border-radius:10px;padding:2px 8px;font-size:10px;color:var(--text-muted);cursor:pointer;"
-          onmousedown="toggleNoteEdit('${cardIdStr}','${col}');event.preventDefault();event.stopPropagation()">✏️</button>
+
       </div>
       <!-- 工具列 -->
       <div class="mini-toolbar" id="mtb-${cardIdStr}"
         style="flex-shrink:0;width:38px;border-radius:0 0 0 0;padding:6px 4px;gap:7px;flex-direction:column;align-items:center;border-left:1px solid rgba(255,255,255,0.1);">
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()">1.</button>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()">•</button>
+        <!-- 格式按鈕 -->
+        <div style="position:relative;">
+          <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="toggleSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">¶</button>
+          <div id="fmt-menu-${cardIdStr}" style="display:none;position:absolute;right:38px;top:0;background:#2C2C2A;border-radius:8px;padding:6px;flex-direction:column;gap:6px;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"><b>B</b></button>
+            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">1.</button>
+            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">•</button>
+          </div>
+        </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
         <!-- 文字色 -->
         <div style="position:relative;">
@@ -2435,40 +2439,12 @@ function applyFormatBefore(cmd) {
 
 
 // 筆記欄開關
+// toggleNoteEdit 已簡化，筆記欄永遠可編輯，點空白自動存
 function toggleNoteEdit(cardId, col) {
   const note = document.getElementById('note-' + cardId);
-  const btn = document.getElementById('note-toggle-' + cardId);
-  const tbId = 'mtb-' + cardId;
-  if (!note || !btn) return;
-  // col 優先用傳入的，其次從 DOM 抓，最後 fallback
-  const cardCol = col || note.closest('.cornell-layout')?.dataset?.col || 'lib';
-
-  const isEditing = note.contentEditable === 'true';
-  const cornellTop = note.closest('.cornell-top');
-  const cornellA = cornellTop ? cornellTop.querySelector('.cornell-a') : null;
-  const cornellB = cornellTop ? cornellTop.querySelector('.cornell-b') : null;
-  if (isEditing) {
-    note.contentEditable = 'false';
-    note.style.cursor = 'text';
-    btn.textContent = '✏️ 編輯';
-    btn.style.background = 'none';
-    btn.style.color = '';
-    if (cornellA) cornellA.style.width = '';
-    if (cornellB) { cornellB.style.flex = '1'; cornellB.style.width = ''; }
-    hideMiniToolbar(tbId);
-    // 儲存時靜默，不顯示 toast
-    inlineSaveNoteHTML(parseInt(cardId), cardCol, note.innerHTML);
-  } else {
-    note.contentEditable = 'true';
-    note.style.cursor = 'text';
-    btn.textContent = '✓ 完成';
-    btn.style.background = '#E8F5E9';
-    btn.style.color = '#2E7D32';
-    if (cornellA) cornellA.style.width = '20%';
-    if (cornellB) { cornellB.style.flex = 'none'; cornellB.style.width = '80%'; }
-    note.focus();
-    showMiniToolbar(tbId);
-  }
+  if (!note) return;
+  note.focus();
+  showMiniToolbar('mtb-' + cardId);
 }
 
 // 子選單開關
