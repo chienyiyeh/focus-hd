@@ -1064,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   renderProjectSelect();
   injectProjectStyles();
-  loadCards();
+  await loadCards();
   initMobileTabs();
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
