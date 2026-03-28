@@ -365,8 +365,6 @@ $username = $_SESSION['username'] ?? 'User';
     .search-box { max-width: 100%; }
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
-    .board-wrap { grid-template-columns: 1fr; gap: 12px; padding: 12px 0; }
-    .col { border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .col-header { padding: 14px 16px; }
     .cards-area { padding: 8px 16px; }
     .filter-tags { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -374,12 +372,10 @@ $username = $_SESSION['username'] ?? 'User';
     .filter-tag { flex-shrink: 0; }
     .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn, .header-actions #notification-sound-toggle, .header-actions .notification-btn { display: none !important; }
     .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 20px; cursor: pointer; }
-
-    /* 手機版欄位切換 - 強制隱藏所有欄位 */
-    .board-wrap { display: block !important; }
-    .board-wrap .col { display: none !important; width: 100% !important; max-width: 100% !important; }
-    .board-wrap .col.active { display: block !important; }
     body { padding-bottom: 70px !important; }
+    .board-wrap { display: block !important; grid-template-columns: none !important; gap: 0 !important; padding: 0 !important; }
+    .board-wrap .col { display: none !important; width: 100vw !important; max-width: 100vw !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: none !important; }
+    .board-wrap .col.active { display: block !important; }
 
     /* 底部 Tab Bar */
     .mobile-tab-bar {
