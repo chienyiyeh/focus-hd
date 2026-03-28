@@ -2001,8 +2001,12 @@ function switchMobileTab(colName) {
   try { localStorage.setItem('lastMobileTab', colName); } catch(e) {}
 }
 
-function initMobileTabs() {
+function initMobileTabs(forceReset = false) {
   if (window.innerWidth <= 768) {
+    // 如果已經有 active 的分頁且不強制重置，就不動它
+    const currentActive = document.querySelector('.mobile-tab.active');
+    if (currentActive && !forceReset) return;
+
     let lastTab = 'focus';
     try { lastTab = localStorage.getItem('lastMobileTab') || 'focus'; } catch(e) {}
     document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
