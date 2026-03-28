@@ -1741,6 +1741,7 @@ function buildCard(card, col, cardNo) {
             <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
             <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
             <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:6px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
           </div>
         </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
