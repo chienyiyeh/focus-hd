@@ -2356,21 +2356,35 @@ async function inlineSaveNote(cardId, col, text) {
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
-// 設定整個筆記欄顏色
+// 設定游標前面所有文字的顏色
 function setNoteColor(btn, color) {
-  // 找到對應的 note-editable
   const toolbar = btn.closest('.mini-toolbar');
   if (!toolbar) return;
-  const tbId = toolbar.id; // mtb-{cardId}
-  const noteId = 'note-' + tbId.replace('mtb-', '');
+  const noteId = 'note-' + toolbar.id.replace('mtb-', '');
   const note = document.getElementById(noteId);
   if (!note) return;
 
-  // 把整個筆記欄文字設為指定顏色
-  note.style.color = color;
+  const sel = window.getSelection();
+  
+  // 如果有選取文字，只改選取範圍
+  if (sel && sel.toString().length > 0 && sel.rangeCount > 0) {
+    document.execCommand('foreColor', false, color);
+  } else if (sel && sel.rangeCount > 0) {
+    // 沒有選取：選取從頭到游標位置的所有文字
+    const range = sel.getRangeAt(0);
+    const newRange = document.createRange();
+    newRange.setStart(note, 0);
+    newRange.setEnd(range.startContainer, range.startOffset);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    document.execCommand('foreColor', false, color);
+    // 把游標移回原位
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 
-  // 標記選中的顏色按鈕（加白邊）
-  toolbar.querySelectorAll('[onmousedown*="setNoteColor"]').forEach(b => {
+  // 標記選中的顏色按鈕
+  toolbar.querySelectorAll('button[onmousedown*="setNoteColor"]').forEach(b => {
     b.style.border = '2px solid rgba(255,255,255,0.4)';
   });
   btn.style.border = '3px solid white';
