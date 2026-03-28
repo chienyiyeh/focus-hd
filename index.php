@@ -1726,8 +1726,7 @@ function buildCard(card, col, cardNo) {
       <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#E24B4A');event.preventDefault();event.stopPropagation()"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#185FA5');event.preventDefault();event.stopPropagation()"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="miniCmd('foreColor','#1A1A18');event.preventDefault();event.stopPropagation()"></button>
-      <div class="mini-tb-sep"></div>
-      <button class="mini-tb-btn" style="font-size:15px;padding:4px 10px;" onmousedown="miniCmd('removeFormat');event.preventDefault();event.stopPropagation()">✕</button>
+
     </div>`;
 
   // 康乃爾展開區塊（可編輯版）
