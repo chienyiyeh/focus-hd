@@ -1719,9 +1719,9 @@ function buildCard(card, col, cardNo) {
       onclick="event.stopPropagation()"
     >${noteHTML}</div>
     <div class="mini-toolbar" id="mtb-${cardIdStr}">
-      <button class="mini-tb-btn" onmousedown="miniCmd('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
-      <button class="mini-tb-btn" onmousedown="miniCmd('italic');event.preventDefault();event.stopPropagation()"><i>I</i></button>
-      <button class="mini-tb-btn" onmousedown="miniCmd('underline');event.preventDefault();event.stopPropagation()"><u>U</u></button>
+      <button class="mini-tb-btn" onmousedown="applyFormatBefore('bold');event.preventDefault();event.stopPropagation()"><b>B</b></button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('insertOrderedList');event.preventDefault();event.stopPropagation()" title="有序列表">1.</button>
+      <button class="mini-tb-btn" onmousedown="miniCmd('insertUnorderedList');event.preventDefault();event.stopPropagation()" title="無序列表">•</button>
       <div class="mini-tb-sep"></div>
       <button style="width:22px;height:22px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');event.preventDefault();event.stopPropagation()"></button>
       <button style="width:22px;height:22px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.6);cursor:pointer;flex-shrink:0;padding:0;" onmousedown="setNoteColor(this,'#185FA5');event.preventDefault();event.stopPropagation()"></button>
@@ -2356,31 +2356,89 @@ async function inlineSaveNote(cardId, col, text) {
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
 }
-// 設定游標前面所有文字的顏色
+// 選取游標所在行從行首到游標位置
+function selectCurrentLineBefore(note) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  const range = sel.getRangeAt(0);
+  
+  // 找到游標所在的文字節點
+  const curNode = range.startContainer;
+  const curOffset = range.startOffset;
+  
+  // find line start (scan back for br or block)
+  const newRange = document.createRange();
+  
+  // 找當前行的起點
+  let lineStart = null;
+  let lineStartOffset = 0;
+  
+  // 從游標往前掃描找換行點
+  const walker = document.createTreeWalker(note, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  let found = false;
+  let nodes = [];
+  let node = walker.nextNode();
+  while (node) {
+    if (node === curNode) { found = true; break; }
+    nodes.push(node);
+    node = walker.nextNode();
+  }
+  
+  // find last br or block element
+  lineStart = note;
+  lineStartOffset = 0;
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i];
+    if (n.nodeName === 'BR' || n.nodeName === 'P' || n.nodeName === 'DIV') {
+      if (n.nodeName === 'BR') {
+        lineStart = n.parentNode;
+        lineStartOffset = Array.from(n.parentNode.childNodes).indexOf(n) + 1;
+      } else {
+        lineStart = n;
+        lineStartOffset = 0;
+      }
+      break;
+    }
+  }
+  
+  try {
+    newRange.setStart(lineStart, lineStartOffset);
+    newRange.setEnd(curNode, curOffset);
+    return newRange;
+  } catch(e) {
+    return null;
+  }
+}
+
+// 設定游標所在行（游標前）的顏色
 function setNoteColor(btn, color) {
   const toolbar = btn.closest('.mini-toolbar');
   if (!toolbar) return;
   const noteId = 'note-' + toolbar.id.replace('mtb-', '');
   const note = document.getElementById(noteId);
   if (!note) return;
+  note.focus();
 
   const sel = window.getSelection();
-  
+  if (!sel || !sel.rangeCount) return;
+
   // 如果有選取文字，只改選取範圍
-  if (sel && sel.toString().length > 0 && sel.rangeCount > 0) {
+  if (sel.toString().length > 0) {
     document.execCommand('foreColor', false, color);
-  } else if (sel && sel.rangeCount > 0) {
-    // 沒有選取：選取從頭到游標位置的所有文字
-    const range = sel.getRangeAt(0);
-    const newRange = document.createRange();
-    newRange.setStart(note, 0);
-    newRange.setEnd(range.startContainer, range.startOffset);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-    document.execCommand('foreColor', false, color);
-    // 把游標移回原位
-    sel.removeAllRanges();
-    sel.addRange(range);
+  } else {
+    // 選取游標所在行的游標前文字
+    const lineRange = selectCurrentLineBefore(note);
+    if (lineRange) {
+      sel.removeAllRanges();
+      sel.addRange(lineRange);
+      document.execCommand('foreColor', false, color);
+      // 游標移回行末
+      const endRange = document.createRange();
+      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
+      endRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(endRange);
+    }
   }
 
   // 標記選中的顏色按鈕
@@ -2388,6 +2446,29 @@ function setNoteColor(btn, color) {
     b.style.border = '2px solid rgba(255,255,255,0.4)';
   });
   btn.style.border = '3px solid white';
+}
+
+// 粗體也套用游標前的文字
+function applyFormatBefore(cmd) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) { document.execCommand(cmd, false, null); return; }
+  if (sel.toString().length > 0) {
+    document.execCommand(cmd, false, null);
+  } else {
+    const activeNote = document.activeElement;
+    if (!activeNote || !activeNote.classList.contains('note-editable')) return;
+    const lineRange = selectCurrentLineBefore(activeNote);
+    if (lineRange) {
+      sel.removeAllRanges();
+      sel.addRange(lineRange);
+      document.execCommand(cmd, false, null);
+      const endRange = document.createRange();
+      endRange.setStart(lineRange.endContainer, lineRange.endOffset);
+      endRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(endRange);
+    }
+  }
 }
 
 function showMiniToolbar(id) {
