@@ -1794,10 +1794,6 @@ function openModal(col) {
   document.getElementById('input-priority').value = '';
   document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
   
-  const preview = document.getElementById('word-preview');
-  preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
-  preview.classList.add('empty');
-  
   initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
@@ -1821,15 +1817,6 @@ function editCard(id, col) {
   document.querySelectorAll('.priority-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.value === card.priority);
   });
-  
-  const preview = document.getElementById('word-preview');
-  if (card.body && card.body.trim()) {
-    preview.innerHTML = card.body;
-    preview.classList.remove('empty');
-  } else {
-    preview.innerHTML = '<span class="empty">點擊此處使用 Word 編輯器撰寫...</span>';
-    preview.classList.add('empty');
-  }
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
