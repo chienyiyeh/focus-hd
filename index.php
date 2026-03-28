@@ -352,10 +352,10 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-note-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); resize: none; outline: none; min-height: 80px; }
   .cornell-note-input:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .cornell-note-input::placeholder { color: var(--text-muted); font-style: italic; }
-  .cornell-add-item { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
-  .cornell-add-input { flex: 1; border: 1px dashed var(--border-strong); border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; }
+  .cornell-add-item { display: flex; gap: 6px; margin-top: 8px; align-items: center; width: 100%; }
+  .cornell-add-input { flex: 1; min-width: 0; border: 1px dashed var(--border-strong); border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; width: 100%; }
   .cornell-add-input:focus { border-color: var(--accent-lib); border-style: solid; }
-  .cornell-add-btn { padding: 5px 10px; border: none; background: var(--accent-lib); color: white; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .cornell-add-btn { padding: 8px 12px; border: none; background: var(--accent-lib); color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .card-checklist-item .del-item { opacity: 0; background: none; border: none; color: #E24B4A; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; }
   .card-checklist-item:hover .del-item { opacity: 1; }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
@@ -364,7 +364,7 @@ $username = $_SESSION['username'] ?? 'User';
   /* 康乃爾筆記格式 */
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
   .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
-  .cornell-a { width: 38%; border-right: 1px solid var(--border); padding: 10px; background: var(--surface2); }
+  .cornell-a { width: 38%; border-right: 1px solid var(--border); padding: 10px; background: var(--surface2); overflow: hidden; }
   .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; }
   .cornell-b * { max-width: 100%; }
   .cornell-b p { margin-bottom: 6px; }
