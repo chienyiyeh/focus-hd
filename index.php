@@ -366,8 +366,14 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
   .saving-indicator.show { display: block; }
-  .subtask-focus-btn { opacity: 0; background: none; border: none; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; transition: opacity 0.15s; }
-  .card-checklist-item:hover .subtask-focus-btn { opacity: 1; }
+  .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
+  .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
+  .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
+  .subtask-dropdown.open { display: block; }
+  .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
+  .subtask-dropdown-item:hover { background: var(--surface2); }
+  .subtask-dropdown-item.danger { color: #E24B4A; }
+  .subtask-dropdown-item:last-child { border-bottom: none; }
 
   /* 康乃爾筆記格式 */
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
@@ -1604,7 +1610,16 @@ function buildCard(card, col, cardNo) {
   
   let timerHTML = '';
   if (col === 'focus') {
-    timerHTML = `<div class="focus-timer"><div class="timer-display" id="timer-display-${card.id}">00:00:00</div><div class="timer-controls"><button class="timer-btn" id="timer-btn-${card.id}" onclick="toggleTimer(${card.id});event.stopPropagation()">開始專注</button><button class="timer-btn secondary" onclick="resetTimer(${card.id});event.stopPropagation()">重置</button></div></div>`;
+    // 檢查是否有子任務專注
+    const sf = getSubtaskFocus();
+    const isSubtaskFocus = sf && sf.cardId === card.id;
+    const focusLabel = isSubtaskFocus 
+      ? `<div style="font-size:11px;color:var(--accent-focus-text);margin-bottom:6px;font-weight:600;">🎯 專注子任務：${escHtml(sf.title)}</div>`
+      : '';
+    const doneLabel = isSubtaskFocus
+      ? `<button class="timer-btn" style="background:var(--accent-done);margin-top:6px;" onclick="completeSubtask(${card.id});event.stopPropagation()">✓ 完成子任務</button>`
+      : `<button class="timer-btn done" onclick="moveAPI(${card.id},'done');event.stopPropagation()">✓ 完成</button>`;
+    timerHTML = `<div class="focus-timer">${focusLabel}<div class="timer-display" id="timer-display-${card.id}">00:00:00</div><div class="timer-controls"><button class="timer-btn" id="timer-btn-${card.id}" onclick="toggleTimer(${card.id});event.stopPropagation()">開始專注</button><button class="timer-btn secondary" onclick="resetTimer(${card.id});event.stopPropagation()">重置</button></div>${doneLabel}</div>`;
   }
 
   const myFocusCnt = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
@@ -1654,8 +1669,12 @@ function buildCard(card, col, cardNo) {
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
       editableA += `<label for="${cbId}" style="font-size:12px;flex:1;cursor:pointer;">${escHtml(item.text)}</label>`;
-      editableA += `<button class="subtask-focus-btn" title="升格為今日專注" onclick="promoteSubtaskToFocus(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">🎯</button>`;
-      editableA += `<button class="del-item" onclick="inlineDeleteChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">×</button>`;
+      const smId = `sm-${cardIdStr}-${idx}`;
+      editableA += `<button class="subtask-menu-btn" onclick="toggleSubtaskMenu('${smId}', event); event.stopPropagation();">⋯</button>`;
+      editableA += `<div class="subtask-dropdown" id="${smId}">
+        <button class="subtask-dropdown-item" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🎯 今日專注</button>
+        <button class="subtask-dropdown-item danger" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🗑 刪除</button>
+      </div>`;
       editableA += `</div>`;
     });
   } else {
@@ -2289,7 +2308,30 @@ async function inlineSaveNote(cardId, col, text) {
   toast('✅ 筆記已儲存');
 }
 
-// 子任務升格為今日專注
+// 子任務選單
+function toggleSubtaskMenu(menuId, e) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.subtask-dropdown.open').forEach(m => m.classList.remove('open'));
+  if (!isOpen) {
+    menu.classList.add('open');
+    const btn = e.target;
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = Math.min(rect.left, window.innerWidth - 170) + 'px';
+  }
+}
+function closeSubtaskMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (menu) menu.classList.remove('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.subtask-dropdown.open').forEach(m => m.classList.remove('open'));
+});
+
+// 子任務升格：把主任務移到今日專注，記住子任務 index
+// 格式：localStorage 'subtaskFocus' = {cardId, idx, title, fromCol}
 async function promoteSubtaskToFocus(cardId, idx, col) {
   const found = getCard(cardId);
   if (!found) return;
@@ -2304,34 +2346,49 @@ async function promoteSubtaskToFocus(cardId, idx, col) {
     return;
   }
 
-  // 建立新卡片到今日專注
-  const newCard = {
-    col: 'focus',
-    title: item.text,
-    project: card.project,
-    priority: 'urgent_important',
-    summary: `來自：${card.title}`,
-    isPrivate: card.isPrivate ? 1 : 0,
-  };
-
+  // 記住子任務資訊（包含原本在哪個欄位）
   try {
-    const res = await fetch('api/cards.php?action=save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newCard)
-    });
-    const data = await res.json();
-    if (data.success) {
-      toast('🎯 子任務已升格為今日專注！');
-      const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
-      await loadCards();
-      if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
-    } else {
-      toast('❌ ' + (data.error || '升格失敗'));
-    }
-  } catch(e) {
-    toast('❌ 連線錯誤');
-  }
+    localStorage.setItem('subtaskFocus', JSON.stringify({
+      cardId: cardId,
+      idx: idx,
+      title: item.text,
+      fromCol: col
+    }));
+  } catch(e) {}
+
+  // 把主任務卡片移到今日專注
+  await moveAPI(cardId, 'focus');
+  toast('🎯 專注子任務：' + item.text);
+}
+
+// 取得目前的子任務專注資訊
+function getSubtaskFocus() {
+  try {
+    const data = localStorage.getItem('subtaskFocus');
+    return data ? JSON.parse(data) : null;
+  } catch(e) { return null; }
+}
+
+// 清除子任務專注
+function clearSubtaskFocus() {
+  try { localStorage.removeItem('subtaskFocus'); } catch(e) {}
+}
+
+// 完成子任務：勾選待辦項目，主任務移回原欄位
+async function completeSubtask(cardId) {
+  const sf = getSubtaskFocus();
+  if (!sf || sf.cardId !== cardId) return;
+
+  // 勾選子任務
+  await inlineToggleChecklist(cardId, sf.idx, 'focus');
+
+  // 清除子任務專注記錄
+  clearSubtaskFocus();
+
+  // 把主任務移回原欄位
+  const fromCol = sf.fromCol || 'lib';
+  await moveAPI(cardId, fromCol);
+  toast('✅ 子任務完成，主任務已移回' + {lib:'策略筆記區', week:'本週目標', focus:'今日專注'}[fromCol]);
 }
 
 // 卡片動作選單
