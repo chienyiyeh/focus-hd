@@ -566,7 +566,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 <!-- 手機版底部 Tab Bar -->
 <div class="mobile-tab-bar">
-  <button class="mobile-tab" data-col="lib" onclick="switchMobileTab('lib')">
+  <button class="mobile-tab active" data-col="lib" onclick="switchMobileTab('lib')">
     <div class="mobile-tab-icon">📚</div>
     <div class="mobile-tab-label">策略</div>
   </button>
@@ -574,7 +574,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">📅</div>
     <div class="mobile-tab-label">本週</div>
   </button>
-  <button class="mobile-tab active" data-col="focus" onclick="switchMobileTab('focus')">
+  <button class="mobile-tab" data-col="focus" onclick="switchMobileTab('focus')">
     <div class="mobile-tab-icon">🎯</div>
     <div class="mobile-tab-label">今日</div>
   </button>
@@ -1997,13 +1997,20 @@ function switchMobileTab(colName) {
   if (tab) tab.classList.add('active');
   if (col) col.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 記住最後看的分頁
+  try { localStorage.setItem('lastMobileTab', colName); } catch(e) {}
 }
 
 function initMobileTabs() {
   if (window.innerWidth <= 768) {
+    let lastTab = 'focus';
+    try { lastTab = localStorage.getItem('lastMobileTab') || 'focus'; } catch(e) {}
     document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
-    const focusCol = document.querySelector('.col[data-col="focus"]');
-    if (focusCol) focusCol.classList.add('active');
+    document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+    const col = document.querySelector(`.col[data-col="${lastTab}"]`);
+    const tab = document.querySelector(`.mobile-tab[data-col="${lastTab}"]`);
+    if (col) col.classList.add('active');
+    if (tab) tab.classList.add('active');
   }
 }
 
