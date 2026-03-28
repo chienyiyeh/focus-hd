@@ -1064,13 +1064,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   renderProjectSelect();
   injectProjectStyles();
+  // 手機版：載入前先設定預設分頁（今日專注）
+  if (window.innerWidth <= 768) {
+    setMobileTab('focus');
+  }
   await loadCards();
-  initMobileTabs();
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
       document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
     } else {
-      initMobileTabs();
+      // 視窗縮小時，如果沒有 active tab 就顯示今日專注
+      if (!document.querySelector('.mobile-tab.active')) {
+        setMobileTab('focus');
+      }
     }
   });
 });
