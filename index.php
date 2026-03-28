@@ -332,6 +332,9 @@ $username = $_SESSION['username'] ?? 'User';
   .priority-btn.active[data-value="urgent_not_important"] { background: #EEF5FF; border-color: #2196F3; color: #0D6EBF; }
   .priority-btn.active[data-value="not_urgent_not_important"] { background: #F5F5F5; border-color: #9E9E9E; color: #555555; }
 
+  /* 手機版底部 Tab Bar */
+  .mobile-tab-bar { display: none; }
+
   /* 手機版下拉選單 */
   .mobile-menu-btn { display: none; }
   .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300; }
@@ -362,8 +365,6 @@ $username = $_SESSION['username'] ?? 'User';
     .search-box { max-width: 100%; }
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
-    .board-wrap { grid-template-columns: 1fr; gap: 12px; padding: 12px 0; }
-    .col { border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .col-header { padding: 14px 16px; }
     .cards-area { padding: 8px 16px; }
     .filter-tags { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -371,7 +372,33 @@ $username = $_SESSION['username'] ?? 'User';
     .filter-tag { flex-shrink: 0; }
     .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn, .header-actions #notification-sound-toggle, .header-actions .notification-btn { display: none !important; }
     .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 20px; cursor: pointer; }
-    .card { padding: 14px; border-radius: 12px; margin-bottom: 10px; }
+    body { padding-bottom: 70px !important; }
+    .board-wrap { display: block !important; grid-template-columns: none !important; gap: 0 !important; padding: 0 !important; }
+    .board-wrap .col { display: none !important; width: 100vw !important; max-width: 100vw !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: none !important; }
+    .board-wrap .col.active { display: block !important; }
+
+    /* 底部 Tab Bar */
+    .mobile-tab-bar {
+      display: grid !important;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      grid-template-columns: repeat(4, 1fr);
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+    }
+    .mobile-tab {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; border: none; background: none; cursor: pointer;
+      color: var(--text-muted); font-family: inherit;
+    }
+    .mobile-tab-icon { font-size: 22px; line-height: 1; }
+    .mobile-tab-label { font-size: 11px; font-weight: 500; }
+    .mobile-tab.active { color: var(--accent-focus); background: var(--accent-focus-bg); }
+
+    .card { padding: 14px; border-radius: 0 !important; margin-bottom: 0 !important; border-left: none !important; border-right: none !important; border-top: none !important; border-bottom: 1px solid var(--border) !important; }
     .act-btn { padding: 8px 12px; font-size: 12px; } 
   }
 </style>
@@ -514,7 +541,25 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
-<!-- 卡片編輯 Modal -->
+<!-- 手機版底部 Tab Bar -->
+<div class="mobile-tab-bar">
+  <button class="mobile-tab" data-col="lib" onclick="switchMobileTab('lib')">
+    <div class="mobile-tab-icon">📚</div>
+    <div class="mobile-tab-label">策略</div>
+  </button>
+  <button class="mobile-tab" data-col="week" onclick="switchMobileTab('week')">
+    <div class="mobile-tab-icon">📅</div>
+    <div class="mobile-tab-label">本週</div>
+  </button>
+  <button class="mobile-tab active" data-col="focus" onclick="switchMobileTab('focus')">
+    <div class="mobile-tab-icon">🎯</div>
+    <div class="mobile-tab-label">今日</div>
+  </button>
+  <button class="mobile-tab" data-col="done" onclick="switchMobileTab('done')">
+    <div class="mobile-tab-icon">✅</div>
+    <div class="mobile-tab-label">完成</div>
+  </button>
+</div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -996,6 +1041,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderProjectSelect();
   injectProjectStyles();
   loadCards();
+  initMobileTabs();
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
+    } else {
+      initMobileTabs();
+    }
+  });
 });
 
 // ==========================================
@@ -1907,6 +1960,25 @@ function formatNotificationTime(dateString) {
 document.addEventListener('DOMContentLoaded', function() {
   initNotifications();
 });
+
+// 手機版 Tab 切換
+function switchMobileTab(colName) {
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
+  const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
+  const col = document.querySelector(`.col[data-col="${colName}"]`);
+  if (tab) tab.classList.add('active');
+  if (col) col.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function initMobileTabs() {
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
+    const focusCol = document.querySelector('.col[data-col="focus"]');
+    if (focusCol) focusCol.classList.add('active');
+  }
+}
 
 // 四象限優先級選擇
 function selectPriority(value) {
