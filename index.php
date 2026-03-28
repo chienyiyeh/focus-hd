@@ -362,8 +362,7 @@ $username = $_SESSION['username'] ?? 'User';
   .saving-indicator.show { display: block; }
 
   /* 康乃爾筆記格式 */
-  .cornell-layout { display: none; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
-  .card.open .cornell-layout { display: block; }
+  .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
   .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
   .cornell-a { width: 38%; border-right: 1px solid var(--border); padding: 10px; background: var(--surface2); }
   .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; }
@@ -374,8 +373,8 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-c-label { font-size: 10px; font-weight: 700; color: var(--accent-week-text); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
 
   /* 卡片動作選單 */
-  .card-actions-menu { position: relative; display: inline-block; }
-  .card-actions-toggle { background: none; border: 1px solid var(--border-strong); border-radius: 20px; padding: 3px 10px; font-size: 14px; color: var(--text-muted); cursor: pointer; line-height: 1; }
+  .card-actions-menu { position: relative; display: inline-block; margin-left: auto; flex-shrink: 0; }
+  .card-actions-toggle { background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 5px 14px; font-size: 16px; color: var(--text-secondary); cursor: pointer; line-height: 1; margin-left: 8px; }
   .card-actions-toggle:hover { background: var(--surface2); color: var(--text); }
   .card-actions-dropdown { display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 140px; z-index: 50; overflow: hidden; }
   .card-actions-dropdown.open { display: block; }
@@ -1625,6 +1624,7 @@ function buildCard(card, col, cardNo) {
   const hasSummary = card.summary && card.summary.trim();
   const hasNextStep = card.nextStep && card.nextStep.trim();
   const hasExpandable = hasChecklist || hasBody || hasSummary || hasNextStep;
+  const hasCornell = hasChecklist || hasBody;
 
   // C區：摘要
   let cornellC = '';
@@ -1666,27 +1666,16 @@ function buildCard(card, col, cardNo) {
   else if (hasBody) previewHTML = `<div class="card-preview">${card.body}</div>`;
 
   // 筆記指示圖示（收合時顯示）
-  const noteIcons = [];
-  if (hasBody) noteIcons.push('<span title="有筆記" style="font-size:13px;">📝</span>');
-  if (hasChecklist) {
-    const done = card.checklist.filter(i=>i.checked).length;
-    noteIcons.push(`<span title="待辦清單" style="font-size:11px;color:var(--accent-lib);font-weight:600;">☑ ${done}/${card.checklist.length}</span>`);
-  }
-  const noteIndicator = noteIcons.length ? `<div style="display:flex;gap:4px;align-items:center;margin-left:4px;">${noteIcons.join('')}</div>` : '';
+  // 標題右側資訊（與 ⋯ 選單之間加 flex 間距）
+  const noteIndicator = '';
 
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${hasExpandable ? '<div class="chevron" style="margin-left:auto;">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${previewHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
-  
-  // 點 ▾ chevron 展開康乃爾；點其他地方進編輯
-  if (hasExpandable) {
-    div.onclick = (e) => {
-      if (e.target.closest('.card-actions-menu') || e.target.closest('.drag-handle') || e.target.closest('input') || e.target.closest('label')) return;
-      if (e.target.closest('.chevron')) {
-        div.classList.toggle('open');
-        return;
-      }
-      editCard(card.id, col);
-    };
-  }
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+
+  // 點卡片標題區進編輯
+  div.onclick = (e) => {
+    if (e.target.closest('.card-actions-menu') || e.target.closest('.drag-handle') || e.target.closest('input') || e.target.closest('label') || e.target.closest('textarea') || e.target.closest('.cornell-add-btn')) return;
+    editCard(card.id, col);
+  };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
