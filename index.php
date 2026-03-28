@@ -508,6 +508,11 @@ $username = $_SESSION['username'] ?? 'User';
     .act-btn { padding: 7px 10px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
     .card-actions { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .card-actions::-webkit-scrollbar { display: none; }
+
+    /* 手機版 cornell 改上下排列，避免序列表跑到下面 */
+    .cornell-top { flex-direction: column; }
+    .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
+    .cornell-b { width: 100%; }
   }
 </style>
 </head>
