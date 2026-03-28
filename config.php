@@ -159,11 +159,8 @@ function cleanInput($data) {
 // ============================================
 
 if (session_status() === PHP_SESSION_NONE) {
-    $isHttps = (
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
-    );
-
+   $isHttps = true;
+    
     ini_set('session.use_strict_mode', '1');
     ini_set('session.gc_maxlifetime', (string)SESSION_LIFETIME);
     ini_set('session.cookie_lifetime', (string)SESSION_LIFETIME);
