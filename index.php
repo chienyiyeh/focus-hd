@@ -274,9 +274,13 @@ $username = $_SESSION['username'] ?? 'User';
   .fullscreen-editor.open { display: flex; }
   .editor-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .editor-title { font-size: 14px; font-weight: 600; }
-  .quill-container { flex: 1; display: flex; flex-direction: column-reverse; overflow: hidden; }
-  .ql-toolbar { border-top: 1px solid var(--border) !important; border-bottom: none !important; background: var(--surface2); flex-shrink: 0; }
-  .ql-container { flex: 1; overflow-y: auto; border-bottom: none !important; border-top: 1px solid var(--border) !important; }
+  .quill-container { flex: 1; display: flex; flex-direction: row; overflow: hidden; }
+  .ql-toolbar { border-left: 1px solid var(--border) !important; border-top: none !important; border-bottom: none !important; border-right: none !important; background: var(--surface2); flex-shrink: 0; width: 48px; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; overflow-y: auto; }
+  .ql-toolbar .ql-formats { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0 0 8px 0 !important; }
+  .ql-toolbar button { width: 36px !important; height: 36px !important; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+  .ql-toolbar button:hover { background: var(--border) !important; }
+  .ql-toolbar .ql-picker { width: 36px !important; }
+  .ql-container { flex: 1; overflow-y: auto; border-right: none !important; border-top: 1px solid var(--border) !important; }
   #editor-container { flex: 1; overflow-y: auto; }
   #editor-container .ql-editor { font-size: 15px; line-height: 1.8; min-height: 300px; }
   .editor-footer { padding: 16px 20px; background: var(--surface2); border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
