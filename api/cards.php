@@ -138,19 +138,37 @@ function handleSave($userId) {
         ensureColumns($db);
 
         if ($id) {
-            $stmt = $db->prepare("
-                UPDATE cards SET
-                    col=?, title=?, project=?, priority=?, source_link=?,
-                    summary=?, next_step=?, body=?, checklist=?,
-                    bgcolor=?, textcolor=?, is_private=?, completed_at=?
-                WHERE id=? AND user_id=?
-            ");
-            $stmt->execute([
-                $col, $title, $project, $priority, $sourceLink,
-                $summary, $nextStep, $body, $checklist,
-                $bgcolor, $textcolor, $isPrivate, $completedAt,
-                $id, $userId
-            ]);
+            // 管理員(user_id=1)或自己的卡片或共用卡片都能編輯
+            $isAdmin = ($userId === 1);
+            if ($isAdmin) {
+                $stmt = $db->prepare("
+                    UPDATE cards SET
+                        col=?, title=?, project=?, priority=?, source_link=?,
+                        summary=?, next_step=?, body=?, checklist=?,
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
+                    WHERE id=?
+                ");
+                $stmt->execute([
+                    $col, $title, $project, $priority, $sourceLink,
+                    $summary, $nextStep, $body, $checklist,
+                    $bgcolor, $textcolor, $isPrivate, $completedAt,
+                    $id
+                ]);
+            } else {
+                $stmt = $db->prepare("
+                    UPDATE cards SET
+                        col=?, title=?, project=?, priority=?, source_link=?,
+                        summary=?, next_step=?, body=?, checklist=?,
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
+                    WHERE id=? AND (user_id=? OR is_private=0)
+                ");
+                $stmt->execute([
+                    $col, $title, $project, $priority, $sourceLink,
+                    $summary, $nextStep, $body, $checklist,
+                    $bgcolor, $textcolor, $isPrivate, $completedAt,
+                    $id, $userId
+                ]);
+            }
             if ($stmt->rowCount() > 0) {
                 successResponse(['id' => $id], '卡片更新成功');
             } else {
