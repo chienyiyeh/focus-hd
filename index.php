@@ -720,11 +720,8 @@ $username = $_SESSION['username'] ?? 'User';
         <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
       </div>
       <div class="field">
-        <label class="field-label">詳細內容 <span class="optional">(點擊下方區域開啟 Word 編輯器)</span></label>
-        <div class="word-preview" id="word-preview" onclick="openFullscreenEditor()">
-          <span class="empty">點擊此處使用 Word 編輯器撰寫...</span>
-        </div>
-        <input type="hidden" id="input-body">
+        <label class="field-label">詳細內容</label>
+        <textarea id="input-body" style="width:100%;min-height:120px;border:1px solid var(--border-strong);border-radius:var(--radius);padding:10px;font-family:inherit;font-size:14px;resize:vertical;background:var(--surface2);color:var(--text);" placeholder="輸入詳細內容..."></textarea>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
       <div class="color-section"><label class="color-label">文字顏色</label><div class="swatches" id="text-swatches"></div></div>
@@ -740,20 +737,7 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
-<!-- Quill 全螢幕編輯器 -->
-<div class="fullscreen-editor" id="fullscreen-editor">
-  <div class="editor-header">
-    <div class="editor-title">📝 詳細內容 (Word 編輯模式)</div>
-    <button class="modal-btn secondary" onclick="closeFullscreenEditor()" style="background:#EEE; padding:8px 16px;">✕ 取消</button>
-  </div>
-  <div class="quill-container">
-    <div id="editor-container"></div>
-  </div>
-  <div class="editor-footer">
-    <button class="modal-btn secondary" onclick="closeFullscreenEditor()" style="padding:12px 24px;">取消</button>
-    <button class="modal-btn primary" onclick="saveFullscreenContent()" style="padding:12px 32px; font-size:16px;">✓ 儲存內容並返回</button>
-  </div>
-</div>
+
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
