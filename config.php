@@ -375,9 +375,10 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .help-toggle, .header-actions .export-btn, .header-actions .logout-btn, .header-actions .settings-btn, .header-actions #notification-sound-toggle, .header-actions .notification-btn { display: none !important; }
     .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 12px; font-size: 20px; cursor: pointer; }
 
-    /* 手機版欄位切換 */
-    .col { display: none !important; }
-    .col.active { display: block !important; }
+    /* 手機版欄位切換 - 強制隱藏所有欄位 */
+    .board-wrap { display: block !important; }
+    .board-wrap .col { display: none !important; width: 100% !important; max-width: 100% !important; }
+    .board-wrap .col.active { display: block !important; }
     body { padding-bottom: 70px !important; }
 
     /* 底部 Tab Bar */
