@@ -362,7 +362,7 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-a .card-checklist-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--accent-lib); }
   .cornell-a .card-checklist-item { gap: 7px; padding: 5px 2px; border-bottom: 1px solid var(--border); }
   .cornell-a .card-checklist-item:last-of-type { border-bottom: none; }
-  .cornell-a .card-checklist-item label { font-size: 12px; line-height: 1.4; cursor: pointer; }
+  .cornell-a .card-checklist-item label { font-size: 12px; line-height: 1.4; cursor: pointer; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; }
   .cornell-a .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
   .saving-indicator { font-size: 10px; color: var(--accent-lib); position: absolute; right: 8px; top: 8px; display: none; }
   .saving-indicator.show { display: block; }
