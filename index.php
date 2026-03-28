@@ -1328,9 +1328,10 @@ function injectProjectStyles() {
 // ==========================================
 async function loadCards() {
   try {
+    // 記住當前分頁
+    const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
     const res = await fetch('api/cards.php?action=list');
     const data = await res.json();
-    // 支援兩種格式：直接 {lib,week,focus,done} 或 {success:false, error:'...'}
     if (data.success === false) { toast('❌ ' + (data.error || '讀取失敗')); return; }
     state = { 
       lib: data.lib || [], 
@@ -1340,6 +1341,10 @@ async function loadCards() {
     };
     updateProjectLabels();
     render();
+    // 恢復分頁（如果已經有 active 分頁就保留，否則不動）
+    if (currentTab && window.innerWidth <= 768) {
+      setMobileTab(currentTab);
+    }
   } catch (err) { toast('連線異常，無法讀取卡片'); }
 }
 
