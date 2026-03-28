@@ -1694,10 +1694,11 @@ function buildCard(card, col, cardNo) {
 
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
-  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea><div style="text-align:right;margin-top:6px;"><button style="font-size:11px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
+  const editableB = `<div class="cornell-label">📝 筆記</div><textarea class="cornell-note-input" id="note-${cardIdStr}" placeholder="在這裡記下筆記..." onblur="inlineSaveNote(${cardIdStr},'${col}',this.value)" onclick="event.stopPropagation()">${escHtml(noteVal)}</textarea>`;
 
   // 康乃爾展開區塊（可編輯版）
-  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}</div>`;
+  const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
+  const cornellHTML = `<div class="cornell-layout" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
   let previewHTML = '';
