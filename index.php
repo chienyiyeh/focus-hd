@@ -1445,9 +1445,27 @@ function render() {
   updateProjectLabels();
   injectProjectStyles();
   
+  // 優先級排序權重
+  const PRIORITY_ORDER = {
+    'urgent_important': 1,
+    'important_not_urgent': 2,
+    'urgent_not_important': 3,
+    'not_urgent_not_important': 4,
+    null: 5, undefined: 5, '': 5
+  };
+
   ['lib', 'week', 'focus', 'done'].forEach(col => {
     const area = document.getElementById('cards-' + col); area.innerHTML = '';
-    const visibleCards = state[col].filter(shouldShowCard);
+    let visibleCards = state[col].filter(shouldShowCard);
+
+    // lib 欄位按優先級排序
+    if (col === 'lib') {
+      visibleCards = [...visibleCards].sort((a, b) => {
+        const pa = PRIORITY_ORDER[a.priority] ?? 5;
+        const pb = PRIORITY_ORDER[b.priority] ?? 5;
+        return pa - pb;
+      });
+    }
     
     if (visibleCards.length === 0) {
       const empty = document.createElement('div'); empty.className = 'empty';
@@ -1455,7 +1473,7 @@ function render() {
       else empty.textContent = { lib: '把筆記、策略存在這裡', week: '設定這週最重要的事', focus: '選一件事，現在就去做', done: '完成的事情會出現在這' }[col];
       area.appendChild(empty);
     }
-    visibleCards.forEach(card => area.appendChild(buildCard(card, col)));
+    visibleCards.forEach((card, idx) => area.appendChild(buildCard(card, col, idx + 1)));
   });
 
   document.getElementById('badge-lib').textContent = state.lib.length + ' 則';
@@ -1481,7 +1499,7 @@ function renderFilterTags() {
   });
 }
 
-function buildCard(card, col) {
+function buildCard(card, col, cardNo) {
   const div = document.createElement('div');
   div.className = 'card'; div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
@@ -1547,7 +1565,10 @@ function buildCard(card, col) {
     bodyHTML = `<div class="card-preview">${card.body}</div><div class="card-body">${card.body}</div>`;
   }
 
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span><div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}${actsHTML}`;
+  const noTag = (col === 'lib' && card.priority && cardNo) 
+    ? `<span style="font-size:10px;font-weight:700;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
+    : '';
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}${actsHTML}`;
   
   if (hasBody) div.onclick = () => div.classList.toggle('open');
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
