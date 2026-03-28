@@ -10,35 +10,28 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 $userId = $_SESSION['user_id'];
+$isAdmin = ($userId === 1); // chienyi 是管理員
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
 switch ($action) {
-    case 'list':   handleList($userId);   break;
-    case 'save':   handleSave($userId);   break;
-    case 'delete': handleDelete($userId); break;
-    case 'move':   handleMove($userId);   break;
+    case 'list':   handleList($userId);          break;
+    case 'save':   handleSave($userId, $isAdmin); break;
+    case 'delete': handleDelete($userId, $isAdmin); break;
+    case 'move':   handleMove($userId);          break;
     default:       errorResponse('無效的卡片動作');
 }
 
 // ============================================
-// 自動補欄位（防呆）
+// 自動補欄位
 // ============================================
 function ensureColumns($db) {
-    $columns = array_column(
-        $db->query("SHOW COLUMNS FROM cards")->fetchAll(PDO::FETCH_ASSOC),
-        'Field'
-    );
-    if (!in_array('priority', $columns))
-        $db->exec("ALTER TABLE cards ADD COLUMN priority VARCHAR(32) DEFAULT NULL");
-    if (!in_array('checklist', $columns))
-        $db->exec("ALTER TABLE cards ADD COLUMN checklist JSON DEFAULT NULL");
-    if (!in_array('is_private', $columns))
-        $db->exec("ALTER TABLE cards ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 0");
-    if (!in_array('created_by', $columns))
-        $db->exec("ALTER TABLE cards ADD COLUMN created_by INT DEFAULT NULL");
-    if (!in_array('postponed_count', $columns))
-        $db->exec("ALTER TABLE cards ADD COLUMN postponed_count INT DEFAULT 0");
+    $cols = array_column($db->query("SHOW COLUMNS FROM cards")->fetchAll(PDO::FETCH_ASSOC), 'Field');
+    if (!in_array('priority', $cols))       $db->exec("ALTER TABLE cards ADD COLUMN priority VARCHAR(32) DEFAULT NULL");
+    if (!in_array('checklist', $cols))      $db->exec("ALTER TABLE cards ADD COLUMN checklist JSON DEFAULT NULL");
+    if (!in_array('is_private', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 0");
+    if (!in_array('created_by', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN created_by INT DEFAULT NULL");
+    if (!in_array('postponed_count', $cols))$db->exec("ALTER TABLE cards ADD COLUMN postponed_count INT DEFAULT 0");
 }
 
 // ============================================
@@ -64,7 +57,6 @@ function handleList($userId) {
         $cards = $stmt->fetchAll();
 
         $result = ['lib' => [], 'week' => [], 'focus' => [], 'done' => []];
-
         foreach ($cards as $card) {
             $col = $card['col'];
             if (!isset($result[$col])) continue;
@@ -99,18 +91,19 @@ function handleList($userId) {
 // ============================================
 function cleanHTML($html) {
     if (empty($html)) return null;
-    $allowed = '<p><br><strong><em><u><s><ol><ul><li><h1><h2><h3><span><a><img>';
+    $allowed = '<p><br><strong><em><u><s><ol><ul><li><h1><h2><h3><span><a><img><font>';
     $cleaned = strip_tags($html, $allowed);
     $cleaned = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $cleaned);
     $cleaned = preg_replace('/on\w+="[^"]*"/i', '', $cleaned);
-    $cleaned = preg_replace('/on\w+=\'[^\']*\'/i', '', $cleaned);
     return $cleaned;
 }
 
 // ============================================
-// 新增/更新卡片（只有自己的卡片才能改）
+// 新增/更新卡片
+// 規則：自己的卡片 + 共用卡片 都能編輯
+//       管理員可以編輯任何卡片
 // ============================================
-function handleSave($userId) {
+function handleSave($userId, $isAdmin) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
 
     $input = json_decode(file_get_contents('php://input'), true);
@@ -138,8 +131,8 @@ function handleSave($userId) {
         ensureColumns($db);
 
         if ($id) {
-            // 管理員(user_id=1)或自己的卡片或共用卡片都能編輯
-            $isAdmin = ($userId === 1);
+            // 管理員：可編輯任何卡片
+            // 一般用戶：可編輯自己的卡片 或 共用卡片(is_private=0)
             if ($isAdmin) {
                 $stmt = $db->prepare("
                     UPDATE cards SET
@@ -169,6 +162,7 @@ function handleSave($userId) {
                     $id, $userId
                 ]);
             }
+
             if ($stmt->rowCount() > 0) {
                 successResponse(['id' => $id], '卡片更新成功');
             } else {
@@ -195,15 +189,14 @@ function handleSave($userId) {
 }
 
 // ============================================
-// 刪除卡片（只有自己的卡片才能刪）
+// 刪除卡片
+// 管理員可刪任何卡片，一般用戶只能刪自己的
 // ============================================
-function handleDelete($userId) {
+function handleDelete($userId, $isAdmin) {
     $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
     if (!$id) errorResponse('缺少卡片 ID');
     try {
         $db = getDB();
-        // chienyi (user_id=1) 是管理員，可刪任何卡片
-        $isAdmin = ($userId === 1);
         if ($isAdmin) {
             $stmt = $db->prepare("DELETE FROM cards WHERE id=?");
             $stmt->execute([$id]);
@@ -220,12 +213,13 @@ function handleDelete($userId) {
 
 // ============================================
 // 移動卡片
-// 規則：自己的卡片可以移到任何地方
-//       別人的卡片只能移出（不能移入 focus/week）
+// 自己的卡片可移到任何地方
+// 別人的卡片只能退回策略庫
+// 今日專注和本週目標各自有個人額度
 // ============================================
 function handleMove($userId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
-    $input = json_decode(file_get_contents('php://input'), true);
+    $input  = json_decode(file_get_contents('php://input'), true);
     $id     = (int)($input['id'] ?? 0);
     $newCol = cleanInput($input['col'] ?? '');
     if (!$id || !$newCol) errorResponse('缺少必要參數');
@@ -234,36 +228,30 @@ function handleMove($userId) {
     try {
         $db = getDB();
 
-        // 先查這張卡片是誰的
         $stmt = $db->prepare("SELECT user_id, col FROM cards WHERE id=?");
         $stmt->execute([$id]);
         $card = $stmt->fetch();
-
         if (!$card) errorResponse('卡片不存在');
 
         $isOwner = ((int)$card['user_id'] === (int)$userId);
 
-        // 不是自己的卡片，只能退回策略庫
+        // 不是自己的卡片只能退回策略庫
         if (!$isOwner && in_array($newCol, ['focus', 'week', 'done'])) {
             errorResponse('只能將別人的卡片退回策略庫');
         }
 
-        // 移入 focus：每人各有 1 個額度
+        // 今日專注：每人各 1 張
         if ($newCol === 'focus' && $card['col'] !== 'focus') {
-            $checkStmt = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='focus' AND user_id=?");
-            $checkStmt->execute([$userId]);
-            if ((int)$checkStmt->fetchColumn() >= 1) {
-                errorResponse('你的今日專注已有 1 張，請先完成或移出');
-            }
+            $chk = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='focus' AND user_id=?");
+            $chk->execute([$userId]);
+            if ((int)$chk->fetchColumn() >= 1) errorResponse('你的今日專注已有 1 張，請先完成或移出');
         }
 
-        // 移入 week：每人最多 3 張
+        // 本週目標：每人最多 3 張
         if ($newCol === 'week' && $card['col'] !== 'week') {
-            $checkStmt = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='week' AND user_id=?");
-            $checkStmt->execute([$userId]);
-            if ((int)$checkStmt->fetchColumn() >= 3) {
-                errorResponse('你的本週目標已有 3 張');
-            }
+            $chk = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='week' AND user_id=?");
+            $chk->execute([$userId]);
+            if ((int)$chk->fetchColumn() >= 3) errorResponse('你的本週目標已有 3 張');
         }
 
         if ($newCol === 'done') {
