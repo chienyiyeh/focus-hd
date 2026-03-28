@@ -348,6 +348,19 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
+  /* 卡片動作選單 */
+  .card-actions-menu { position: relative; display: inline-block; }
+  .card-actions-toggle { background: none; border: 1px solid var(--border-strong); border-radius: 20px; padding: 3px 10px; font-size: 14px; color: var(--text-muted); cursor: pointer; line-height: 1; }
+  .card-actions-toggle:hover { background: var(--surface2); color: var(--text); }
+  .card-actions-dropdown { display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 140px; z-index: 50; overflow: hidden; }
+  .card-actions-dropdown.open { display: block; }
+  .card-action-item { display: block; width: 100%; padding: 10px 14px; font-size: 13px; font-family: inherit; font-weight: 500; text-align: left; border: none; background: none; cursor: pointer; color: var(--text-secondary); }
+  .card-action-item:hover { background: var(--surface2); color: var(--text); }
+  .card-action-item.danger { color: #E24B4A; }
+  .card-action-item.danger:hover { background: #FEE2E2; }
+  .card-action-item.primary { color: var(--accent-week-text); }
+  .card-action-item.done-btn { color: var(--accent-done-text); }
+
   /* 卡片上的優先級標籤 */
   .priority-tag { padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; display: inline-block; }
 
@@ -1577,17 +1590,20 @@ function buildCard(card, col, cardNo) {
     timerHTML = `<div class="focus-timer"><div class="timer-display" id="timer-display-${card.id}">00:00:00</div><div class="timer-controls"><button class="timer-btn" id="timer-btn-${card.id}" onclick="toggleTimer(${card.id});event.stopPropagation()">開始專注</button><button class="timer-btn secondary" onclick="resetTimer(${card.id});event.stopPropagation()">重置</button></div></div>`;
   }
 
-  let actsHTML = '<div class="card-actions">';
+  const myFocusCnt = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  const menuId = 'menu-' + card.id;
+  let menuItems = '';
   if (col !== 'done') {
-    if (col === 'lib' && state.week.length < 3) actsHTML += `<button class="act-btn postpone" onclick="moveAPI(${card.id},'week');event.stopPropagation()">→ 本週目標</button>`;
-    const myFocusCnt = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
-    if (col !== 'focus' && myFocusCnt < 1) actsHTML += `<button class="act-btn focus" onclick="moveAPI(${card.id},'focus');event.stopPropagation()">→ 今日專注</button>`;
-    if (col === 'week' || col === 'focus') actsHTML += `<button class="act-btn back" onclick="moveAPI(${card.id},'lib');event.stopPropagation()">↩ 退回策略庫</button>`;
-    if (col === 'week') actsHTML += `<button class="act-btn postpone" onclick="postponeCard();event.stopPropagation()">⏭ 延到下週</button>`;
-    actsHTML += `<button class="act-btn done" onclick="moveAPI(${card.id},'done');event.stopPropagation()">✓ 完成</button> <button class="act-btn" onclick="editCard(${card.id},'${col}');event.stopPropagation()">編輯</button> <button class="act-btn del" onclick="deleteAPI(${card.id});event.stopPropagation()">刪除</button></div>`;
+    if (col === 'lib' && state.week.length < 3) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'week');closeCardMenu('${menuId}');event.stopPropagation()">→ 本週目標</button>`;
+    if (col !== 'focus' && myFocusCnt < 1) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'focus');closeCardMenu('${menuId}');event.stopPropagation()">→ 今日專注</button>`;
+    if (col === 'week' || col === 'focus') menuItems += `<button class="card-action-item" onclick="moveAPI(${card.id},'lib');closeCardMenu('${menuId}');event.stopPropagation()">↩ 退回策略庫</button>`;
+    menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
+    menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯</button>`;
+    menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 刪除</button>`;
   } else {
-    actsHTML += `<button class="act-btn del" onclick="deleteAPI(${card.id});event.stopPropagation()">移除</button></div>`;
+    menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 移除</button>`;
   }
+  const actsHTML = `<div class="card-actions-menu"><button class="card-actions-toggle" onclick="toggleCardMenu('${menuId}');event.stopPropagation()">⋯</button><div class="card-actions-dropdown" id="${menuId}">${menuItems}</div></div>`;
 
   // 支援 HTML 內容顯示（保留格式）
   let bodyHTML = '';
@@ -1599,7 +1615,7 @@ function buildCard(card, col, cardNo) {
   const noTag = (col === 'lib' && card.priority === 'urgent_important' && cardNo) 
     ? `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
     : '';
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}${actsHTML}`;
+  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${hasBody ? '<div class="chevron">▾</div>' : ''}${actsHTML}</div>${metaHTML}${sourceHTML}${sumHTML}${nsHTML}${checklistHTML}${timerHTML}${bodyHTML}`;
   
   if (hasBody) div.onclick = () => div.classList.toggle('open');
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
@@ -2089,6 +2105,24 @@ function setMobileTab(colName) {
   if (col) col.classList.add('active');
   if (tab) tab.classList.add('active');
 }
+
+// 卡片動作選單
+function toggleCardMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  // 關閉所有其他選單
+  document.querySelectorAll('.card-actions-dropdown.open').forEach(m => m.classList.remove('open'));
+  if (!isOpen) menu.classList.add('open');
+}
+function closeCardMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (menu) menu.classList.remove('open');
+}
+// 點擊其他地方關閉選單
+document.addEventListener('click', () => {
+  document.querySelectorAll('.card-actions-dropdown.open').forEach(m => m.classList.remove('open'));
+});
 
 // 四象限優先級選擇
 function selectPriority(value) {
