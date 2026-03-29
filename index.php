@@ -653,8 +653,6 @@ $username = $_SESSION['username'] ?? 'User';
     <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
     <button class="notification-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border-color:#FCA5A5;">登出</button>
   </div>
-  <!-- 手機版漢堡選單按鈕：直接在 header 層級 -->
-  <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
 </header>
 
 <div class="main-wrap">
@@ -926,22 +924,6 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 
 <!-- 手機版下拉選單 -->
-<div class="mobile-dropdown" id="mobile-dropdown">
-  <div class="mobile-dropdown-bg" onclick="closeMobileMenu()"></div>
-  <div class="mobile-dropdown-panel">
-    <div class="mobile-dropdown-header">
-      <span class="mobile-dropdown-title">👤 <?php echo htmlspecialchars($username); ?></span>
-      <button class="mobile-dropdown-close" onclick="closeMobileMenu()">✕</button>
-    </div>
-    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleNotifications()">🔔 通知</button>
-    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); openProjectSettings()">⚙️ 專案設定</button>
-    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); exportToExcel()">📊 匯出 Excel</button>
-    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); backupData()">💾 備份資料</button>
-    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleHelp()">💡 使用說明</button>
-    <button class="mobile-dropdown-item danger" onclick="closeMobileMenu(); logout()">🚪 登出</button>
-  </div>
-</div>
-
 <div id="toast"></div>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
 
