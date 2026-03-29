@@ -8,8 +8,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
     setcookie('KANBAN_SESSION', '', time() - 3600, '/');
     setcookie('remember_token', '', time() - 3600, '/');
+    setcookie(session_name(), '', time() - 3600, '/');
+    // 清除 ob buffer 後跳轉
+    if (ob_get_level()) ob_end_clean();
+    header('HTTP/1.1 302 Found');
     header('Location: login.php');
-    exit;
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    exit();
 }
 
 // 檢查是否登入，沒登入就踢回登入頁
