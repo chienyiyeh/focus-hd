@@ -435,6 +435,8 @@ $username = $_SESSION['username'] ?? 'User';
   /* 迷你富文字工具列（聚焦時顯示在頂部） */
   .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #111110; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
   .mini-toolbar.show { display: flex; }
+  /* 卡片展開時工具列永遠顯示，不依賴 focus */
+  .card.open .mini-toolbar { display: flex; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
@@ -2054,7 +2056,7 @@ function buildCard(card, col, cardNo) {
         onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-          onblur="const _tb=document.getElementById('mtb-${cardIdStr}');const _el=this;setTimeout(()=>{if(!_tb||!_tb.contains(document.activeElement)){hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML);}},200);event.stopPropagation()"
+          onblur="const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           onmousedown="event.stopPropagation()"
           ondragstart="event.preventDefault();event.stopPropagation()"
