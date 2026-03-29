@@ -757,7 +757,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <?php if (in_array($_SESSION['username'], ['admin', 'chienyi'])): ?>
+  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" class="mobile-tab" style="text-decoration:none;">
     <div class="mobile-tab-icon">⚙️</div>
     <div class="mobile-tab-label">管理</div>
