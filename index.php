@@ -1357,28 +1357,35 @@ function renderProjectList() {
     item.id = 'proj-item-' + key;
     item.style.cssText = 'border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;';
     item.innerHTML = `
-      <!-- 標題列：點擊展開編輯 -->
-      <div onclick="${!proj.default ? `toggleEditProject('${key}')` : ''}"
-        style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:${!proj.default ? 'pointer' : 'default'};background:var(--surface);${!proj.default ? 'user-select:none;' : ''}">
-        <div style="width:14px;height:14px;border-radius:50%;background:${proj.color};flex-shrink:0;"></div>
+      <!-- 標題列 -->
+      <div id="proj-header-${key}"
+        style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:${!proj.default ? 'pointer' : 'default'};background:var(--surface);user-select:none;">
+        <div style="width:14px;height:14px;border-radius:50%;background:${proj.color || proj.textColor || '#999'};flex-shrink:0;"></div>
         <span style="flex:1;font-size:13px;font-weight:500;">${proj.label}</span>
         ${proj.default ? '<span style="font-size:11px;color:var(--text-muted);">預設</span>' : ''}
-        ${!proj.default ? '<span style="font-size:11px;color:var(--text-muted);">點擊編輯 ▾</span>' : ''}
-        ${!proj.default ? `<button class="project-delete" onclick="event.stopPropagation();deleteCustomProject('${key}')" style="padding:3px 8px;font-size:11px;">刪除</button>` : ''}
+        ${!proj.default ? '<span style="font-size:11px;color:var(--text-muted);">▾</span>' : ''}
+        ${!proj.default ? `<button id="proj-del-${key}" style="padding:3px 8px;font-size:11px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;cursor:pointer;">刪除</button>` : ''}
       </div>
-      <!-- 編輯區（預設隱藏，名稱由 JS 填入） -->
-      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);" onclick="event.stopPropagation()">
-        <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
+      <!-- 編輯區 -->
+      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);">
+        <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;box-sizing:border-box;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">選擇顏色（懸停看說明）</div>
         <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
         <input type="hidden" id="proj-edit-color-${key}">
         <div style="display:flex;gap:6px;">
-          <button class="project-edit-save" onclick="event.stopPropagation();saveEditProject('${key}')">儲存</button>
-          <button class="project-edit-cancel" onclick="event.stopPropagation();toggleEditProject('${key}')">取消</button>
+          <button id="proj-save-${key}" style="padding:6px 16px;background:var(--accent-week);color:white;border:none;border-radius:var(--radius);font-size:12px;cursor:pointer;font-weight:500;">儲存</button>
+          <button id="proj-cancel-${key}" style="padding:6px 12px;background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;">取消</button>
         </div>
       </div>
     `;
     list.appendChild(item);
+    // 用 addEventListener 避免 onclick 衝突
+    if (!proj.default) {
+      document.getElementById('proj-header-' + key).addEventListener('click', () => toggleEditProject(key));
+      document.getElementById('proj-del-' + key).addEventListener('click', (e) => { e.stopPropagation(); deleteCustomProject(key); });
+      document.getElementById('proj-save-' + key).addEventListener('click', (e) => { e.stopPropagation(); saveEditProject(key); });
+      document.getElementById('proj-cancel-' + key).addEventListener('click', (e) => { e.stopPropagation(); toggleEditProject(key); });
+    }
   });
 }
 
