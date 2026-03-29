@@ -653,7 +653,7 @@ $username = $_SESSION['username'] ?? 'User';
     <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
     <button class="notification-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border-color:#FCA5A5;">登出</button>
     <!-- 手機版漢堡選單按鈕 -->
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    <button class="mobile-menu-btn" onmousedown="event.stopPropagation()" onclick="toggleMobileMenu();event.stopPropagation()">☰</button>
   </div>
 </header>
 
@@ -3158,7 +3158,12 @@ function selectPriority(value) {
 }
 
 // 手機版選單
-function toggleMobileMenu() { document.getElementById('mobile-dropdown').classList.toggle('open'); }
+function toggleMobileMenu() {
+  // 先關閉搜尋下拉
+  const sd = document.getElementById('search-dropdown');
+  if (sd) sd.classList.remove('show');
+  document.getElementById('mobile-dropdown').classList.toggle('open');
+}
 function closeMobileMenu() { document.getElementById('mobile-dropdown').classList.remove('open'); }
 
 </script>
