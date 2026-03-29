@@ -1391,7 +1391,15 @@ function toggleEditProject(key) {
   if (!isOpen) {
     editDiv.style.display = 'block';
     const proj = ALL_PROJECTS[key];
-    renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, proj.color);
+    // proj.color 或 proj.textColor 都可能
+    const currentColor = proj.color || proj.textColor || '#1E88E5';
+    // 確保色票容器顯示
+    const swatchContainer = document.getElementById('proj-edit-swatches-' + key);
+    if (swatchContainer) swatchContainer.style.display = 'flex';
+    renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, currentColor);
+    // 同步 hidden input
+    const colorInput = document.getElementById('proj-edit-color-' + key);
+    if (colorInput) colorInput.value = currentColor;
   }
 }
 
