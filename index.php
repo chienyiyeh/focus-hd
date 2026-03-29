@@ -2118,7 +2118,7 @@ function buildCard(card, col, cardNo) {
   const focusDirectBtn = (col === 'lib' && !isProjectCard) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'focus');event.stopPropagation()">→ 今日</button>` : '';
   const editBtn = `<div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
     <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}${focusDirectBtn}</div>
-    <button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button>
+    <button style="font-size:12px;padding:4px 12px;border:1px solid var(--accent-week);border-radius:6px;background:none;cursor:pointer;color:var(--accent-week);font-weight:500;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯卡片內容</button>
   </div>`;
   const cornellHTML = `<div class="cornell-layout" data-col="${col}" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
@@ -2876,6 +2876,15 @@ async function cbSave(cardId, col) {
   const label = document.getElementById('cl-label-' + cardId);
   if (label) label.textContent = `✓ 待辦 ${done}/${checklist.length}`;
   await inlineSave(cardId, actualCol, { checklist });
+
+  // 全部完成時彈出通知
+  if (checklist.length > 0 && done === checklist.length && actualCol !== 'done') {
+    setTimeout(() => {
+      if (confirm(`🎉 「${found.card.title}」的待辦事項全部完成！\n要移到「已完成」嗎？`)) {
+        moveAPI(cardId, 'done');
+      }
+    }, 200);
+  }
 }
 
 async function cbAdd(cardId, col) {
