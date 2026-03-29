@@ -562,19 +562,13 @@ $username = $_SESSION['username'] ?? 'User';
       display: flex !important;
       align-items: center;
       justify-content: center;
-      background: var(--surface);
+      background: none;
       border: 1px solid var(--border-strong);
       border-radius: var(--radius);
       padding: 8px 12px;
       font-size: 20px;
       cursor: pointer;
-      position: fixed;
-      top: 8px;
-      right: 8px;
-      z-index: 1000;
-      width: 44px;
-      height: 44px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex-shrink: 0;
     }
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
@@ -669,9 +663,9 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
     <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
     <button class="notification-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border-color:#FCA5A5;">登出</button>
-    <!-- 手機版漢堡選單按鈕 -->
-    <button class="mobile-menu-btn" onmousedown="event.stopPropagation()" onclick="toggleMobileMenu();event.stopPropagation()">☰</button>
   </div>
+  <!-- 手機版漢堡選單按鈕：直接在 header 層級 -->
+  <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
 </header>
 
 <div class="main-wrap">
