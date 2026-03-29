@@ -64,7 +64,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
 
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 12px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 12px; }
   .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
   .logo span { color: var(--accent-focus); }
   
@@ -558,7 +558,7 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .notification-btn { display: none !important; }
 
     /* 漢堡按鈕顯示 */
-    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; }
+    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; position: relative; z-index: 101; }
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
