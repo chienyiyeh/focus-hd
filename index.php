@@ -706,41 +706,6 @@ $username = $_SESSION['username'] ?? 'User';
         <label class="field-label">標題 *</label>
         <input type="text" class="field-input" id="input-title" placeholder="輸入任務標題...">
       </div>
-      <div class="field">
-        <label class="field-label">專案類型 <span class="optional">(選填)</span> <a href="javascript:void(0)" onclick="openProjectSettings(); event.stopPropagation();" style="font-size:11px; color:var(--accent-week); text-decoration:underline; margin-left:8px;">⚙️ 管理專案</a></label>
-        <select class="field-select" id="input-project"></select>
-      </div>
-      <div class="field">
-        <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
-        <div class="priority-grid" id="priority-grid">
-          <button type="button" class="priority-btn" data-value="urgent_important" onclick="selectPriority('urgent_important')">🔥 重要且緊急</button>
-          <button type="button" class="priority-btn" data-value="important_not_urgent" onclick="selectPriority('important_not_urgent')">⭐ 重要不緊急</button>
-          <button type="button" class="priority-btn" data-value="urgent_not_important" onclick="selectPriority('urgent_not_important')">⚡ 緊急不重要</button>
-          <button type="button" class="priority-btn" data-value="not_urgent_not_important" onclick="selectPriority('not_urgent_not_important')">💤 不重要不緊急</button>
-        </div>
-        <input type="hidden" id="input-priority">
-      </div>
-      <div class="field">
-        <label class="field-label">隱私設定</label>
-        <div style="display: flex; gap: 12px; margin-top: 8px;">
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-            <input type="radio" name="privacy" id="privacy-shared" value="0" style="cursor: pointer;">
-            <span style="font-size: 14px;">👥 共用（兩人都能看到）</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-            <input type="radio" name="privacy" id="privacy-private" value="1" checked style="cursor: pointer;">
-            <span style="font-size: 14px;">🔒 私人（只有自己能看到）</span>
-          </label>
-        </div>
-      </div>
-      <div class="field">
-        <label class="field-label">來源連結 <span class="optional">(選填)</span></label>
-        <input type="url" class="field-input" id="input-source" placeholder="https://...">
-      </div>
-      <div class="field">
-        <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
-        <textarea class="field-textarea" id="input-nextstep" placeholder="明確的行動指令，例如：打電話給王先生確認規格"></textarea>
-      </div>
       <!-- 康乃爾筆記本 -->
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本</label>
@@ -821,6 +786,41 @@ $username = $_SESSION['username'] ?? 'User';
             placeholder="用一句話說明這張卡的重點..." 
             style="border:none; background:transparent; padding:2px 6px; font-style:italic; font-size:13px; flex:1;">
         </div>
+      </div>
+      <div class="field">
+        <label class="field-label">專案類型 <span class="optional">(選填)</span> <a href="javascript:void(0)" onclick="openProjectSettings(); event.stopPropagation();" style="font-size:11px; color:var(--accent-week); text-decoration:underline; margin-left:8px;">⚙️ 管理專案</a></label>
+        <select class="field-select" id="input-project"></select>
+      </div>
+      <div class="field">
+        <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
+        <div class="priority-grid" id="priority-grid">
+          <button type="button" class="priority-btn" data-value="urgent_important" onclick="selectPriority('urgent_important')">🔥 重要且緊急</button>
+          <button type="button" class="priority-btn" data-value="important_not_urgent" onclick="selectPriority('important_not_urgent')">⭐ 重要不緊急</button>
+          <button type="button" class="priority-btn" data-value="urgent_not_important" onclick="selectPriority('urgent_not_important')">⚡ 緊急不重要</button>
+          <button type="button" class="priority-btn" data-value="not_urgent_not_important" onclick="selectPriority('not_urgent_not_important')">💤 不重要不緊急</button>
+        </div>
+        <input type="hidden" id="input-priority">
+      </div>
+      <div class="field">
+        <label class="field-label">隱私設定</label>
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="privacy" id="privacy-shared" value="0" style="cursor: pointer;">
+            <span style="font-size: 14px;">👥 共用（兩人都能看到）</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="privacy" id="privacy-private" value="1" checked style="cursor: pointer;">
+            <span style="font-size: 14px;">🔒 私人（只有自己能看到）</span>
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">來源連結 <span class="optional">(選填)</span></label>
+        <input type="url" class="field-input" id="input-source" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
+        <textarea class="field-textarea" id="input-nextstep" placeholder="明確的行動指令，例如：打電話給王先生確認規格"></textarea>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
       <div class="color-section"><label class="color-label">文字顏色</label><div class="swatches" id="text-swatches"></div></div>
