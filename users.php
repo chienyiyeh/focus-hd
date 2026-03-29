@@ -597,6 +597,7 @@ $username = $_SESSION['username'] ?? 'User';
     .cornell-top { flex-direction: column; }
     .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
     .cornell-b { width: 100%; }
+    #mobile-logout-btn { display: block !important; }
   }
 </style>
 </head>
@@ -604,6 +605,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 <header>
   <div class="logo">🎯 <span>FOCUS</span></div>
+  <button id="mobile-logout-btn" onclick="logout()" style="display:none;background:#FFF3F2;color:#991B1B;border:1px solid #FCA5A5;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;">登出</button>
   
   <div class="header-center">
     <div class="search-box">
