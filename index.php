@@ -179,7 +179,7 @@ $username = $_SESSION['username'] ?? 'User';
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
   .card.is-project { background: #FFF8F0 !important; border: 1px solid #C4845A; }
   .card.is-project .card-top { background: #6B3A2A; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; flex-wrap: wrap; }
-  .card.is-project .card-top::before { content: "📂 專案卡"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(255,245,238,0.6); letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card.is-project .card-top::before { content: "📂 專案卡"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(255,245,238,0.75); letter-spacing: 0.8px; margin-bottom: 4px; }
   .card.is-project .card-top .card-title { color: #FFF5EE !important; }
   .card.is-project .card-top .drag-handle { color: rgba(255,245,238,0.4) !important; }
   .card.is-project .card-top .card-actions-menu button { color: rgba(255,245,238,0.7) !important; border-color: rgba(255,245,238,0.2) !important; }
@@ -190,7 +190,14 @@ $username = $_SESSION['username'] ?? 'User';
   .card.open .card-preview { display: none; }
   .card.open .chevron { transform: rotate(180deg); }
 
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px;
+    background: #EDE8E0; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px;
+    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+    flex-wrap: wrap;
+  }
+  .card-top::before { content: "📄 筆記"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(80,60,40,0.45); letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card-top .card-title { color: #3D2B1A !important; }
+  .card-top .drag-handle { color: rgba(80,60,40,0.35) !important; }
   .drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; margin-right: 4px; }
   .card-title { font-size: 14px; font-weight: 500; line-height: 1.45; flex: 1; }
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
