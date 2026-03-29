@@ -398,17 +398,39 @@ $username = $_SESSION['username'] ?? 'User';
   .saving-indicator.show { display: block; }
   .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
   .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
-  .inline-item-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 0 3px; line-height: 1; flex-shrink: 0; }
-  .inline-item-btn.focus-btn { font-size: 11px; color: var(--accent-focus-text); background: var(--accent-focus-bg); border: 1px solid var(--accent-focus); border-radius: 6px; padding: 2px 6px; white-space: nowrap; font-weight: 600; }
-  .inline-item-btn.del-btn { color: #E24B4A; opacity: 0.4; }
-  .inline-item-btn.del-btn:hover { opacity: 1; }
-  /* 桌面版：按鈕縮小，checklist 文字有足夠空間 */
-  @media (min-width: 769px) {
-    .cornell-a .card-checklist-item { flex-wrap: nowrap; }
-    .inline-item-btn.focus-btn { font-size: 10px; padding: 1px 4px; opacity: 0.6; }
-    .inline-item-btn.focus-btn:hover { opacity: 1; }
-    .inline-item-btn.del-btn { font-size: 11px; }
+  .inline-item-btn { background: none; border: none; cursor: pointer; line-height: 1; flex-shrink: 0; }
+  /* 今日專注：預設只顯示小圖示 */
+  .inline-item-btn.focus-btn {
+    font-size: 14px;
+    padding: 2px 3px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    opacity: 0.5;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 22px;
+    transition: max-width 0.2s ease, opacity 0.2s, background 0.2s, padding 0.2s;
   }
+  .inline-item-btn.focus-btn .btn-label { display: none; }
+  /* hover/focus 展開成文字 */
+  .card-checklist-item:hover .inline-item-btn.focus-btn,
+  .inline-item-btn.focus-btn:focus {
+    max-width: 80px;
+    opacity: 1;
+    background: var(--accent-focus-bg);
+    border: 1px solid var(--accent-focus);
+    color: var(--accent-focus-text);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+  }
+  .card-checklist-item:hover .inline-item-btn.focus-btn .btn-label { display: inline; }
+  .card-checklist-item:hover .inline-item-btn.focus-btn .btn-icon { display: none; }
+  .inline-item-btn.del-btn { font-size: 13px; color: #E24B4A; opacity: 0.3; padding: 0 3px; }
+  .inline-item-btn.del-btn:hover { opacity: 1; }
+  /* 筆記區域限制高度 */
+  .cornell-b { max-height: 200px; overflow-y: auto; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
   .subtask-dropdown.open { display: block; }
   .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
@@ -1704,7 +1726,7 @@ function buildCard(card, col, cardNo) {
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">今日專注</button>`;
+      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注"><span class="btn-icon">🎯</span><span class="btn-label">今日專注</span></button>`;
       editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
       editableA += `</div>`;
     });
