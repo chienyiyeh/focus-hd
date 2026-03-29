@@ -1654,7 +1654,13 @@ function buildCard(card, col, cardNo) {
     if (col !== 'focus' && myFocusCnt < 1) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'focus');closeCardMenu('${menuId}');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') menuItems += `<button class="card-action-item" onclick="moveAPI(${card.id},'lib');closeCardMenu('${menuId}');event.stopPropagation()">↩ 退回策略庫</button>`;
     menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯卡片</button>`;
-    menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
+    const sfCheck = getSubtaskFocus();
+    const isSubtask = sfCheck && sfCheck.cardId === card.id;
+    if (col === 'focus' && isSubtask) {
+      menuItems += `<button class="card-action-item done-btn" onclick="completeSubtask(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成子任務（回策略庫）</button>`;
+    } else {
+      menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
+    }
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 刪除</button>`;
   } else {
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 移除</button>`;
