@@ -331,8 +331,8 @@ $username = $_SESSION['username'] ?? 'User';
   .export-option-desc { font-size: 11px; color: var(--text-muted); }
 
   /* 四象限優先級 */
-  .priority-grid { display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 4px; overflow-x: auto; }
-  .priority-btn { padding: 5px 8px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 20px; font-size: 11px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+  .priority-grid { display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 4px; }
+  .priority-btn { flex: 1; padding: 7px 4px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 8px; font-size: 11px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); white-space: nowrap; }
   .priority-btn:hover { background: var(--surface2); }
   .priority-btn.active[data-value="urgent_important"] { background: #FFF0F0; border-color: #FF4444; color: #CC0000; }
   .priority-btn.active[data-value="important_not_urgent"] { background: #FFF8EC; border-color: #FF9800; color: #CC7700; }
