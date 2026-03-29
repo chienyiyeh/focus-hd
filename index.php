@@ -2469,6 +2469,21 @@ function addChecklistItem(text = '', checked = false) {
   const ta = item.querySelector('textarea');
   if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
 
+  // 初始刪除線（已勾選時）
+  if (ta && checked) {
+    ta.style.textDecoration = 'line-through';
+    ta.style.color = 'var(--text-muted)';
+  }
+
+  // checkbox 勾選/取消時動態更新刪除線
+  const cb = item.querySelector('input[type="checkbox"]');
+  if (cb && ta) {
+    cb.addEventListener('change', () => {
+      ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
+      ta.style.color = cb.checked ? 'var(--text-muted)' : '';
+    });
+  }
+
   if (!text && ta) ta.focus();
 }
 
