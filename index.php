@@ -2270,12 +2270,21 @@ document.getElementById('search-input').addEventListener('input', e => {
   render();
   renderSearchDropdown(searchQuery);
 });
+let searchDropdownOpen = false;
 document.getElementById('search-input').addEventListener('focus', e => {
-  renderSearchDropdown('');  // 點擊時顯示所有卡片
+  if (searchDropdownOpen) {
+    document.getElementById('search-dropdown').classList.remove('show');
+    document.getElementById('search-input').blur();
+    searchDropdownOpen = false;
+  } else {
+    renderSearchDropdown('');
+    searchDropdownOpen = true;
+  }
 });
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-box')) {
     document.getElementById('search-dropdown').classList.remove('show');
+    searchDropdownOpen = false;
   }
 });
 
@@ -2306,6 +2315,7 @@ function renderSearchDropdown(q) {
     item.innerHTML = `<span class="search-result-col">${colNames[col]}</span>${isProj}<span class="search-result-title">${escHtml(card.title)}</span>${projInfo}`;
     item.onclick = () => {
       dropdown.classList.remove('show');
+      searchDropdownOpen = false;
       document.getElementById('search-input').value = '';
       searchQuery = '';
       render();
