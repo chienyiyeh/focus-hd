@@ -789,7 +789,8 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
       <div class="field">
         <label class="field-label">專案類型 <span class="optional">(選填)</span> <a href="javascript:void(0)" onclick="openProjectSettings(); event.stopPropagation();" style="font-size:11px; color:var(--accent-week); text-decoration:underline; margin-left:8px;">⚙️ 管理專案</a></label>
-        <select class="field-select" id="input-project"></select>
+        <div id="project-btn-group" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;"></div>
+        <input type="hidden" id="input-project">
       </div>
       <div class="field">
         <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
@@ -1461,15 +1462,30 @@ async function deleteCustomProject(key) {
 }
 
 function renderProjectSelect() {
-  const select = document.getElementById('input-project');
+  const group = document.getElementById('project-btn-group');
+  if (!group) return;
   const allProjects = getAllProjects();
-  
-  select.innerHTML = '<option value="">無</option>';
+  const current = document.getElementById('input-project').value;
+
+  group.innerHTML = '';
+  // 無 按鈕
+  const noneBtn = document.createElement('button');
+  noneBtn.type = 'button';
+  noneBtn.className = 'proj-select-btn' + (current === '' ? ' active' : '');
+  noneBtn.textContent = '無';
+  noneBtn.style.cssText = 'padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:' + (current==='' ? 'var(--surface2)' : 'var(--surface)') + ';font-family:inherit;';
+  noneBtn.onclick = () => { document.getElementById('input-project').value = ''; setTimeout(renderProjectSelect, 10); renderProjectSelect(); };
+  group.appendChild(noneBtn);
+
   Object.keys(allProjects).forEach(key => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = allProjects[key].label;
-    select.appendChild(option);
+    const proj = allProjects[key];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'proj-select-btn' + (current === key ? ' active' : '');
+    btn.textContent = proj.label;
+    btn.style.cssText = 'padding:5px 12px;border:1.5px solid ' + (proj.color||'var(--border-strong)') + ';border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:' + (current===key ? (proj.color||'#eee') : 'var(--surface)') + ';color:' + (current===key ? '#fff' : 'var(--text)') + ';font-family:inherit;';
+    btn.onclick = () => { document.getElementById('input-project').value = key; renderProjectSelect(); };
+    group.appendChild(btn);
   });
 }
 
@@ -1982,7 +1998,7 @@ function openModal(col) {
 function editCard(id, col) {
   const card = state[col].find(c => c.id === id); if (!card) return;
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
-  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
+  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; setTimeout(renderProjectSelect, 10); document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
   
   // 设置隐私选项
   if (card.isPrivate) {
