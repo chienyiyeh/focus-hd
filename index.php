@@ -424,9 +424,13 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 康乃爾筆記格式 */
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
-  .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
-  .cornell-a { width: 45%; border-right: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
+  /* 預設上下排列（手機桌機一致） */
+  .cornell-top { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
+  .cornell-a { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
   .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; position: relative; }
+  /* 編輯模式才左右康乃爾並排 */
+  .cornell-layout.edit-mode .cornell-top { flex-direction: row; }
+  .cornell-layout.edit-mode .cornell-a { width: 45%; border-right: 1px solid var(--border); border-bottom: none; }
   .cornell-b * { max-width: 100%; }
   .cornell-b p { margin-bottom: 6px; }
   .cornell-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
