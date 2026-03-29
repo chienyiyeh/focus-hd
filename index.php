@@ -470,7 +470,7 @@ $username = $_SESSION['username'] ?? 'User';
   }
   .inline-item-btn.focus-btn:hover,
   .inline-item-btn.focus-btn:active { opacity: 0.85; }
-  .inline-item-btn.del-btn { font-size: 15px; color: #E24B4A; opacity: 0.35; padding: 0 4px; margin-left: 4px; }
+  .inline-item-btn.del-btn { font-size: 16px; color: #E24B4A; opacity: 0.7; padding: 0 4px; margin-left: 4px; }
   .inline-item-btn.del-btn:hover,
   .inline-item-btn.del-btn:active { opacity: 1; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
