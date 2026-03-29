@@ -437,6 +437,8 @@ $username = $_SESSION['username'] ?? 'User';
   .mini-toolbar.show { display: flex; }
   /* 卡片展開時，cornell-b 內的工具列永遠顯示，不依賴 focus */
   .card.open .cornell-b .mini-toolbar { display: flex; }
+  /* 手動關閉後保持隱藏 */
+  .card.open .cornell-b .mini-toolbar.hidden { display: none; }
   /* done 欄卡片預設收合，點標題展開 */
   .col-done .card .cornell-layout,
   .col-done .card .card-meta,
@@ -2092,7 +2094,7 @@ function buildCard(card, col, cardNo) {
       <div style="flex:1;min-width:0;position:relative;padding:4px;"
         onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
-          onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+          onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb)tb.classList.remove('hidden');showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
           onblur="const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           onmousedown="event.stopPropagation()"
@@ -2142,6 +2144,9 @@ function buildCard(card, col, cardNo) {
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
         <button class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;" title="儲存筆記"
           onmousedown="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);setTimeout(()=>{const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}},50);}})();event.preventDefault();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
+        <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
+        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;color:#aaa;" title="關閉工具列"
+          onmousedown="document.getElementById('mtb-${cardIdStr}').classList.add('hidden');event.preventDefault();event.stopPropagation()">✕</button>
       </div>
     </div>`;
 
