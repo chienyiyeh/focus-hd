@@ -2032,7 +2032,7 @@ function buildCard(card, col, cardNo) {
       const cbId = `cb-${cardIdStr}-${idx}`;
       const smId = `sm-${cardIdStr}-${idx}`;
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
-      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
+      editableA += `<input type="checkbox" id="${cbId}" data-card="${cardIdStr}" data-idx="${idx}" data-col="${col}" ${item.checked ? 'checked' : ''} class="inline-cb" style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
       editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">→ 今日專注</button>`;
       editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
@@ -2232,6 +2232,17 @@ function handleDragStart(e) {
 function handleDragEnd(e) { this.classList.remove('dragging'); document.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over')); }
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.cards-area').forEach(a => { a.addEventListener('dragover', handleDragOver); a.addEventListener('drop', handleDrop); a.addEventListener('dragleave', handleDragLeave); });
+});
+
+// 事件委派處理 checkbox（避免被 div.onclick 攔截）
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('inline-cb')) {
+    const cardId = parseInt(e.target.dataset.card);
+    const idx = parseInt(e.target.dataset.idx);
+    const col = e.target.dataset.col;
+    inlineToggleChecklist(cardId, idx, col);
+    e.stopPropagation();
+  }
 });
 function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.closest('.col').classList.add('drag-over'); }
 function handleDragLeave(e) { if (e.target === this) this.closest('.col').classList.remove('drag-over'); }
