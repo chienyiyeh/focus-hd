@@ -179,10 +179,10 @@ $username = $_SESSION['username'] ?? 'User';
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
   .card.is-project { background: #FFF8F0 !important; border: 1px solid #C4845A; }
   .card.is-project .card-top { background: #6B3A2A; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; flex-wrap: wrap; }
-  .card.is-project .card-top::before { content: "📂 專案卡"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(255,245,238,0.75); letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card.is-project .card-top::before { content: "專案"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(255,245,238,0.75); letter-spacing: 0.8px; margin-bottom: 4px; }
   .card.is-project .card-top .card-title { color: #FFF5EE !important; }
   .card.is-project .card-top .drag-handle { color: rgba(255,245,238,0.4) !important; }
-  .card.is-project .card-top .card-actions-menu button { color: rgba(255,245,238,0.7) !important; border-color: rgba(255,245,238,0.2) !important; }
+  .card.is-project .card-top .card-actions-menu button { color: #FFF5EE !important; border-color: rgba(255,245,238,0.5) !important; background: rgba(255,245,238,0.15) !important; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card.dragging { opacity: 0.5; cursor: grabbing; }
   .card.open { padding-bottom: 6px; }
@@ -195,7 +195,7 @@ $username = $_SESSION['username'] ?? 'User';
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
     flex-wrap: wrap;
   }
-  .card-top::before { content: "📄 筆記"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(80,60,40,0.45); letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card-top::before { content: "筆記"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(80,60,40,0.45); letter-spacing: 0.8px; margin-bottom: 4px; }
   .card-top .card-title { color: #3D2B1A !important; }
   .card-top .drag-handle { color: rgba(80,60,40,0.35) !important; }
   .drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; margin-right: 4px; }
@@ -477,7 +477,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 卡片動作選單 */
   .card-actions-menu { position: relative; display: inline-block; margin-left: auto; flex-shrink: 0; }
-  .card-actions-toggle { background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 5px 14px; font-size: 16px; color: var(--text-secondary); cursor: pointer; line-height: 1; margin-left: 8px; }
+  .card-actions-toggle { background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 5px 14px; font-size: 16px; color: var(--text); cursor: pointer; line-height: 1; margin-left: 8px; font-weight: 700; }
   .card-actions-toggle:hover { background: var(--surface2); color: var(--text); }
   .card-actions-dropdown { display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 140px; z-index: 50; overflow: hidden; }
   .card-actions-dropdown.open { display: block; }
@@ -2079,6 +2079,13 @@ function buildCard(card, col, cardNo) {
 
   // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
   div.onclick = (e) => { return; };
+  // 筆記區選文字時停止拖移
+  div.addEventListener('mousedown', (e) => {
+    const noteEl = e.target.closest('.note-editable, .cornell-b, [contenteditable]');
+    if (noteEl) { div.draggable = false; }
+    else { div.draggable = true; }
+  });
+  div.addEventListener('mouseup', () => { div.draggable = true; });
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
@@ -2141,7 +2148,18 @@ function formatDateTime(ts) {
 // 拖曳處理
 // ==========================================
 let draggedCard = null;
-function handleDragStart(e) { draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col }; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function handleDragStart(e) {
+  // 如果選取了文字，不觸發拖移
+  const sel = window.getSelection();
+  if (sel && sel.toString().length > 0) { e.preventDefault(); return; }
+  // 如果點擊來自 contenteditable 區域，不觸發拖移
+  if (e.target.closest('[contenteditable]') || e.target.closest('.note-editable') || e.target.closest('.cornell-b') || e.target.closest('.checklist-text-edit')) {
+    e.preventDefault(); return;
+  }
+  draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col };
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
 function handleDragEnd(e) { this.classList.remove('dragging'); document.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over')); }
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.cards-area').forEach(a => { a.addEventListener('dragover', handleDragOver); a.addEventListener('drop', handleDrop); a.addEventListener('dragleave', handleDragLeave); });
