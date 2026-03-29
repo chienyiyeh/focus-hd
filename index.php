@@ -2,6 +2,16 @@
 // 引入設定檔 (確保 KANBAN_SESSION 一致)
 require_once 'api/config.php';
 
+// 處理登出
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    $_SESSION = [];
+    session_destroy();
+    setcookie('KANBAN_SESSION', '', time() - 3600, '/');
+    setcookie('remember_token', '', time() - 3600, '/');
+    header('Location: login.php');
+    exit;
+}
+
 // 檢查是否登入，沒登入就踢回登入頁
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -765,7 +775,7 @@ $username = $_SESSION['username'] ?? 'User';
     <span style="font-size:11px;font-weight:500;">管理</span>
   </a>
   <?php endif; ?>
-  <a href="logout.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;">
+  <a href="api/auth.php?action=logout" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;">
     <span style="font-size:22px;line-height:1;">🚪</span>
     <span style="font-size:11px;font-weight:500;">登出</span>
   </a>
@@ -944,7 +954,7 @@ $username = $_SESSION['username'] ?? 'User';
   <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#534AB7;color:white;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">⚙️</a>
   <?php endif; ?>
-  <a href="logout.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#FEE2E2;color:#991B1B;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚪</a>
+  <a href="api/auth.php?action=logout" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#FEE2E2;color:#991B1B;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚪</a>
 </div>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
 
@@ -3187,7 +3197,7 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
   <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" style="padding:8px 16px;background:#534AB7;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">⚙️ 管理</a>
   <?php endif; ?>
-  <a href="logout.php" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
+  <a href="api/auth.php?action=logout" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
 </div>
 </body>
 </html>
