@@ -835,7 +835,36 @@ $username = $_SESSION['username'] ?? 'User';
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本</label>
         <div style="display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5;">
-          <!-- 上半：左欄待辦 + 右欄筆記 -->
+          <!-- 工具列：在左右欄上方，橫跨全寬 -->
+          <div style="background:#111110; flex-shrink:0; padding:4px 8px; display:flex; flex-wrap:wrap; gap:3px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('bold');event.preventDefault()"><b>B</b></button>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('insertOrderedList');event.preventDefault()">1.</button>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('insertUnorderedList');event.preventDefault()">•</button>
+            <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;touch-action:manipulation;" onclick="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
+            <div id="modal-color-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+              <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetColor('#E24B4A');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetColor('#185FA5');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:50%;background:#1D9E75;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetColor('#1D9E75');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:50%;background:#BA7517;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetColor('#BA7517');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetColor('#1A1A18');event.preventDefault()"></button>
+            </div>
+            <button class="mini-tb-btn" style="width:36px;height:36px;padding:2px;touch-action:manipulation;" onclick="toggleModalColorMenu('modal-bg-menu',this);event.preventDefault()">
+              <svg width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
+            </button>
+            <div id="modal-bg-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+              <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetBgColor('#DAEEFF');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetBgColor('#FFFACC');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetBgColor('#FFE4EC');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:6px;background:#E8F5E9;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetBgColor('#E8F5E9');event.preventDefault()"></button>
+              <button style="width:28px;height:28px;border-radius:6px;background:transparent;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="modalSetBgColor('transparent');event.preventDefault()">✕</button>
+            </div>
+            <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:14px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('undo');event.preventDefault()">↩</button>
+            <button class="mini-tb-btn" style="width:36px;height:36px;font-size:14px;padding:0;touch-action:manipulation;" onclick="modalExecCmd('redo');event.preventDefault()">↪</button>
+          </div>
+          <!-- 下半：左欄待辦 + 右欄筆記 -->
           <div style="display:flex; min-height:260px;">
             <!-- 左欄：待辦清單 -->
             <div style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto;">
@@ -843,39 +872,8 @@ $username = $_SESSION['username'] ?? 'User';
               <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:6px; flex:1;"></div>
               <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
             </div>
-          <!-- 右欄：詳細筆記＋工具列 -->
+          <!-- 右欄：詳細筆記 -->
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-            <!-- 工具列 -->
-            <div style="display:flex; align-items:center; gap:4px; padding:4px 8px; background:#111110; flex-shrink:0; flex-wrap:wrap;">
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('bold');event.preventDefault()"><b>B</b></button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('insertOrderedList');event.preventDefault()">1.</button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:16px;padding:0;" onmousedown="modalExecCmd('insertUnorderedList');event.preventDefault()">•</button>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;" onmousedown="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
-              <div id="modal-color-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-                <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#E24B4A');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#185FA5');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#1D9E75;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1D9E75');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#BA7517;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#BA7517');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1A1A18');event.preventDefault()"></button>
-              </div>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <!-- 螢光筆 -->
-              <button class="mini-tb-btn" style="width:28px;height:28px;padding:2px;" onmousedown="toggleModalColorMenu('modal-bg-menu',this);event.preventDefault()">
-                <svg width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
-              </button>
-              <div id="modal-bg-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-                <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#DAEEFF');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFFACC');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFE4EC');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#E8F5E9;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#E8F5E9');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:transparent;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('transparent');event.preventDefault()">✕</button>
-              </div>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('undo');event.preventDefault()">↩</button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('redo');event.preventDefault()">↪</button>
-            </div>
             <!-- 筆記區 -->
             <div id="input-body-editor" contenteditable="true" style="
               flex:1;
