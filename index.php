@@ -403,7 +403,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-tab-bar { display: none; }
 
   /* 手機版下拉選單 */
-  .mobile-menu-btn { display: none; }
+  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 10px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; }
   .mobile-dropdown.open { display: block; }
   .mobile-dropdown-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
@@ -558,18 +558,7 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .notification-btn { display: none !important; }
 
     /* 漢堡按鈕顯示 */
-    .mobile-menu-btn {
-      display: flex !important;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius);
-      padding: 8px 12px;
-      font-size: 20px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
