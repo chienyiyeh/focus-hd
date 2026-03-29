@@ -574,7 +574,7 @@ $username = $_SESSION['username'] ?? 'User';
       display: grid !important;
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
       height: 64px;
       background: var(--surface);
       border-top: 1px solid var(--border);
@@ -757,6 +757,12 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
+  <?php if ($_SESSION['username'] === 'admin'): ?>
+  <a href="users.php" class="mobile-tab" style="text-decoration:none;">
+    <div class="mobile-tab-icon">⚙️</div>
+    <div class="mobile-tab-label">管理</div>
+  </a>
+  <?php endif; ?>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
