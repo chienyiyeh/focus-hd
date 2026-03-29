@@ -1367,14 +1367,14 @@ function renderProjectList() {
         ${!proj.default ? `<button class="project-delete" onclick="event.stopPropagation();deleteCustomProject('${key}')" style="padding:3px 8px;font-size:11px;">刪除</button>` : ''}
       </div>
       <!-- 編輯區（預設隱藏，名稱由 JS 填入） -->
-      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);">
-        <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;">
+      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);" onclick="event.stopPropagation()">
+        <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">選擇顏色（懸停看說明）</div>
         <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
         <input type="hidden" id="proj-edit-color-${key}">
         <div style="display:flex;gap:6px;">
-          <button class="project-edit-save" onclick="saveEditProject('${key}')">儲存</button>
-          <button class="project-edit-cancel" onclick="toggleEditProject('${key}')">取消</button>
+          <button class="project-edit-save" onclick="event.stopPropagation();saveEditProject('${key}')">儲存</button>
+          <button class="project-edit-cancel" onclick="event.stopPropagation();toggleEditProject('${key}')">取消</button>
         </div>
       </div>
     `;
