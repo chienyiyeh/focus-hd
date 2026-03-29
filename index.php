@@ -2052,7 +2052,7 @@ function buildCard(card, col, cardNo) {
         onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
-          onblur="hideMiniToolbar('mtb-${cardIdStr}');const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
+          onblur="const _tb=document.getElementById('mtb-${cardIdStr}');const _el=this;setTimeout(()=>{if(!_tb||!_tb.contains(document.activeElement)){hideMiniToolbar('mtb-${cardIdStr}');inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML);}},200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           onmousedown="event.stopPropagation()"
           ondragstart="event.preventDefault();event.stopPropagation()"
@@ -2098,6 +2098,9 @@ function buildCard(card, col, cardNo) {
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
         <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('undo');event.preventDefault();event.stopPropagation()">↩</button>
         <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('redo');event.preventDefault();event.stopPropagation()">↪</button>
+        <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
+        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;" title="儲存筆記"
+          onmousedown="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);setTimeout(()=>{const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}},50);}})();event.preventDefault();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
       </div>
     </div>`;
 
@@ -3186,8 +3189,15 @@ function showMiniToolbar(id) {
 function hideMiniToolbar(id) {
   setTimeout(() => {
     const tb = document.getElementById(id);
-    if (tb) tb.classList.remove('show');
-  }, 800);
+    if (!tb) return;
+    // 若焦點還在 toolbar 區域（含子選單）內，就不隱藏
+    const focused = document.activeElement;
+    if (tb.contains(focused)) return;
+    // 若有任何子選單是展開狀態，也不隱藏
+    const openMenus = tb.querySelectorAll('[style*="display: flex"], [style*="display:flex"]');
+    if (openMenus.length > 0) return;
+    tb.classList.remove('show');
+  }, 300);
 }
 
 // 儲存富文字筆記（保留 HTML）
