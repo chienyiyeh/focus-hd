@@ -70,7 +70,7 @@ $username = $_SESSION['username'] ?? 'User';
   
   .header-center { display: flex; gap: 12px; align-items: center; flex: 1; justify-content: center; min-width: 0; }
   .search-box { position: relative; max-width: 300px; width: 100%; flex-shrink: 1; }
-  .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 200; max-height: 320px; overflow-y: auto; display: none; margin-top: 2px; }
+  .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 99; max-height: 320px; overflow-y: auto; display: none; margin-top: 2px; }
   .search-dropdown.show { display: block; }
   .search-result-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
   .search-result-item:last-child { border-bottom: none; }
@@ -404,7 +404,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 手機版下拉選單 */
   .mobile-menu-btn { display: none; }
-  .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300; }
+  .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; }
   .mobile-dropdown.open { display: block; }
   .mobile-dropdown-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
   .mobile-dropdown-panel { position: absolute; top: 0; right: 0; width: 260px; height: 100%; background: var(--surface); display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.15); }
@@ -558,7 +558,7 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .notification-btn { display: none !important; }
 
     /* 漢堡按鈕顯示 */
-    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; position: relative; z-index: 101; }
+    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; position: relative; z-index: 500; pointer-events: auto !important; }
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
