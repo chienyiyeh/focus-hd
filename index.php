@@ -738,23 +738,21 @@ $username = $_SESSION['username'] ?? 'User';
         <input type="url" class="field-input" id="input-source" placeholder="https://...">
       </div>
       <div class="field">
-        <label class="field-label">一句摘要 <span class="optional">(選填)</span></label>
-        <input type="text" class="field-input" id="input-summary" placeholder="用一句話說明這張卡的重點...">
-      </div>
-      <div class="field">
         <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
         <textarea class="field-textarea" id="input-nextstep" placeholder="明確的行動指令，例如：打電話給王先生確認規格"></textarea>
       </div>
-      <!-- 康乃爾並排：左欄待辦、右欄筆記 -->
+      <!-- 康乃爾筆記本 -->
       <div class="field">
-        <label class="field-label">✓ 康乃爾筆記本 <span class="optional">（左：待辦清單　右：詳細內容）</span></label>
-        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:240px;">
-          <!-- 左欄：待辦清單（垂直延伸） -->
-          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:10px; display:flex; flex-direction:column; gap:0;">
-            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">✓ 待辦清單</div>
-            <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:4px;"></div>
-            <button type="button" class="add-checklist-item-btn" style="margin-top:6px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
-          </div>
+        <label class="field-label">✓ 康乃爾筆記本</label>
+        <div style="display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5;">
+          <!-- 上半：左欄待辦 + 右欄筆記 -->
+          <div style="display:flex; min-height:260px;">
+            <!-- 左欄：待辦清單 -->
+            <div style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto;">
+              <div style="font-size:11px; font-weight:700; color:#E8763E; margin-bottom:8px; letter-spacing:0.5px;">✓ 待辦清單</div>
+              <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:6px; flex:1;"></div>
+              <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+            </div>
           <!-- 右欄：詳細筆記＋工具列 -->
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
             <!-- 工具列 -->
@@ -815,6 +813,13 @@ $username = $_SESSION['username'] ?? 'User';
             "></div>
             <input type="hidden" id="input-body">
           </div>
+        </div>
+        <!-- 底部摘要欄（康乃爾筆記本底部） -->
+        <div style="border-top:2px solid var(--accent-week); background:#FFFEF0; padding:8px 12px; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:11px; font-weight:700; color:var(--accent-week-text); white-space:nowrap; flex-shrink:0;">💡 摘要</span>
+          <input type="text" class="field-input" id="input-summary" 
+            placeholder="用一句話說明這張卡的重點..." 
+            style="border:none; background:transparent; padding:2px 6px; font-style:italic; font-size:13px; flex:1;">
         </div>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
