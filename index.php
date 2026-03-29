@@ -402,6 +402,13 @@ $username = $_SESSION['username'] ?? 'User';
   .inline-item-btn.focus-btn { font-size: 11px; color: var(--accent-focus-text); background: var(--accent-focus-bg); border: 1px solid var(--accent-focus); border-radius: 6px; padding: 2px 6px; white-space: nowrap; font-weight: 600; }
   .inline-item-btn.del-btn { color: #E24B4A; opacity: 0.4; }
   .inline-item-btn.del-btn:hover { opacity: 1; }
+  /* 桌面版：按鈕縮小，checklist 文字有足夠空間 */
+  @media (min-width: 769px) {
+    .cornell-a .card-checklist-item { flex-wrap: nowrap; }
+    .inline-item-btn.focus-btn { font-size: 10px; padding: 1px 4px; opacity: 0.6; }
+    .inline-item-btn.focus-btn:hover { opacity: 1; }
+    .inline-item-btn.del-btn { font-size: 11px; }
+  }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
   .subtask-dropdown.open { display: block; }
   .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
