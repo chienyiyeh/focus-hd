@@ -16,7 +16,7 @@ $stmt = $db->prepare("SELECT username FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $me = $stmt->fetch();
 
-if ($me['username'] !== 'admin') {
+if (!in_array($me['username'], ['admin', 'chienyi'])) {
     die('只有 admin 可以管理使用者');
 }
 
