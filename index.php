@@ -2272,13 +2272,19 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 let searchDropdownOpen = false;
 document.getElementById('search-input').addEventListener('focus', e => {
+  if (!searchDropdownOpen) {
+    renderSearchDropdown('');
+    searchDropdownOpen = true;
+  }
+});
+
+// 點整個 search-box 區域切換開關
+document.querySelector('.search-box').addEventListener('click', e => {
   if (searchDropdownOpen) {
     document.getElementById('search-dropdown').classList.remove('show');
     document.getElementById('search-input').blur();
     searchDropdownOpen = false;
-  } else {
-    renderSearchDropdown('');
-    searchDropdownOpen = true;
+    e.stopPropagation();
   }
 });
 document.addEventListener('click', e => {
