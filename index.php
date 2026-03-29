@@ -72,7 +72,7 @@ $username = $_SESSION['username'] ?? 'User';
     --radius-lg: 14px;
   }
 
-  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; padding-bottom: 70px; }
 
   header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 12px; }
   .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
@@ -2203,8 +2203,12 @@ function handleDragStart(e) {
   // 如果選取了文字，不觸發拖移
   const sel = window.getSelection();
   if (sel && sel.toString().length > 0) { e.preventDefault(); return; }
-  // 如果點擊來自 contenteditable 區域，不觸發拖移
-  if (e.target.closest('[contenteditable]') || e.target.closest('.note-editable') || e.target.closest('.cornell-b') || e.target.closest('.checklist-text-edit')) {
+  // 如果點擊來自 contenteditable、checkbox、input、button 區域，不觸發拖移
+  if (e.target.closest('[contenteditable]') || e.target.closest('.note-editable') || 
+      e.target.closest('.cornell-b') || e.target.closest('.checklist-text-edit') ||
+      e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' ||
+      e.target.tagName === 'A' || e.target.closest('.card-checklist-item') ||
+      e.target.closest('.cornell-a')) {
     e.preventDefault(); return;
   }
   draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col };
