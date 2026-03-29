@@ -605,7 +605,6 @@ $username = $_SESSION['username'] ?? 'User';
 
 <header>
   <div class="logo">🎯 <span>FOCUS</span></div>
-  <button id="mobile-logout-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border:1px solid #FCA5A5;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;">登出</button>
   
   <div class="header-center">
     <div class="search-box">
@@ -765,10 +764,10 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-label">管理</div>
   </a>
   <?php endif; ?>
-  <button class="mobile-tab" onclick="logout()" style="color:#E24B4A;">
+  <a href="Logout.php" class="mobile-tab" style="color:#E24B4A;text-decoration:none;">
     <div class="mobile-tab-icon">🚪</div>
     <div class="mobile-tab-label">登出</div>
-  </button>
+  </a>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
