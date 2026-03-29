@@ -2007,7 +2007,7 @@ function buildCard(card, col, cardNo) {
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">今日專注</button>`;
+      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">→ 今日專注</button>`;
       editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
       editableA += `</div>`;
     });
