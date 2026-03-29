@@ -429,8 +429,8 @@ $username = $_SESSION['username'] ?? 'User';
       to bottom,
       transparent,
       transparent calc(1.8em - 1px),
-      rgba(0,0,0,0.06) calc(1.8em - 1px),
-      rgba(0,0,0,0.06) 1.8em
+      rgba(0,0,0,0.15) calc(1.8em - 1px),
+      rgba(0,0,0,0.15) 1.8em
     );
     background-size: 100% 1.8em;
   }
@@ -745,37 +745,43 @@ $username = $_SESSION['username'] ?? 'User';
         <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
         <textarea class="field-textarea" id="input-nextstep" placeholder="明確的行動指令，例如：打電話給王先生確認規格"></textarea>
       </div>
+      <!-- 康乃爾並排：左欄待辦、右欄筆記 -->
       <div class="field">
-        <label class="field-label">✓ 待辦清單 <span class="optional">(選填)</span></label>
-        <div class="checklist-container" id="checklist-container">
-          <!-- 待办项会动态添加到这里 -->
+        <label class="field-label">✓ 康乃爾筆記本 <span class="optional">（左：待辦清單　右：詳細內容）</span></label>
+        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:200px;">
+          <!-- 左欄：待辦清單 -->
+          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:10px; display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">✓ 待辦清單</div>
+            <div class="checklist-container" id="checklist-container"></div>
+            <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+          </div>
+          <!-- 右欄：詳細筆記 -->
+          <div style="flex:1; display:flex; flex-direction:column;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); padding:6px 10px 2px; background:var(--surface2); border-bottom:1px solid var(--border);">📝 詳細內容</div>
+            <textarea id="input-body" style="
+              flex:1;
+              width:100%;
+              min-height:180px;
+              border:none;
+              padding:10px 10px 10px 14px;
+              font-family:inherit;
+              font-size:14px;
+              resize:none;
+              color:var(--text);
+              background-color: #FFFDF5;
+              line-height: 1.8em;
+              background-image: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent calc(1.8em - 1px),
+                rgba(0,0,0,0.15) calc(1.8em - 1px),
+                rgba(0,0,0,0.15) 1.8em
+              );
+              background-size: 100% 1.8em;
+              outline:none;
+            " placeholder="輸入詳細內容..."></textarea>
+          </div>
         </div>
-        <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
-      </div>
-      <div class="field">
-        <label class="field-label">詳細內容 <span style="font-size:11px;color:var(--text-muted);font-weight:400;">（康乃爾筆記本）</span></label>
-        <textarea id="input-body" style="
-          width:100%;
-          min-height:160px;
-          border:1px solid var(--border-strong);
-          border-left: 3px solid #E8763E;
-          border-radius:var(--radius);
-          padding:10px 10px 10px 14px;
-          font-family:inherit;
-          font-size:14px;
-          resize:vertical;
-          color:var(--text);
-          background-color: #FFFDF5;
-          line-height: 1.8em;
-          background-image: repeating-linear-gradient(
-            to bottom,
-            transparent,
-            transparent calc(1.8em - 1px),
-            rgba(0,0,0,0.07) calc(1.8em - 1px),
-            rgba(0,0,0,0.07) 1.8em
-          );
-          background-size: 100% 1.8em;
-        " placeholder="輸入詳細內容..."></textarea>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
       <div class="color-section"><label class="color-label">文字顏色</label><div class="swatches" id="text-swatches"></div></div>
