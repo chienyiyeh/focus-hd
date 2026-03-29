@@ -176,7 +176,7 @@ $username = $_SESSION['username'] ?? 'User';
   .empty { text-align: center; padding: 24px 16px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
 
   /* Cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; margin-top: 22px; cursor: move; transition: all 0.15s; position: relative; overflow: visible; }
   .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; margin-top: 22px !important; overflow: visible !important; }
   .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
   /* 資料夾標籤：左上角小標籤，只有文字寬度 */
@@ -205,14 +205,27 @@ $username = $_SESSION['username'] ?? 'User';
   .card.open .card-preview { display: none; }
   .card.open .chevron { transform: rotate(180deg); }
 
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px;
-    background: #EDE8E0; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px;
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    background: #C8D4DC; margin: -12px -12px 10px -12px; padding: 8px 12px;
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-    flex-wrap: wrap;
+    position: relative;
   }
-  .card-top::before { content: "筆記"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(80,60,40,0.45); letter-spacing: 0.8px; margin-bottom: 4px; }
-  .card-top .card-title { color: #3D2B1A !important; }
-  .card-top .drag-handle { color: rgba(80,60,40,0.35) !important; }
+  .card-top::before { 
+    content: "筆記";
+    display: inline-block;
+    background: #4A7A9B;
+    color: #FFF;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 10px;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: -20px;
+    left: 12px;
+  }
+  .card-top .card-title { color: #1A2C3A !important; }
+  .card-top .drag-handle { color: rgba(26,44,58,0.4) !important; }
   .drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; margin-right: 4px; }
   .card-title { font-size: 14px; font-weight: 500; line-height: 1.45; flex: 1; }
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
