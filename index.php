@@ -1388,18 +1388,29 @@ function toggleEditProject(key) {
   const isOpen = editDiv.style.display !== 'none';
   // 關閉所有其他編輯區
   document.querySelectorAll('[id^="proj-edit-"]').forEach(d => d.style.display = 'none');
+  // 新增色票：有編輯展開時隱藏，全部收合時恢復（若輸入框有值才顯示）
+  const newSwatches = document.getElementById('new-proj-swatches');
   if (!isOpen) {
+    // 展開編輯：隱藏新增色票
+    if (newSwatches) newSwatches.style.display = 'none';
     editDiv.style.display = 'block';
     const proj = ALL_PROJECTS[key];
-    // proj.color 或 proj.textColor 都可能
     const currentColor = proj.color || proj.textColor || '#1E88E5';
-    // 確保色票容器顯示
+    // 填入名稱（避免 HTML 特殊字元問題）
+    const nameInput = document.getElementById('proj-edit-name-' + key);
+    if (nameInput) nameInput.value = proj.label || '';
+    // 色票容器顯示
     const swatchContainer = document.getElementById('proj-edit-swatches-' + key);
     if (swatchContainer) swatchContainer.style.display = 'flex';
     renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, currentColor);
-    // 同步 hidden input
     const colorInput = document.getElementById('proj-edit-color-' + key);
     if (colorInput) colorInput.value = currentColor;
+  } else {
+    // 收合：若新增欄位有輸入值則恢復色票
+    const nameField = document.getElementById('new-project-name');
+    if (newSwatches && nameField && nameField.value.trim()) {
+      newSwatches.style.display = 'flex';
+    }
   }
 }
 
