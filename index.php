@@ -2359,8 +2359,15 @@ async function saveCard() {
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
   const checklist = getChecklistData();
   const priority = document.getElementById('input-priority').value || null;
-  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
-  const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
+  const eid = document.getElementById('input-edit-id').value;
+  // 編輯時保留原本的 completedAt，不傳 null 清空完成時間
+  let completedAt = null;
+  if (eid) {
+    const found = getCard(parseInt(eid));
+    if (found && found.card.completedAt) completedAt = found.card.completedAt;
+  }
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist, completedAt: completedAt };
+  if (eid) data.id = eid;
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
   btn.disabled = false; btn.textContent = '儲存';
