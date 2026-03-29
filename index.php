@@ -2152,7 +2152,7 @@ function buildCard(card, col, cardNo) {
   // 摘要永遠顯示在卡片上（康乃爾外面）
   const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
