@@ -398,10 +398,11 @@ $username = $_SESSION['username'] ?? 'User';
   .saving-indicator.show { display: block; }
   .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
   .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
-  .inline-item-actions { display: none; gap: 4px; flex-shrink: 0; }
-  .card-checklist-item:focus-within .inline-item-actions { display: flex; }
-  .inline-item-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; opacity: 0.7; }
+  .inline-item-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 0 3px; line-height: 1; flex-shrink: 0; opacity: 0.5; }
   .inline-item-btn:hover { opacity: 1; }
+  .inline-item-btn.focus-btn { font-size: 11px; color: var(--accent-focus-text); background: var(--accent-focus-bg); border: 1px solid var(--accent-focus); border-radius: 6px; padding: 2px 5px; opacity: 1; white-space: nowrap; }
+  .inline-item-btn.del-btn { color: #E24B4A; opacity: 0.4; }
+  .inline-item-btn.del-btn:hover { opacity: 1; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
   .subtask-dropdown.open { display: block; }
   .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
@@ -1691,10 +1692,8 @@ function buildCard(card, col, cardNo) {
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<span class="inline-item-actions">
-        <button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">🎯</button>
-        <button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>
-      </span>`;
+      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="子任務立即專注">▶</button>`;
+      editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
       editableA += `</div>`;
     });
   } else {
