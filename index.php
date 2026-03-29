@@ -385,11 +385,8 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-text-edit:focus { background: var(--surface); border-radius: 4px; padding: 2px 4px; border: 1px solid var(--accent-lib); white-space: normal; overflow: visible; width: 100%; box-sizing: border-box; }
   .checklist-text-edit:focus ~ .subtask-menu-btn { display: none; }
   /* 編輯待辦時左欄展開到 70% */
-  .cornell-top:has(.checklist-text-edit:focus) .cornell-a { width: 70%; }
-  .cornell-top:has(.checklist-text-edit:focus) .cornell-b { flex: none; width: 30%; overflow: hidden; }
   /* 編輯筆記時右欄展開到 80% */
-  .cornell-top:has(.cornell-note-input:focus) .cornell-b { flex: none; width: 80%; }
-  .cornell-top:has(.cornell-note-input:focus) .cornell-a { width: 20%; overflow: hidden; }
+
   .cornell-a { transition: width 0.2s; }
   .cornell-b { transition: width 0.2s; flex: 1; }
   .card-checklist-item.checked .checklist-text-edit { text-decoration: line-through; color: var(--text-muted); }
@@ -427,7 +424,16 @@ $username = $_SESSION['username'] ?? 'User';
   /* 預設上下排列（手機桌機一致） */
   .cornell-top { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
   .cornell-a { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
-  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; position: relative; }
+  .cornell-b { flex: 1; padding: 10px 10px 10px 14px; font-size: 12px; line-height: 1.8; overflow-wrap: break-word; cursor: text; position: relative;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent calc(1.8em - 1px),
+      rgba(0,0,0,0.06) calc(1.8em - 1px),
+      rgba(0,0,0,0.06) 1.8em
+    );
+    background-size: 100% 1.8em;
+  }
   /* 編輯模式才左右康乃爾並排 */
   .cornell-layout.edit-mode .cornell-top { flex-direction: row; }
   .cornell-layout.edit-mode .cornell-a { width: 45%; border-right: 1px solid var(--border); border-bottom: none; }
@@ -747,8 +753,29 @@ $username = $_SESSION['username'] ?? 'User';
         <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
       </div>
       <div class="field">
-        <label class="field-label">詳細內容</label>
-        <textarea id="input-body" style="width:100%;min-height:120px;border:1px solid var(--border-strong);border-radius:var(--radius);padding:10px;font-family:inherit;font-size:14px;resize:vertical;background:var(--surface2);color:var(--text);" placeholder="輸入詳細內容..."></textarea>
+        <label class="field-label">詳細內容 <span style="font-size:11px;color:var(--text-muted);font-weight:400;">（康乃爾筆記本）</span></label>
+        <textarea id="input-body" style="
+          width:100%;
+          min-height:160px;
+          border:1px solid var(--border-strong);
+          border-left: 3px solid #E8763E;
+          border-radius:var(--radius);
+          padding:10px 10px 10px 14px;
+          font-family:inherit;
+          font-size:14px;
+          resize:vertical;
+          color:var(--text);
+          background-color: #FFFDF5;
+          line-height: 1.8em;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent calc(1.8em - 1px),
+            rgba(0,0,0,0.07) calc(1.8em - 1px),
+            rgba(0,0,0,0.07) 1.8em
+          );
+          background-size: 100% 1.8em;
+        " placeholder="輸入詳細內容..."></textarea>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
       <div class="color-section"><label class="color-label">文字顏色</label><div class="swatches" id="text-swatches"></div></div>
