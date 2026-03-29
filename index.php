@@ -309,7 +309,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 專案顏色色票 */
   .proj-color-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-  .proj-color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; transition: transform 0.1s; }
+  .proj-color-swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; transition: transform 0.1s; }
   .proj-color-swatch:hover { transform: scale(1.2); }
   .proj-color-swatch.selected { border-color: #333; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333; }
   .project-edit-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; margin-top: 6px; }
@@ -1307,16 +1307,27 @@ function handleProjectSettingsClick(e) {
 }
 
 // 固定色票
-const PROJ_COLORS = ['#E53935','#FB8C00','#FDD835','#43A047','#1E88E5','#3949AB','#8E24AA','#00ACC1','#6D4C41','#546E7A'];
+const PROJ_COLORS = [
+  { val: '#E53935', label: '紅 · 緊急重要' },
+  { val: '#FB8C00', label: '橙 · 財務金錢' },
+  { val: '#FDD835', label: '黃 · 注意待確認' },
+  { val: '#43A047', label: '綠 · 進行中' },
+  { val: '#1E88E5', label: '藍 · 工作專案' },
+  { val: '#8E24AA', label: '紫 · 個人創意' },
+  { val: '#212121', label: '黑 · 私人機密' },
+  { val: '#78909C', label: '灰 · 一般其他' },
+];
 
 function renderProjSwatches(containerId, inputId, selectedColor) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  PROJ_COLORS.forEach(c => {
+  PROJ_COLORS.forEach(item => {
+    const c = item.val;
     const s = document.createElement('div');
     s.className = 'proj-color-swatch' + (c === selectedColor ? ' selected' : '');
     s.style.background = c;
+    s.title = item.label;
     s.onclick = () => {
       document.getElementById(inputId).value = c;
       container.querySelectorAll('.proj-color-swatch').forEach(x => x.classList.remove('selected'));
@@ -1330,35 +1341,38 @@ function renderProjectList() {
   const allProjects = getAllProjects();
   const list = document.getElementById('project-list');
   list.innerHTML = '';
-  
+
   // 初始化新增表單色票
-  renderProjSwatches('new-proj-swatches', 'new-project-color', document.getElementById('new-project-color')?.value || '#E53935');
-  
+  const initColor = document.getElementById('new-project-color')?.value || '#1E88E5';
+  renderProjSwatches('new-proj-swatches', 'new-project-color', initColor);
+
+  if (Object.keys(allProjects).length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">尚無專案，請新增</div>';
+    return;
+  }
+
   Object.keys(allProjects).forEach(key => {
     const proj = allProjects[key];
     const item = document.createElement('div');
     item.id = 'proj-item-' + key;
-    item.className = 'project-item';
-    item.style.flexDirection = 'column';
-    item.style.alignItems = 'stretch';
+    item.style.cssText = 'border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;';
     item.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between;">
-        <div class="project-info">
-          <div class="project-color-preview" style="background:${proj.color}; width:16px; height:16px; border-radius:50%; flex-shrink:0;"></div>
-          <div class="project-name">${proj.label}</div>
-        </div>
-        <div style="display:flex; gap:6px;">
-          ${!proj.default ? `<button class="project-edit-btn" onclick="toggleEditProject('${key}')">✏️ 編輯</button>` : ''}
-          ${!proj.default ? `<button class="project-delete" onclick="deleteCustomProject('${key}')">刪除</button>` : ''}
-        </div>
+      <!-- 標題列：點擊展開編輯 -->
+      <div onclick="${!proj.default ? `toggleEditProject('${key}')` : ''}"
+        style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:${!proj.default ? 'pointer' : 'default'};background:var(--surface);${!proj.default ? 'user-select:none;' : ''}">
+        <div style="width:14px;height:14px;border-radius:50%;background:${proj.color};flex-shrink:0;"></div>
+        <span style="flex:1;font-size:13px;font-weight:500;">${proj.label}</span>
+        ${proj.default ? '<span style="font-size:11px;color:var(--text-muted);">預設</span>' : ''}
+        ${!proj.default ? '<span style="font-size:11px;color:var(--text-muted);">點擊編輯 ▾</span>' : ''}
+        ${!proj.default ? `<button class="project-delete" onclick="event.stopPropagation();deleteCustomProject('${key}')" style="padding:3px 8px;font-size:11px;">刪除</button>` : ''}
       </div>
-      <div id="proj-edit-${key}" style="display:none; margin-top:8px;">
-        <div class="project-edit-row">
-          <input class="project-edit-input" id="proj-edit-name-${key}" value="${proj.label}" maxlength="20">
-        </div>
-        <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="margin-bottom:8px;"></div>
+      <!-- 編輯區（預設隱藏） -->
+      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);">
+        <input class="project-edit-input" id="proj-edit-name-${key}" value="${proj.label}" maxlength="20" style="width:100%;margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">選擇顏色（懸停看說明）</div>
+        <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="margin-bottom:10px;"></div>
         <input type="hidden" id="proj-edit-color-${key}" value="${proj.color}">
-        <div style="display:flex; gap:6px;">
+        <div style="display:flex;gap:6px;">
           <button class="project-edit-save" onclick="saveEditProject('${key}')">儲存</button>
           <button class="project-edit-cancel" onclick="toggleEditProject('${key}')">取消</button>
         </div>
@@ -1372,8 +1386,10 @@ function toggleEditProject(key) {
   const editDiv = document.getElementById('proj-edit-' + key);
   if (!editDiv) return;
   const isOpen = editDiv.style.display !== 'none';
-  editDiv.style.display = isOpen ? 'none' : 'block';
+  // 關閉所有其他編輯區
+  document.querySelectorAll('[id^="proj-edit-"]').forEach(d => d.style.display = 'none');
   if (!isOpen) {
+    editDiv.style.display = 'block';
     const proj = ALL_PROJECTS[key];
     renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, proj.color);
   }
