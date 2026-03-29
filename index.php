@@ -70,6 +70,13 @@ $username = $_SESSION['username'] ?? 'User';
   
   .header-center { display: flex; gap: 12px; align-items: center; flex: 1; justify-content: center; min-width: 0; }
   .search-box { position: relative; max-width: 300px; width: 100%; flex-shrink: 1; }
+  .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 200; max-height: 320px; overflow-y: auto; display: none; margin-top: 2px; }
+  .search-dropdown.show { display: block; }
+  .search-result-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:hover { background: var(--surface2); }
+  .search-result-col { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+  .search-result-title { font-size: 13px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .search-input { width: 100%; padding: 6px 12px 6px 32px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface); }
   .search-input:focus { outline: none; border-color: var(--accent-week); }
   .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
@@ -170,6 +177,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* Cards */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
+  .card.is-project { border-left: 4px solid #E8763E; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card.dragging { opacity: 0.5; cursor: grabbing; }
   .card.open { padding-bottom: 6px; }
@@ -560,6 +568,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="search-box">
       <span class="search-icon">🔍</span>
       <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片...">
+      <div class="search-dropdown" id="search-dropdown"></div>
     </div>
     <div class="filter-tags" id="filter-tags"></div>
     <div class="privacy-filters">
@@ -1867,12 +1876,13 @@ function renderFilterTags() {
 
 function buildCard(card, col, cardNo) {
   const div = document.createElement('div');
-  div.className = 'card'; div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
+  const isProjectCard = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
+  div.className = 'card' + (isProjectCard ? ' is-project' : ''); div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
 
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
-  if (card.project || card.priority || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
+  if (card.priority || card.isPrivate) {
     metaHTML = '<div class="card-meta">';
     if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
     if (card.priority) {
@@ -1881,9 +1891,7 @@ function buildCard(card, col, cardNo) {
       const pc = pColors[card.priority] || '#666';
       metaHTML += `<span class="priority-tag" style="background:${pc}20;color:${pc};border:1px solid ${pc}40;">${pLabels[card.priority] || card.priority}</span>`;
     }
-    if (card.createdByUsername) metaHTML += `<span class="created-by">by ${card.createdByUsername}</span>`;
-    if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒 私人</span>`;
-    if (col === 'done' && card.completedAt) metaHTML += `<span class="completed-time">✓ ${formatDateTime(card.completedAt)}</span>`;
+    if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒</span>`;
     metaHTML += '</div>';
   }
 
@@ -2206,7 +2214,53 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
 });
 document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
-document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  render();
+  renderSearchDropdown(searchQuery);
+});
+document.getElementById('search-input').addEventListener('focus', e => {
+  renderSearchDropdown('');  // 點擊時顯示所有卡片
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box')) {
+    document.getElementById('search-dropdown').classList.remove('show');
+  }
+});
+
+function renderSearchDropdown(q) {
+  const dropdown = document.getElementById('search-dropdown');
+  if (!dropdown) return;
+  const colNames = {lib:'策略', week:'本週', focus:'今日', done:'完成'};
+  let results = [];
+  ['lib','week','focus','done'].forEach(col => {
+    state[col].forEach(card => {
+      const t = (card.title||'').toLowerCase();
+      if (!q || t.includes(q.toLowerCase())) {
+        results.push({card, col});
+      }
+    });
+  });
+  if (results.length === 0) { dropdown.classList.remove('show'); return; }
+  dropdown.innerHTML = '';
+  results.forEach(({card, col}) => {
+    const item = document.createElement('div');
+    item.className = 'search-result-item';
+    item.innerHTML = `<span class="search-result-col">${colNames[col]}</span><span class="search-result-title">${escHtml(card.title)}</span>`;
+    item.onclick = () => {
+      dropdown.classList.remove('show');
+      document.getElementById('search-input').value = '';
+      searchQuery = '';
+      render();
+      setTimeout(() => {
+        const el = document.getElementById('card-' + card.id);
+        if (el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='2px solid var(--accent-week)'; setTimeout(()=>el.style.outline='',1500); }
+      }, 100);
+    };
+    dropdown.appendChild(item);
+  });
+  dropdown.classList.add('show');
+}
 
 function setPrivacyFilter(filter) {
   privacyFilter = filter;
