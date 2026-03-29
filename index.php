@@ -2027,21 +2027,20 @@ function buildCard(card, col, cardNo) {
   let editableA = '';
   if (hasChecklist) {
     const completed = card.checklist.filter(i => i.checked).length;
-    editableA += `<div class="cornell-label">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
+    editableA += `<div class="cornell-label" id="cl-label-${cardIdStr}">✓ 待辦 ${completed}/${card.checklist.length}</div>`;
     card.checklist.forEach((item, idx) => {
       const cbId = `cb-${cardIdStr}-${idx}`;
-      const smId = `sm-${cardIdStr}-${idx}`;
-      editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
-      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;" onclick="event.stopPropagation();inlineToggleChecklist(${cardIdStr},${idx},'${col}');">`;
-      editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">→ 今日專注</button>`;
-      editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
+      editableA += `<div class="checklist-item" id="cli-${cardIdStr}-${idx}" style="background:transparent;padding:4px 2px;border-radius:0;margin-bottom:2px;border-bottom:1px solid var(--border);">`;
+      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;margin-top:0;" onchange="cbSave(${cardIdStr},'${col}')">`;
+      editableA += `<textarea style="flex:1;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;overflow:hidden;line-height:1.5;padding:0 4px;outline:none;${item.checked ? 'text-decoration:line-through;color:var(--text-muted);' : ''}" rows="1" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="cbSave(${cardIdStr},'${col}')">${escHtml(item.text)}</textarea>`;
+      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()">→ 今日專注</button>`;
+      editableA += `<button class="inline-item-btn del-btn" onclick="cbDel(${cardIdStr},${idx},'${col}');event.stopPropagation()">🗑</button>`;
       editableA += `</div>`;
     });
   } else {
     editableA = `<div class="cornell-label" style="opacity:0.4;">待辦清單</div>`;
   }
-  editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onkeydown="if(event.key==='Enter'){inlineAddChecklist(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="inlineAddChecklist(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
+  editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){cbAdd(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="cbAdd(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
 
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
   const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
@@ -2828,6 +2827,69 @@ async function inlineSave(cardId, col, updates) {
 }
 
 // 勾選待辦
+// ===== 外部卡片 checklist 簡化版（跟 modal 一樣邏輯）=====
+async function cbSave(cardId, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = [];
+  const container = document.getElementById('card-' + cardId);
+  if (!container) return;
+  container.querySelectorAll('[id^="cli-' + cardId + '-"]').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    const ta = item.querySelector('textarea');
+    const text = ta ? ta.value.trim() : '';
+    if (text) checklist.push({ text, checked: cb ? cb.checked : false });
+  });
+  // 更新刪除線樣式
+  container.querySelectorAll('[id^="cli-' + cardId + '-"]').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    const ta = item.querySelector('textarea');
+    if (ta && cb) {
+      ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
+      ta.style.color = cb.checked ? 'var(--text-muted)' : 'var(--text)';
+    }
+  });
+  // 更新計數
+  const done = checklist.filter(i => i.checked).length;
+  const label = document.getElementById('cl-label-' + cardId);
+  if (label) label.textContent = `✓ 待辦 ${done}/${checklist.length}`;
+  await inlineSave(cardId, actualCol, { checklist });
+}
+
+async function cbAdd(cardId, col) {
+  const input = document.getElementById('add-item-' + cardId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.push({ text, checked: false });
+  await inlineSave(cardId, actualCol, { checklist });
+  input.value = '';
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  setTimeout(() => {
+    const newInput = document.getElementById('add-item-' + cardId);
+    if (newInput) newInput.focus();
+  }, 200);
+}
+
+async function cbDel(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.splice(idx, 1);
+  await inlineSave(cardId, actualCol, { checklist });
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+}
+
 async function inlineToggleChecklist(cardId, idx, col) {
   const found = getCard(cardId);
   if (!found) return;
