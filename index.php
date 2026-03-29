@@ -608,7 +608,8 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="header-center">
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片...">
+      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片..." readonly>
+      <button id="search-close-btn" onclick="closeSearchDropdown()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:#999;padding:4px;">✕</button>
       <div class="search-dropdown" id="search-dropdown"></div>
     </div>
     <div class="filter-tags" id="filter-tags"></div>
@@ -2265,32 +2266,33 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
 });
 document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
+
+function openSearchDropdown() {
+  const inp = document.getElementById('search-input');
+  inp.removeAttribute('readonly');
+  inp.focus();
+  renderSearchDropdown('');
+  document.getElementById('search-close-btn').style.display = 'block';
+}
+function closeSearchDropdown() {
+  document.getElementById('search-dropdown').classList.remove('show');
+  document.getElementById('search-close-btn').style.display = 'none';
+  const inp = document.getElementById('search-input');
+  inp.value = '';
+  inp.setAttribute('readonly', true);
+  inp.blur();
+  searchQuery = '';
+  render();
+}
+document.getElementById('search-input').addEventListener('click', openSearchDropdown);
 document.getElementById('search-input').addEventListener('input', e => {
   searchQuery = e.target.value.trim();
   render();
   renderSearchDropdown(searchQuery);
 });
-let searchDropdownOpen = false;
-document.getElementById('search-input').addEventListener('focus', e => {
-  if (!searchDropdownOpen) {
-    renderSearchDropdown('');
-    searchDropdownOpen = true;
-  }
-});
-
-// 點整個 search-box 區域切換開關
-document.querySelector('.search-box').addEventListener('click', e => {
-  if (searchDropdownOpen) {
-    document.getElementById('search-dropdown').classList.remove('show');
-    document.getElementById('search-input').blur();
-    searchDropdownOpen = false;
-    e.stopPropagation();
-  }
-});
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-box')) {
-    document.getElementById('search-dropdown').classList.remove('show');
-    searchDropdownOpen = false;
+    closeSearchDropdown();
   }
 });
 
@@ -2320,11 +2322,7 @@ function renderSearchDropdown(q) {
       : '';
     item.innerHTML = `<span class="search-result-col">${colNames[col]}</span>${isProj}<span class="search-result-title">${escHtml(card.title)}</span>${projInfo}`;
     item.onclick = () => {
-      dropdown.classList.remove('show');
-      searchDropdownOpen = false;
-      document.getElementById('search-input').value = '';
-      searchQuery = '';
-      render();
+      closeSearchDropdown();
       // 手機版自動切換到對應 tab
       if (window.innerWidth <= 768) {
         switchMobileTab(col);
