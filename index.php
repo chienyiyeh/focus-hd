@@ -598,6 +598,7 @@ $username = $_SESSION['username'] ?? 'User';
     .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
     .cornell-b { width: 100%; }
     #mobile-logout-btn { display: block !important; }
+    #float-toolbar { display: flex !important; }
   }
 </style>
 </head>
@@ -936,6 +937,13 @@ $username = $_SESSION['username'] ?? 'User';
 
 <!-- 手機版下拉選單 -->
 <div id="toast"></div>
+<!-- 手機版懸浮工具列 -->
+<div id="float-toolbar" style="display:none;position:fixed;bottom:70px;right:12px;z-index:99999;display:flex;flex-direction:column;gap:8px;">
+  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
+  <a href="users.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#534AB7;color:white;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">⚙️</a>
+  <?php endif; ?>
+  <a href="logout.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#FEE2E2;color:#991B1B;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚪</a>
+</div>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
 
 <!-- 通知弹窗 -->
