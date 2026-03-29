@@ -1394,7 +1394,7 @@ function toggleEditProject(key) {
   if (!editDiv) return;
   const isOpen = editDiv.style.display !== 'none';
   // 關閉所有其他編輯區
-  document.querySelectorAll('[id^="proj-edit-"]').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('div[id^="proj-edit-"]').forEach(d => d.style.display = 'none');
   // 新增色票：有編輯展開時隱藏，全部收合時恢復（若輸入框有值才顯示）
   const newSwatches = document.getElementById('new-proj-swatches');
   if (!isOpen) {
