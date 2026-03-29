@@ -43,6 +43,8 @@ $username = $_SESSION['username'] ?? 'User';
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="專注看板">
 <link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="shortcut icon" href="/icon-192.png">
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <!-- Quill ImageResize 模組 -->
