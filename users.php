@@ -605,7 +605,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 <header>
   <div class="logo">🎯 <span>FOCUS</span></div>
-  <button id="mobile-logout-btn" onclick="logout()" style="display:none;background:#FFF3F2;color:#991B1B;border:1px solid #FCA5A5;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;">登出</button>
+  <button id="mobile-logout-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border:1px solid #FCA5A5;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;">登出</button>
   
   <div class="header-center">
     <div class="search-box">
