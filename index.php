@@ -456,20 +456,21 @@ $username = $_SESSION['username'] ?? 'User';
   .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
   .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
   .inline-item-btn { background: none; border: none; cursor: pointer; line-height: 1; flex-shrink: 0; }
-  /* 今日專注：常駐顯示文字，手機桌機一致 */
+  /* 今日專注：實心橘底白字，更清楚 */
   .inline-item-btn.focus-btn {
     font-size: 11px;
-    font-weight: 600;
-    padding: 2px 6px;
-    background: var(--accent-focus-bg);
-    border: 1px solid var(--accent-focus);
-    color: var(--accent-focus-text);
+    font-weight: 700;
+    padding: 4px 10px;
+    background: var(--accent-focus);
+    border: none;
+    color: #FFF;
     border-radius: 6px;
     white-space: nowrap;
+    margin-right: 8px;
   }
   .inline-item-btn.focus-btn:hover,
-  .inline-item-btn.focus-btn:active { opacity: 0.8; }
-  .inline-item-btn.del-btn { font-size: 14px; color: #E24B4A; opacity: 0.3; padding: 0 3px; }
+  .inline-item-btn.focus-btn:active { opacity: 0.85; }
+  .inline-item-btn.del-btn { font-size: 15px; color: #E24B4A; opacity: 0.35; padding: 0 4px; margin-left: 4px; }
   .inline-item-btn.del-btn:hover,
   .inline-item-btn.del-btn:active { opacity: 1; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
@@ -2304,7 +2305,13 @@ function renderSearchDropdown(q) {
   results.forEach(({card, col}) => {
     const item = document.createElement('div');
     item.className = 'search-result-item';
-    item.innerHTML = `<span class="search-result-col">${colNames[col]}</span><span class="search-result-title">${escHtml(card.title)}</span>`;
+    const projInfo = card.project && ALL_PROJECTS[card.project]
+      ? `<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:${ALL_PROJECTS[card.project].bg||'#eee'};color:${ALL_PROJECTS[card.project].color||'#666'};font-weight:600;flex-shrink:0;">${ALL_PROJECTS[card.project].label}</span>`
+      : '';
+    const isProj = card.checklist && card.checklist.length > 0
+      ? `<span style="font-size:10px;color:#C8922A;font-weight:700;flex-shrink:0;">📁</span>`
+      : '';
+    item.innerHTML = `<span class="search-result-col">${colNames[col]}</span>${isProj}<span class="search-result-title">${escHtml(card.title)}</span>${projInfo}`;
     item.onclick = () => {
       dropdown.classList.remove('show');
       document.getElementById('search-input').value = '';
