@@ -196,7 +196,7 @@ $username = $_SESSION['username'] ?? 'User';
   .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
   /* 資料夾標籤：左上角小標籤，只有文字寬度 */
   .card.is-project .card-top::before {
-    content: "專案";
+    content: "專案筆記";
     display: inline-block;
     width: auto;
     background: #C8922A;
