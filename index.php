@@ -764,7 +764,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-label">管理</div>
   </a>
   <?php endif; ?>
-  <a href="Logout.php" class="mobile-tab" style="color:#E24B4A;text-decoration:none;">
+  <a href="logout.php" class="mobile-tab" style="color:#E24B4A;text-decoration:none;">
     <div class="mobile-tab-icon">🚪</div>
     <div class="mobile-tab-label">登出</div>
   </a>
