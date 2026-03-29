@@ -36,7 +36,6 @@ $username = $_SESSION['username'] ?? 'User';
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* 防止手機系統字體縮放導致版面跑掉 */
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   :root {
@@ -508,8 +507,6 @@ $username = $_SESSION['username'] ?? 'User';
     .act-btn { padding: 7px 10px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
     .card-actions { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .card-actions::-webkit-scrollbar { display: none; }
-
-    /* 手機版 cornell 改上下排列 */
     .cornell-top { flex-direction: column; }
     .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
     .cornell-b { width: 100%; }
@@ -1725,7 +1722,7 @@ function buildCard(card, col, cardNo) {
         <!-- 格式按鈕 -->
         <div style="position:relative;">
           <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">¶</button>
-          <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+          <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"><b>B</b></button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">1.</button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">•</button>
@@ -2482,11 +2479,22 @@ function toggleSubMenu(menuId, btn) {
   document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"],[id^="fmt-menu-"]').forEach(m => m.style.display = 'none');
   if (!isOpen) {
     menu.style.display = 'flex';
-    // 定位在按鈕上方
     if (btn) {
       const rect = btn.getBoundingClientRect();
-      const menuH = 80;
-      menu.style.top = Math.max(8, rect.top - menuH - 8) + 'px';
+      // 先顯示才能量寬度
+      requestAnimationFrame(() => {
+        const menuW = menu.offsetWidth || 120;
+        const menuH = menu.offsetHeight || 48;
+        // 水平：貼在按鈕左側
+        let left = rect.left - menuW - 8;
+        if (left < 8) left = rect.right + 8; // 左側放不下就放右側
+        // 垂直：對齊按鈕中心
+        let top = rect.top + (rect.height / 2) - (menuH / 2);
+        top = Math.max(8, Math.min(top, window.innerHeight - menuH - 8));
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        menu.style.right = 'auto';
+      });
     }
   }
 }
