@@ -306,6 +306,18 @@ $username = $_SESSION['username'] ?? 'User';
   .modal-btn.secondary { background: var(--surface2); color: var(--text-secondary); }
 
   /* 專案管理 Modal */
+
+  /* 專案顏色色票 */
+  .proj-color-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .proj-color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; transition: transform 0.1s; }
+  .proj-color-swatch:hover { transform: scale(1.2); }
+  .proj-color-swatch.selected { border-color: #333; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333; }
+  .project-edit-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; margin-top: 6px; }
+  .project-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .project-edit-input { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: inherit; }
+  .project-edit-save { padding: 6px 12px; background: var(--accent-week); color: white; border: none; border-radius: var(--radius); font-size: 12px; cursor: pointer; font-weight: 500; }
+  .project-edit-cancel { padding: 6px 12px; background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; cursor: pointer; }
+  .project-edit-btn { padding: 5px 10px; background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; cursor: pointer; }
   .project-list { margin-top: 16px; }
   .project-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 8px; }
   .project-info { display: flex; align-items: center; gap: 12px; flex: 1; }
@@ -846,10 +858,13 @@ $username = $_SESSION['username'] ?? 'User';
       <div class="modal-title">⚙️ 專案類型管理</div>
     </div>
     <div class="modal-body">
-      <div class="add-project-form">
-        <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20">
-        <input type="color" class="color-input" id="new-project-color" value="#E3F2FD">
-        <button class="add-project-btn" onclick="addCustomProject()">+ 新增</button>
+      <div class="add-project-form" style="flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20" style="flex:1;">
+          <button class="add-project-btn" onclick="addCustomProject()">+ 新增</button>
+        </div>
+        <div class="proj-color-swatches" id="new-proj-swatches"></div>
+        <input type="hidden" id="new-project-color" value="#E53935">
       </div>
       <div class="project-list" id="project-list"></div>
     </div>
@@ -1291,27 +1306,112 @@ function handleProjectSettingsClick(e) {
   if (e.target.id === 'project-settings-overlay') closeProjectSettings();
 }
 
+// 固定色票
+const PROJ_COLORS = ['#E53935','#FB8C00','#FDD835','#43A047','#1E88E5','#3949AB','#8E24AA','#00ACC1','#6D4C41','#546E7A'];
+
+function renderProjSwatches(containerId, inputId, selectedColor) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  PROJ_COLORS.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'proj-color-swatch' + (c === selectedColor ? ' selected' : '');
+    s.style.background = c;
+    s.onclick = () => {
+      document.getElementById(inputId).value = c;
+      container.querySelectorAll('.proj-color-swatch').forEach(x => x.classList.remove('selected'));
+      s.classList.add('selected');
+    };
+    container.appendChild(s);
+  });
+}
+
 function renderProjectList() {
   const allProjects = getAllProjects();
   const list = document.getElementById('project-list');
   list.innerHTML = '';
   
+  // 初始化新增表單色票
+  renderProjSwatches('new-proj-swatches', 'new-project-color', document.getElementById('new-project-color')?.value || '#E53935');
+  
   Object.keys(allProjects).forEach(key => {
     const proj = allProjects[key];
     const item = document.createElement('div');
+    item.id = 'proj-item-' + key;
     item.className = 'project-item';
+    item.style.flexDirection = 'column';
+    item.style.alignItems = 'stretch';
     item.innerHTML = `
-      <div class="project-info">
-        <div class="project-color-preview" style="background: ${proj.bg}; color: ${proj.color};">●</div>
-        <div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="project-info">
+          <div class="project-color-preview" style="background:${proj.color}; width:16px; height:16px; border-radius:50%; flex-shrink:0;"></div>
           <div class="project-name">${proj.label}</div>
-          ${proj.default ? '<div class="project-default">預設類型</div>' : ''}
+        </div>
+        <div style="display:flex; gap:6px;">
+          ${!proj.default ? `<button class="project-edit-btn" onclick="toggleEditProject('${key}')">✏️ 編輯</button>` : ''}
+          ${!proj.default ? `<button class="project-delete" onclick="deleteCustomProject('${key}')">刪除</button>` : ''}
         </div>
       </div>
-      ${!proj.default ? `<button class="project-delete" onclick="deleteCustomProject('${key}')">刪除</button>` : ''}
+      <div id="proj-edit-${key}" style="display:none; margin-top:8px;">
+        <div class="project-edit-row">
+          <input class="project-edit-input" id="proj-edit-name-${key}" value="${proj.label}" maxlength="20">
+        </div>
+        <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="margin-bottom:8px;"></div>
+        <input type="hidden" id="proj-edit-color-${key}" value="${proj.color}">
+        <div style="display:flex; gap:6px;">
+          <button class="project-edit-save" onclick="saveEditProject('${key}')">儲存</button>
+          <button class="project-edit-cancel" onclick="toggleEditProject('${key}')">取消</button>
+        </div>
+      </div>
     `;
     list.appendChild(item);
   });
+}
+
+function toggleEditProject(key) {
+  const editDiv = document.getElementById('proj-edit-' + key);
+  if (!editDiv) return;
+  const isOpen = editDiv.style.display !== 'none';
+  editDiv.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    const proj = ALL_PROJECTS[key];
+    renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, proj.color);
+  }
+}
+
+async function saveEditProject(key) {
+  const name  = document.getElementById('proj-edit-name-' + key).value.trim();
+  const color = document.getElementById('proj-edit-color-' + key).value;
+  if (!name) { toast('請輸入名稱'); return; }
+  const bg = color + '22';
+
+  if (isDBMode) {
+    const proj = ALL_PROJECTS[key];
+    try {
+      const res = await fetch('api/projects.php?action=update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: proj.id, label: name, bgColor: bg, textColor: color })
+      });
+      const data = await res.json();
+      if (data.error || data.success === false) { toast(data.error || '更新失敗'); return; }
+      await initProjects();
+    } catch(e) { toast('更新失敗'); return; }
+  } else {
+    const customProjects = loadCustomProjects();
+    if (customProjects[key]) {
+      customProjects[key].label = name;
+      customProjects[key].color = color;
+      customProjects[key].bg = bg;
+      saveCustomProjects(customProjects);
+      ALL_PROJECTS[key] = customProjects[key];
+    }
+  }
+  renderProjectList();
+  renderProjectSelect();
+  injectProjectStyles();
+  render();
+  toast('✅ 專案已更新');
 }
 
 async function addCustomProject() {
