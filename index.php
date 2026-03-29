@@ -437,6 +437,17 @@ $username = $_SESSION['username'] ?? 'User';
   .mini-toolbar.show { display: flex; }
   /* 卡片展開時，cornell-b 內的工具列永遠顯示，不依賴 focus */
   .card.open .cornell-b .mini-toolbar { display: flex; }
+  /* done 欄卡片預設收合，點標題展開 */
+  .col-done .card .cornell-layout,
+  .col-done .card .card-meta,
+  .col-done .card .card-summary,
+  .col-done .card .card-next-step,
+  .col-done .card .source-link { display: none; }
+  .col-done .card.open .cornell-layout,
+  .col-done .card.open .card-meta,
+  .col-done .card.open .card-summary,
+  .col-done .card.open .card-next-step,
+  .col-done .card.open .source-link { display: block; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
@@ -2141,7 +2152,7 @@ function buildCard(card, col, cardNo) {
   // 摘要永遠顯示在卡片上（康乃爾外面）
   const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
