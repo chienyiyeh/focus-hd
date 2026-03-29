@@ -35,7 +35,6 @@ $username = $_SESSION['username'] ?? 'User';
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   :root {
@@ -399,6 +398,10 @@ $username = $_SESSION['username'] ?? 'User';
   .saving-indicator.show { display: block; }
   .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
   .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
+  .inline-item-actions { display: none; gap: 4px; flex-shrink: 0; }
+  .card-checklist-item:focus-within .inline-item-actions { display: flex; }
+  .inline-item-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; opacity: 0.7; }
+  .inline-item-btn:hover { opacity: 1; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
   .subtask-dropdown.open { display: block; }
   .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
@@ -1688,11 +1691,10 @@ function buildCard(card, col, cardNo) {
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
       editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}'); event.stopPropagation();">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<button class="subtask-menu-btn" onclick="toggleSubtaskMenu('${smId}', event); event.stopPropagation();">⋯</button>`;
-      editableA += `<div class="subtask-dropdown" id="${smId}">
-        <button class="subtask-dropdown-item" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🎯 今日專注</button>
-        <button class="subtask-dropdown-item danger" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🗑 刪除</button>
-      </div>`;
+      editableA += `<span class="inline-item-actions">
+        <button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">🎯</button>
+        <button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>
+      </span>`;
       editableA += `</div>`;
     });
   } else {
@@ -2481,14 +2483,11 @@ function toggleSubMenu(menuId, btn) {
     menu.style.display = 'flex';
     if (btn) {
       const rect = btn.getBoundingClientRect();
-      // 先顯示才能量寬度
       requestAnimationFrame(() => {
         const menuW = menu.offsetWidth || 120;
         const menuH = menu.offsetHeight || 48;
-        // 水平：貼在按鈕左側
         let left = rect.left - menuW - 8;
-        if (left < 8) left = rect.right + 8; // 左側放不下就放右側
-        // 垂直：對齊按鈕中心
+        if (left < 8) left = rect.right + 8;
         let top = rect.top + (rect.height / 2) - (menuH / 2);
         top = Math.max(8, Math.min(top, window.innerHeight - menuH - 8));
         menu.style.left = left + 'px';
