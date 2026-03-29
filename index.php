@@ -773,6 +773,18 @@ $username = $_SESSION['username'] ?? 'User';
                 <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1A1A18');event.preventDefault()"></button>
               </div>
               <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
+              <!-- 螢光筆 -->
+              <button class="mini-tb-btn" style="width:28px;height:28px;padding:2px;" onmousedown="toggleModalColorMenu('modal-bg-menu',this);event.preventDefault()">
+                <svg width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
+              </button>
+              <div id="modal-bg-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+                <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#DAEEFF');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFFACC');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFE4EC');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:6px;background:#E8F5E9;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#E8F5E9');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:6px;background:transparent;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('transparent');event.preventDefault()">✕</button>
+              </div>
+              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
               <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('undo');event.preventDefault()">↩</button>
               <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('redo');event.preventDefault()">↪</button>
             </div>
@@ -1875,26 +1887,38 @@ function modalSetColor(color) {
   document.execCommand('foreColor', false, color);
   document.getElementById('modal-color-menu').style.display = 'none';
 }
+function modalSetBgColor(color) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('hiliteColor', false, color === 'transparent' ? 'transparent' : color);
+  document.getElementById('modal-bg-menu').style.display = 'none';
+}
 function toggleModalColorMenu(menuId, btn) {
   const menu = document.getElementById(menuId);
   if (!menu) return;
   const isOpen = menu.style.display === 'flex';
-  menu.style.display = 'none';
+  // 關閉所有 modal 選單
+  ['modal-color-menu','modal-bg-menu'].forEach(id => {
+    const m = document.getElementById(id);
+    if (m) m.style.display = 'none';
+  });
   if (!isOpen) {
     menu.style.display = 'flex';
     const rect = btn.getBoundingClientRect();
     requestAnimationFrame(() => {
-      const mh = menu.offsetHeight || 48;
       menu.style.left = rect.left + 'px';
       menu.style.top = (rect.bottom + 4) + 'px';
     });
   }
 }
 document.addEventListener('mousedown', (e) => {
-  const menu = document.getElementById('modal-color-menu');
-  if (menu && !menu.contains(e.target) && !e.target.closest('[onmousedown*="toggleModalColorMenu"]')) {
-    menu.style.display = 'none';
-  }
+  ['modal-color-menu','modal-bg-menu'].forEach(id => {
+    const menu = document.getElementById(id);
+    if (menu && !menu.contains(e.target) && !e.target.closest('[onmousedown*="toggleModalColorMenu"]')) {
+      menu.style.display = 'none';
+    }
+  });
 });
 
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
