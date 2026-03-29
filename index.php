@@ -177,7 +177,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* Cards */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
-  .card.is-project { border-left: 4px solid #E8763E; }
+  .card.is-project { background: #FFFAF5 !important; border-left: 3px solid #E8763E; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card.dragging { opacity: 0.5; cursor: grabbing; }
   .card.open { padding-bottom: 6px; }
