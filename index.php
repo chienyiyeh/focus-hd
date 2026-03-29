@@ -859,6 +859,8 @@ $username = $_SESSION['username'] ?? 'User';
             <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 3px;flex-shrink:0;"></div>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:14px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('undo');event.preventDefault()">↩</button>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:14px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('redo');event.preventDefault()">↪</button>
+            <button class="mini-tb-btn" style="width:38px;height:34px;font-size:11px;padding:0;touch-action:manipulation;flex-shrink:0;line-height:1.2;" title="全選" onclick="(function(){const n=document.getElementById('input-body-editor');if(!n)return;n.focus();const r=document.createRange();r.selectNodeContents(n);const s=window.getSelection();s.removeAllRanges();s.addRange(r);})();event.preventDefault()">全選</button>
+            <button class="mini-tb-btn" style="width:38px;height:34px;font-size:11px;padding:0;touch-action:manipulation;flex-shrink:0;line-height:1.2;" title="選取一行" onclick="(function(){const n=document.getElementById('input-body-editor');if(!n)return;n.focus();const sel=window.getSelection();if(!sel||!sel.rangeCount)return;const lineEl=getCurrentLineEl(n);const r=document.createRange();r.selectNodeContents(lineEl);sel.removeAllRanges();sel.addRange(r);})();event.preventDefault()">選行</button>
             <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 3px;flex-shrink:0;"></div>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('bold');event.preventDefault()"><b>B</b></button>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
@@ -2131,6 +2133,9 @@ function buildCard(card, col, cardNo) {
         <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="miniCmd('undo');event.stopPropagation()">↩</button>
         <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="miniCmd('redo');event.stopPropagation()">↪</button>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:11px;padding:0;touch-action:manipulation;line-height:1.2;" title="全選" onclick="noteSelectAll('note-${cardIdStr}');event.stopPropagation()">全選</button>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:11px;padding:0;touch-action:manipulation;line-height:1.2;" title="選取一行" onclick="noteSelectLine('note-${cardIdStr}');event.stopPropagation()">選行</button>
+        <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
         <button class="mini-tb-btn" style="width:36px;height:36px;font-size:14px;padding:0;touch-action:manipulation;" title="儲存筆記"
           onclick="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}}})();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
@@ -3042,6 +3047,32 @@ async function inlineSaveNote(cardId, col, text) {
 // 浮動迷你富文字工具列
 function miniCmd(cmd, value) {
   document.execCommand(cmd, false, value || null);
+}
+
+// 全選筆記區文字
+function noteSelectAll(noteId) {
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  note.focus();
+  const range = document.createRange();
+  range.selectNodeContents(note);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// 選取游標所在行
+function noteSelectLine(noteId) {
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const lineEl = getCurrentLineEl(note);
+  const range = document.createRange();
+  range.selectNodeContents(lineEl);
+  sel.removeAllRanges();
+  sel.addRange(range);
 }
 // 選取游標所在行從行首到游標位置
 // 找游標所在的行元素（li, p, div）
