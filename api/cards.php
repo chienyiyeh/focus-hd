@@ -166,7 +166,15 @@ function handleSave($userId, $isAdmin) {
             if ($stmt->rowCount() > 0) {
                 successResponse(['id' => $id], '卡片更新成功');
             } else {
-                errorResponse('卡片不存在或無權限編輯');
+                // rowCount=0 可能是資料完全相同（未實際更新），不代表卡片不存在
+                // 再查一次確認 ID 是否存在
+                $check = $db->prepare("SELECT id FROM cards WHERE id=?");
+                $check->execute([$id]);
+                if ($check->fetch()) {
+                    successResponse(['id' => $id], '卡片更新成功');
+                } else {
+                    errorResponse('卡片不存在或無權限編輯');
+                }
             }
         } else {
             $stmt = $db->prepare("
