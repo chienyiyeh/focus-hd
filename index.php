@@ -2110,12 +2110,14 @@ function buildCard(card, col, cardNo) {
   const prevCol = colIdx > 0 ? colOrder[colIdx-1] : null;
   const nextCol = colIdx < colOrder.length-1 ? colOrder[colIdx+1] : null;
   const colNames = {lib:'策略',week:'本週',focus:'今日',done:'完成'};
-  // 策略卡（lib）只顯示「→ 本週」，不顯示返回按鈕（因為已在最左欄）
-  // 其他欄：只顯示「→ 本週」或「→ 今日」，不顯示「← 策略」（子任務有自己的今日專注按鈕）
+  // lib 欄專案卡（有 checklist）：只顯示「→ 本週」，不顯示「→ 今日」（子任務各自有今日專注按鈕）
+  // lib 欄一般筆記卡：顯示「→ 本週」＋額外「→ 今日」（直接跳兩格）
+  // week 欄：不管哪種卡，保留「→ 今日」（nextBtn 正常顯示）
   const prevBtn = (col !== 'lib' && prevCol) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
-  const nextBtn = (col === 'lib' && isProjectCard) ? '' : nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
+  const nextBtn = nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
+  const focusDirectBtn = (col === 'lib' && !isProjectCard) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'focus');event.stopPropagation()">→ 今日</button>` : '';
   const editBtn = `<div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-    <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}</div>
+    <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}${focusDirectBtn}</div>
     <button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button>
   </div>`;
   const cornellHTML = `<div class="cornell-layout" data-col="${col}" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
