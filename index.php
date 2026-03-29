@@ -759,13 +759,15 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <a href="users.php" class="mobile-tab" style="text-decoration:none;">
-    <div class="mobile-tab-icon">⚙️</div>
-    <div class="mobile-tab-label">管理</div>
+  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
+  <a href="users.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;">
+    <span style="font-size:22px;line-height:1;">⚙️</span>
+    <span style="font-size:11px;font-weight:500;">管理</span>
   </a>
-  <a href="logout.php" class="mobile-tab" style="color:#E24B4A;text-decoration:none;">
-    <div class="mobile-tab-icon">🚪</div>
-    <div class="mobile-tab-label">登出</div>
+  <?php endif; ?>
+  <a href="logout.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;">
+    <span style="font-size:22px;line-height:1;">🚪</span>
+    <span style="font-size:11px;font-weight:500;">登出</span>
   </a>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
