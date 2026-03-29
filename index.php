@@ -630,7 +630,7 @@ $username = $_SESSION['username'] ?? 'User';
     </button>
     <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
-    <a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a>
+    <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?><a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a><?php endif; ?>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
@@ -757,7 +757,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <?php if ($_SESSION['username'] === 'admin'): ?>
+  <?php if (in_array($_SESSION['username'], ['admin', 'chienyi'])): ?>
   <a href="users.php" class="mobile-tab" style="text-decoration:none;">
     <div class="mobile-tab-icon">⚙️</div>
     <div class="mobile-tab-label">管理</div>
