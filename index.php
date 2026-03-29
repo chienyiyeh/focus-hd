@@ -203,8 +203,8 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-container { margin-bottom: 12px; }
   .checklist-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px; background: var(--surface2); border-radius: 6px; margin-bottom: 6px; }
   .checklist-item input[type="checkbox"] { margin-top: 3px; cursor: pointer; width: 16px; height: 16px; }
-  .checklist-item input[type="text"] { flex: 1; border: none; background: transparent; font-size: 13px; padding: 0; font-family: inherit; }
-  .checklist-item input[type="text"]:focus { outline: none; }
+  .checklist-item textarea { flex: 1; border: none; background: transparent; font-size: 13px; padding: 0; font-family: inherit; resize: none; overflow: hidden; min-height: 20px; line-height: 1.5; word-break: break-all; }
+  .checklist-item textarea:focus { outline: none; }
   .checklist-item-delete { padding: 2px 8px; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 4px; font-size: 11px; cursor: pointer; }
   .checklist-item-delete:hover { background: #FEF2F2; }
   .add-checklist-item-btn { width: 100%; padding: 8px; border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; }
@@ -2079,16 +2079,17 @@ function addChecklistItem(text = '', checked = false) {
   item.dataset.id = id;
   item.innerHTML = `
     <input type="checkbox" ${checked ? 'checked' : ''}>
-    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
+    <textarea placeholder="輸入待辦事項..." rows="1" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(text)}</textarea>
     <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();">刪除</button>
   `;
   
   container.appendChild(item);
-  
-  // 自动聚焦到新添加的输入框
-  if (!text) {
-    item.querySelector('input[type="text"]').focus();
-  }
+
+  // 初始化高度
+  const ta = item.querySelector('textarea');
+  if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+
+  if (!text && ta) ta.focus();
 }
 
 // 删除待办项
@@ -2104,8 +2105,8 @@ function getChecklistData() {
   const items = [];
   document.querySelectorAll('#checklist-container .checklist-item').forEach(item => {
     const checkbox = item.querySelector('input[type="checkbox"]');
-    const textInput = item.querySelector('input[type="text"]');
-    const text = textInput.value.trim();
+    const textInput = item.querySelector('textarea') || item.querySelector('input[type="text"]');
+    const text = textInput ? textInput.value.trim() : '';
     
     if (text) { // 只保存有内容的项目
       items.push({
