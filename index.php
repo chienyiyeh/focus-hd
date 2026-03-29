@@ -2031,7 +2031,7 @@ function buildCard(card, col, cardNo) {
     card.checklist.forEach((item, idx) => {
       const cbId = `cb-${cardIdStr}-${idx}`;
       editableA += `<div class="checklist-item" id="cli-${cardIdStr}-${idx}" style="background:transparent;padding:4px 2px;border-radius:0;margin-bottom:2px;border-bottom:1px solid var(--border);">`;
-      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;margin-top:0;" onclick="event.stopPropagation();this.checked=!this.checked;cbSave(${cardIdStr},'${col}');return false;">`;
+      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;margin-top:0;" onclick="event.stopPropagation();" onchange="cbSave(${cardIdStr},'${col}')">`;
       editableA += `<textarea style="flex:1;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;overflow:hidden;line-height:1.5;padding:0 4px;outline:none;${item.checked ? 'text-decoration:line-through;color:var(--text-muted);' : ''}" rows="1" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="cbSave(${cardIdStr},'${col}')">${escHtml(item.text)}</textarea>`;
       editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()">→ 今日專注</button>`;
       editableA += `<button class="inline-item-btn del-btn" onclick="cbDel(${cardIdStr},${idx},'${col}');event.stopPropagation()">🗑</button>`;
@@ -2834,24 +2834,26 @@ async function cbSave(cardId, col) {
   const found = getCard(cardId);
   if (!found) return;
   const actualCol = found.col || col;
+  // 只從這張卡片的 DOM 讀取，用 card id 精確定位
+  const cardEl = document.getElementById('card-' + cardId);
+  if (!cardEl) return;
   const checklist = [];
-  const container = document.getElementById('card-' + cardId);
-  if (!container) return;
-  container.querySelectorAll('[id^="cli-' + cardId + '-"]').forEach(item => {
+  // 只選這張卡片內的 cli 項目
+  for (let idx = 0; ; idx++) {
+    const item = document.getElementById('cli-' + cardId + '-' + idx);
+    if (!item) break;
     const cb = item.querySelector('input[type="checkbox"]');
     const ta = item.querySelector('textarea');
     const text = ta ? ta.value.trim() : '';
-    if (text) checklist.push({ text, checked: cb ? cb.checked : false });
-  });
-  // 更新刪除線樣式
-  container.querySelectorAll('[id^="cli-' + cardId + '-"]').forEach(item => {
-    const cb = item.querySelector('input[type="checkbox"]');
-    const ta = item.querySelector('textarea');
-    if (ta && cb) {
-      ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
-      ta.style.color = cb.checked ? 'var(--text-muted)' : 'var(--text)';
+    if (text) {
+      checklist.push({ text, checked: cb ? cb.checked : false });
+      // 更新刪除線
+      if (ta) {
+        ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
+        ta.style.color = cb.checked ? 'var(--text-muted)' : 'var(--text)';
+      }
     }
-  });
+  }
   // 更新計數
   const done = checklist.filter(i => i.checked).length;
   const label = document.getElementById('cl-label-' + cardId);
