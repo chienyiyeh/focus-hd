@@ -2831,14 +2831,30 @@ async function inlineSave(cardId, col, updates) {
 async function inlineToggleChecklist(cardId, idx, col) {
   const found = getCard(cardId);
   if (!found) return;
+  const actualCol = found.col || col;
   const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
   if (checklist[idx]) checklist[idx].checked = !checklist[idx].checked;
-  await inlineSave(cardId, col, { checklist });
-  // 更新 label 樣式
+  await inlineSave(cardId, actualCol, { checklist });
+  // 更新視覺樣式（不重新渲染）
   const cardEl = document.getElementById('card-' + cardId);
   if (cardEl) {
     const items = cardEl.querySelectorAll('.card-checklist-item');
-    if (items[idx]) items[idx].classList.toggle('checked', checklist[idx].checked);
+    if (items[idx]) {
+      const isChecked = checklist[idx].checked;
+      items[idx].classList.toggle('checked', isChecked);
+      // 更新文字刪除線
+      const textInput = items[idx].querySelector('.checklist-text-edit');
+      if (textInput) {
+        textInput.style.textDecoration = isChecked ? 'line-through' : 'none';
+        textInput.style.color = isChecked ? 'var(--text-muted)' : 'var(--text)';
+      }
+      // 更新計數
+      const doneCount = checklist.filter(i => i.checked).length;
+      const label = cardEl.querySelector('.cornell-label');
+      if (label && label.textContent.startsWith('✓')) {
+        label.textContent = `✓ 待辦 ${doneCount}/${checklist.length}`;
+      }
+    }
   }
 }
 
@@ -2865,12 +2881,13 @@ async function inlineAddChecklist(cardId, col) {
   const input = document.getElementById('add-item-' + cardId);
   if (!input) return;
   const text = input.value.trim();
-  if (!text) return;
+  if (!text) { input.focus(); return; }
   const found = getCard(cardId);
   if (!found) return;
+  const actualCol = found.col || col;
   const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
   checklist.push({ text, checked: false });
-  await inlineSave(cardId, col, { checklist });
+  await inlineSave(cardId, actualCol, { checklist });
   input.value = '';
   // 重新渲染並展開
   const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
@@ -2878,8 +2895,11 @@ async function inlineAddChecklist(cardId, col) {
   if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
   setTimeout(() => {
     const cardEl = document.getElementById('card-' + cardId);
-    if (cardEl) { cardEl.classList.add('open'); cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
-  }, 150);
+    if (cardEl) { cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    // 重新 focus 新增欄位
+    const newInput = document.getElementById('add-item-' + cardId);
+    if (newInput) newInput.focus();
+  }, 200);
 }
 
 // 儲存筆記
