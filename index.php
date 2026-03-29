@@ -182,7 +182,8 @@ $username = $_SESSION['username'] ?? 'User';
   .card-title { font-size: 14px; font-weight: 500; line-height: 1.45; flex: 1; }
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
   
-  .project-tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block; }
+  .project-tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: none; }
+  .card.tag-open .project-tag { display: inline-block; }
   .project-tag.seo { background: #E3F2FD; color: #1565C0; }
   .project-tag.product { background: #F3E5F5; color: #6A1B9A; }
   .project-tag.client { background: #FFF3E0; color: #E65100; }
@@ -1996,7 +1997,11 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
+  // 點標題切換專案標籤顯示
+  div.querySelector('.card-title').addEventListener('click', (e) => {
+    e.stopPropagation();
+    div.classList.toggle('tag-open');
+  });
   div.onclick = (e) => { return; };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
