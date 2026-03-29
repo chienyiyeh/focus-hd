@@ -748,25 +748,26 @@ $username = $_SESSION['username'] ?? 'User';
       <!-- 康乃爾並排：左欄待辦、右欄筆記 -->
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本 <span class="optional">（左：待辦清單　右：詳細內容）</span></label>
-        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:200px;">
+        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:220px; max-height:380px;">
           <!-- 左欄：待辦清單 -->
-          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:10px; display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">✓ 待辦清單</div>
-            <div class="checklist-container" id="checklist-container"></div>
-            <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:12px; display:flex; flex-direction:column; gap:0; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">✓ 待辦清單</div>
+            <div class="checklist-container" id="checklist-container" style="flex:1;"></div>
+            <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
           </div>
-          <!-- 右欄：詳細筆記 -->
-          <div style="flex:1; display:flex; flex-direction:column;">
-            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); padding:6px 10px 2px; background:var(--surface2); border-bottom:1px solid var(--border);">📝 詳細內容</div>
-            <textarea id="input-body" style="
+          <!-- 右欄：詳細筆記（contenteditable，支援 HTML） -->
+          <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); padding:6px 10px 4px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0;">📝 詳細內容</div>
+            <div id="input-body-editor" contenteditable="true" style="
               flex:1;
               width:100%;
-              min-height:180px;
+              min-height:160px;
+              max-height:340px;
+              overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
               font-family:inherit;
               font-size:14px;
-              resize:none;
               color:var(--text);
               background-color: #FFFDF5;
               line-height: 1.8em;
@@ -779,7 +780,9 @@ $username = $_SESSION['username'] ?? 'User';
               );
               background-size: 100% 1.8em;
               outline:none;
-            " placeholder="輸入詳細內容..."></textarea>
+              word-break:break-all;
+            "></div>
+            <input type="hidden" id="input-body">
           </div>
         </div>
       </div>
@@ -1880,7 +1883,7 @@ function openModal(col) {
   if (col === 'focus' && myFocusCount >= 1) { toast('你的今日專注已有 1 張！'); return; }
   if (col === 'week' && state.week.length >= 3) { toast('本週目標已滿 3 張！'); return; }
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
-  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = '';
+  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = ''; const bodyEditorClr = document.getElementById('input-body-editor'); if(bodyEditorClr) bodyEditorClr.innerHTML = '';
   
   // 清空待办清单
   document.getElementById('checklist-container').innerHTML = '';
@@ -1895,7 +1898,7 @@ function openModal(col) {
 function editCard(id, col) {
   const card = state[col].find(c => c.id === id); if (!card) return;
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
-  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || '';
+  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
   
   // 设置隐私选项
   if (card.isPrivate) {
@@ -1921,7 +1924,7 @@ async function saveCard() {
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
   const checklist = getChecklistData();
   const priority = document.getElementById('input-priority').value || null;
-  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: document.getElementById('input-body').value.trim(), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
