@@ -597,6 +597,7 @@ $username = $_SESSION['username'] ?? 'User';
     .cornell-top { flex-direction: column; }
     .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
     .cornell-b { width: 100%; }
+    #mobile-logout-btn { display: block !important; }
   }
 </style>
 </head>
@@ -604,6 +605,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 <header>
   <div class="logo">🎯 <span>FOCUS</span></div>
+  <button id="mobile-logout-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border:1px solid #FCA5A5;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;">登出</button>
   
   <div class="header-center">
     <div class="search-box">
@@ -757,12 +759,16 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <?php if (in_array($_SESSION['username'], ['admin', 'chienyi'])): ?>
+  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" class="mobile-tab" style="text-decoration:none;">
     <div class="mobile-tab-icon">⚙️</div>
     <div class="mobile-tab-label">管理</div>
   </a>
   <?php endif; ?>
+  <button class="mobile-tab" onclick="logout()" style="color:#E24B4A;">
+    <div class="mobile-tab-icon">🚪</div>
+    <div class="mobile-tab-label">登出</div>
+  </button>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
