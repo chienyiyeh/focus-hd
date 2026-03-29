@@ -2086,6 +2086,7 @@ function buildCard(card, col, cardNo) {
   editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){cbAdd(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="cbAdd(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
 
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
+  const noteHTML = card.body || '';
   const editableB = `
     <div style="display:flex;gap:0;align-items:flex-start;height:100%;">
       <!-- 筆記欄 -->
