@@ -182,8 +182,7 @@ $username = $_SESSION['username'] ?? 'User';
   .card-title { font-size: 14px; font-weight: 500; line-height: 1.45; flex: 1; }
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
   
-  .project-tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: none; }
-  .card.tag-open .project-tag { display: inline-block; }
+  .project-tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-block; }
   .project-tag.seo { background: #E3F2FD; color: #1565C0; }
   .project-tag.product { background: #F3E5F5; color: #6A1B9A; }
   .project-tag.client { background: #FFF3E0; color: #E65100; }
@@ -861,11 +860,11 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="modal-body">
       <div class="add-project-form" style="flex-direction:column; gap:8px;">
         <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20" style="flex:1;">
+          <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20" style="flex:1;" oninput="const sw=document.getElementById('new-proj-swatches');sw.style.display=this.value.trim()?'flex':'none';if(this.value.trim()&&!sw.children.length)renderProjSwatches('new-proj-swatches','new-project-color','#1E88E5');">
           <button class="add-project-btn" onclick="addCustomProject()">+ 新增</button>
         </div>
-        <div class="proj-color-swatches" id="new-proj-swatches"></div>
-        <input type="hidden" id="new-project-color" value="#E53935">
+        <div class="proj-color-swatches" id="new-proj-swatches" style="display:none;"></div>
+        <input type="hidden" id="new-project-color" value="#1E88E5">
       </div>
       <div class="project-list" id="project-list"></div>
     </div>
@@ -1997,11 +1996,7 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // 點標題切換專案標籤顯示
-  div.querySelector('.card-title').addEventListener('click', (e) => {
-    e.stopPropagation();
-    div.classList.toggle('tag-open');
-  });
+  // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
   div.onclick = (e) => { return; };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
