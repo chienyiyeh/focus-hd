@@ -2031,7 +2031,7 @@ function buildCard(card, col, cardNo) {
     card.checklist.forEach((item, idx) => {
       const cbId = `cb-${cardIdStr}-${idx}`;
       editableA += `<div class="checklist-item" id="cli-${cardIdStr}-${idx}" style="background:transparent;padding:4px 2px;border-radius:0;margin-bottom:2px;border-bottom:1px solid var(--border);">`;
-      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;margin-top:0;" onchange="cbSave(${cardIdStr},'${col}')">`;
+      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);flex-shrink:0;margin-top:0;" onclick="event.stopPropagation();this.checked=!this.checked;cbSave(${cardIdStr},'${col}');return false;">`;
       editableA += `<textarea style="flex:1;border:none;background:transparent;font-size:12px;font-family:inherit;resize:none;overflow:hidden;line-height:1.5;padding:0 4px;outline:none;${item.checked ? 'text-decoration:line-through;color:var(--text-muted);' : ''}" rows="1" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="cbSave(${cardIdStr},'${col}')">${escHtml(item.text)}</textarea>`;
       editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()">→ 今日專注</button>`;
       editableA += `<button class="inline-item-btn del-btn" onclick="cbDel(${cardIdStr},${idx},'${col}');event.stopPropagation()">🗑</button>`;
@@ -2110,8 +2110,10 @@ function buildCard(card, col, cardNo) {
   const prevCol = colIdx > 0 ? colOrder[colIdx-1] : null;
   const nextCol = colIdx < colOrder.length-1 ? colOrder[colIdx+1] : null;
   const colNames = {lib:'策略',week:'本週',focus:'今日',done:'完成'};
-  const prevBtn = prevCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
-  const nextBtn = nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
+  // 策略卡（lib）只顯示「→ 本週」，不顯示返回按鈕（因為已在最左欄）
+  // 其他欄：只顯示「→ 本週」或「→ 今日」，不顯示「← 策略」（子任務有自己的今日專注按鈕）
+  const prevBtn = (col !== 'lib' && prevCol) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
+  const nextBtn = (col === 'lib' && isProjectCard) ? '' : nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
   const editBtn = `<div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
     <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}</div>
     <button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button>
