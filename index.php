@@ -558,7 +558,24 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .notification-btn { display: none !important; }
 
     /* 漢堡按鈕顯示 */
-    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; position: relative; z-index: 500; pointer-events: auto !important; }
+    .mobile-menu-btn {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 20px;
+      cursor: pointer;
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      z-index: 1000;
+      width: 44px;
+      height: 44px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
