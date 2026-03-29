@@ -3114,6 +3114,7 @@ function toggleSubMenu(menuId, btn) {
   document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"],[id^="fmt-menu-"]').forEach(m => m.style.display = 'none');
   if (!isOpen) {
     menu.style.display = 'flex';
+    window._miniToolbarLocked = true; // 子選單開啟，鎖定不隱藏 toolbar
     if (btn) {
       const rect = btn.getBoundingClientRect();
       requestAnimationFrame(() => {
@@ -3128,11 +3129,29 @@ function toggleSubMenu(menuId, btn) {
         menu.style.right = 'auto';
       });
     }
+  } else {
+    window._miniToolbarLocked = false;
   }
 }
 function hideSubMenu(menuId) {
   const menu = document.getElementById(menuId);
   if (menu) menu.style.display = 'none';
+  // 解鎖並把焦點還給 note
+  window._miniToolbarLocked = false;
+  // 找目前展開的 toolbar 對應的 note，還回焦點
+  setTimeout(() => {
+    const activeNote = document.querySelector('.note-editable:focus, .note-editable[data-focused="true"]');
+    if (!activeNote) {
+      // 找最近被操作的 note（toolbar 還是 show 狀態的）
+      const shownTb = document.querySelector('.mini-toolbar.show');
+      if (shownTb) {
+        const tbId = shownTb.id; // mtb-{cardId}
+        const cardId = tbId.replace('mtb-', '');
+        const noteEl = document.getElementById('note-' + cardId);
+        if (noteEl) noteEl.focus();
+      }
+    }
+  }, 50);
 }
 
 // 記憶上次選的顏色
@@ -3192,12 +3211,10 @@ function hideMiniToolbar(id) {
   setTimeout(() => {
     const tb = document.getElementById(id);
     if (!tb) return;
-    // 若焦點還在 toolbar 區域（含子選單）內，就不隱藏
-    const focused = document.activeElement;
-    if (tb.contains(focused)) return;
-    // 若有任何子選單是展開狀態，也不隱藏
-    const openMenus = tb.querySelectorAll('[style*="display: flex"], [style*="display:flex"]');
-    if (openMenus.length > 0) return;
+    // 若有子選單展開中，不隱藏
+    if (window._miniToolbarLocked) return;
+    // 若焦點還在 toolbar 內，不隱藏
+    if (tb.contains(document.activeElement)) return;
     tb.classList.remove('show');
   }, 300);
 }
