@@ -2133,17 +2133,7 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // 點卡片不觸發編輯（但允許 checkbox、input、button、a 正常運作）
-  div.onclick = (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || 
-        e.target.tagName === 'A' || e.target.tagName === 'LABEL' ||
-        e.target.closest('a') || e.target.closest('button') ||
-        e.target.closest('.card-actions-menu') || e.target.closest('.cornell-a') ||
-        e.target.closest('.cornell-b') || e.target.closest('.mini-toolbar')) {
-      return;
-    }
-    return;
-  };
+  // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
   div.addEventListener('mousedown', (e) => {
     const noteEl = e.target.closest('.note-editable, .cornell-b, [contenteditable]');
@@ -2234,14 +2224,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.cards-area').forEach(a => { a.addEventListener('dragover', handleDragOver); a.addEventListener('drop', handleDrop); a.addEventListener('dragleave', handleDragLeave); });
 });
 
-// 事件委派處理 checkbox（避免被 div.onclick 攔截）
+// 事件委派處理卡片上的 checkbox（避免被 div.onclick 攔截）
 document.addEventListener('change', (e) => {
-  if (e.target.classList.contains('inline-cb')) {
+  if (e.target.classList.contains('inline-cb') && e.target.dataset.card) {
     const cardId = parseInt(e.target.dataset.card);
     const idx = parseInt(e.target.dataset.idx);
     const col = e.target.dataset.col;
-    inlineToggleChecklist(cardId, idx, col);
-    e.stopPropagation();
+    if (cardId && !isNaN(cardId)) {
+      inlineToggleChecklist(cardId, idx, col);
+      e.stopPropagation();
+    }
   }
 });
 function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.closest('.col').classList.add('drag-over'); }
