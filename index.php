@@ -331,8 +331,8 @@ $username = $_SESSION['username'] ?? 'User';
   .export-option-desc { font-size: 11px; color: var(--text-muted); }
 
   /* 四象限優先級 */
-  .priority-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
-  .priority-btn { padding: 10px 8px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); }
+  .priority-grid { display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 4px; overflow-x: auto; }
+  .priority-btn { padding: 5px 8px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 20px; font-size: 11px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
   .priority-btn:hover { background: var(--surface2); }
   .priority-btn.active[data-value="urgent_important"] { background: #FFF0F0; border-color: #FF4444; color: #CC0000; }
   .priority-btn.active[data-value="important_not_urgent"] { background: #FFF8EC; border-color: #FF9800; color: #CC7700; }
@@ -907,15 +907,7 @@ let privacyFilter = 'all'; // 隐私筛选：'all', 'shared', 'private'
 let searchQuery = '';
 
 // 預設專案類型（容錯備份）
-const DEFAULT_PROJECTS = {
-  seo: { label: 'SEO', bg: '#E3F2FD', color: '#1565C0', default: true },
-  product: { label: '商品頁', bg: '#F3E5F5', color: '#6A1B9A', default: true },
-  client: { label: '客戶', bg: '#FFF3E0', color: '#E65100', default: true },
-  family: { label: '家庭', bg: '#FCE4EC', color: '#C2185B', default: true },
-  sop: { label: 'SOP', bg: '#E8F5E9', color: '#2E7D32', default: true },
-  finance: { label: '財務', bg: '#FFF9C4', color: '#F57F17', default: true },
-  other: { label: '其他', bg: '#ECEFF1', color: '#455A64', default: true }
-};
+const DEFAULT_PROJECTS = {};  // 預設無專案，由使用者自行新增
 
 // 專案資料（優先從資料庫載入，失敗則使用預設）
 let ALL_PROJECTS = { ...DEFAULT_PROJECTS };
