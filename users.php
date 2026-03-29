@@ -17,7 +17,7 @@ $stmt->execute([$_SESSION['user_id']]);
 $me = $stmt->fetch();
 
 if (!in_array($me['username'], ['admin', 'chienyi'])) {
-    die('只有 admin 可以管理使用者');
+    die('您沒有管理權限');
 }
 
 $msg = '';
