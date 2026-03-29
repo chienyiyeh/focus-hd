@@ -177,12 +177,12 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* Cards */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
-  .card.is-project { background: #FFF8F0 !important; border: 1px solid #C4845A; }
-  .card.is-project .card-top { background: #6B3A2A; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; flex-wrap: wrap; }
-  .card.is-project .card-top::before { content: "專案"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: rgba(255,245,238,0.75); letter-spacing: 0.8px; margin-bottom: 4px; }
-  .card.is-project .card-top .card-title { color: #FFF5EE !important; }
-  .card.is-project .card-top .drag-handle { color: rgba(255,245,238,0.4) !important; }
-  .card.is-project .card-top .card-actions-menu button { color: #FFF5EE !important; border-color: rgba(255,245,238,0.5) !important; background: rgba(255,245,238,0.15) !important; }
+  .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; }
+  .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 6px 12px 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; flex-wrap: wrap; }
+  .card.is-project .card-top::before { content: "📁 專案"; display: block; width: 100%; font-size: 10px; font-weight: 700; color: #7A5C2E; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card.is-project .card-top .card-title { color: #4A3520 !important; }
+  .card.is-project .card-top .drag-handle { color: rgba(74,53,32,0.4) !important; }
+  .card.is-project .card-top .card-actions-menu button { color: #4A3520 !important; border-color: rgba(74,53,32,0.3) !important; background: rgba(74,53,32,0.08) !important; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card.dragging { opacity: 0.5; cursor: grabbing; }
   .card.open { padding-bottom: 6px; }
