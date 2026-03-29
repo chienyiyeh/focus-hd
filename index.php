@@ -748,21 +748,40 @@ $username = $_SESSION['username'] ?? 'User';
       <!-- 康乃爾並排：左欄待辦、右欄筆記 -->
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本 <span class="optional">（左：待辦清單　右：詳細內容）</span></label>
-        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:220px; max-height:380px;">
-          <!-- 左欄：待辦清單 -->
-          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:12px; display:flex; flex-direction:column; gap:0; overflow-y:auto;">
-            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">✓ 待辦清單</div>
-            <div class="checklist-container" id="checklist-container" style="flex:1;"></div>
-            <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+        <div style="display:flex; gap:0; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; min-height:240px;">
+          <!-- 左欄：待辦清單（垂直延伸） -->
+          <div style="width:42%; border-right:2px solid #E8763E; background:var(--surface2); padding:10px; display:flex; flex-direction:column; gap:0;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">✓ 待辦清單</div>
+            <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:4px;"></div>
+            <button type="button" class="add-checklist-item-btn" style="margin-top:6px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
           </div>
-          <!-- 右欄：詳細筆記（contenteditable，支援 HTML） -->
+          <!-- 右欄：詳細筆記＋工具列 -->
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-            <div style="font-size:11px; font-weight:600; color:var(--text-secondary); padding:6px 10px 4px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0;">📝 詳細內容</div>
+            <!-- 工具列 -->
+            <div style="display:flex; align-items:center; gap:4px; padding:4px 8px; background:#111110; flex-shrink:0; flex-wrap:wrap;">
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('bold');event.preventDefault()"><b>B</b></button>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('insertOrderedList');event.preventDefault()">1.</button>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:16px;padding:0;" onmousedown="modalExecCmd('insertUnorderedList');event.preventDefault()">•</button>
+              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;" onmousedown="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
+              <div id="modal-color-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+                <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#E24B4A');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#185FA5');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:50%;background:#1D9E75;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1D9E75');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:50%;background:#BA7517;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#BA7517');event.preventDefault()"></button>
+                <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1A1A18');event.preventDefault()"></button>
+              </div>
+              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('undo');event.preventDefault()">↩</button>
+              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('redo');event.preventDefault()">↪</button>
+            </div>
+            <!-- 筆記區 -->
             <div id="input-body-editor" contenteditable="true" style="
               flex:1;
               width:100%;
-              min-height:160px;
-              max-height:340px;
+              min-height:180px;
+              max-height:320px;
               overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
@@ -780,7 +799,7 @@ $username = $_SESSION['username'] ?? 'User';
               );
               background-size: 100% 1.8em;
               outline:none;
-              word-break:break-all;
+              word-break:break-word;
             "></div>
             <input type="hidden" id="input-body">
           </div>
@@ -1841,6 +1860,42 @@ function buildCard(card, col, cardNo) {
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
+
+// Modal 編輯器工具列函數
+function modalExecCmd(cmd, val) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand(cmd, false, val || null);
+}
+function modalSetColor(color) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('foreColor', false, color);
+  document.getElementById('modal-color-menu').style.display = 'none';
+}
+function toggleModalColorMenu(menuId, btn) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.style.display === 'flex';
+  menu.style.display = 'none';
+  if (!isOpen) {
+    menu.style.display = 'flex';
+    const rect = btn.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      const mh = menu.offsetHeight || 48;
+      menu.style.left = rect.left + 'px';
+      menu.style.top = (rect.bottom + 4) + 'px';
+    });
+  }
+}
+document.addEventListener('mousedown', (e) => {
+  const menu = document.getElementById('modal-color-menu');
+  if (menu && !menu.contains(e.target) && !e.target.closest('[onmousedown*="toggleModalColorMenu"]')) {
+    menu.style.display = 'none';
+  }
+});
 
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDateTime(ts) {
