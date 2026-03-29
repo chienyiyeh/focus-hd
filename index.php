@@ -2,21 +2,6 @@
 // 引入設定檔 (確保 KANBAN_SESSION 一致)
 require_once 'api/config.php';
 
-// 處理登出
-if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    $_SESSION = [];
-    session_destroy();
-    setcookie('KANBAN_SESSION', '', time() - 3600, '/');
-    setcookie('remember_token', '', time() - 3600, '/');
-    setcookie(session_name(), '', time() - 3600, '/');
-    // 用 HTML meta 跳轉，不依賴 header()
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8">';
-    echo '<meta http-equiv="refresh" content="0;url=login.php">';
-    echo '<script>window.location.replace("login.php");</script>';
-    echo '</head><body></body></html>';
-    exit();
-}
-
 // 檢查是否登入，沒登入就踢回登入頁
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -50,7 +35,6 @@ $username = $_SESSION['username'] ?? 'User';
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   :root {
     --bg: #F5F3EE;
@@ -77,21 +61,14 @@ $username = $_SESSION['username'] ?? 'User';
     --radius-lg: 14px;
   }
 
-  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; padding-bottom: 70px; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; -webkit-font-smoothing: antialiased; }
 
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 12px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 12px; }
   .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
   .logo span { color: var(--accent-focus); }
   
   .header-center { display: flex; gap: 12px; align-items: center; flex: 1; justify-content: center; min-width: 0; }
   .search-box { position: relative; max-width: 300px; width: 100%; flex-shrink: 1; }
-  .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 99; max-height: 320px; overflow-y: auto; display: none; margin-top: 2px; }
-  .search-dropdown.show { display: block; }
-  .search-result-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-  .search-result-item:last-child { border-bottom: none; }
-  .search-result-item:hover { background: var(--surface2); }
-  .search-result-col { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
-  .search-result-title { font-size: 13px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .search-input { width: 100%; padding: 6px 12px 6px 32px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface); }
   .search-input:focus { outline: none; border-color: var(--accent-week); }
   .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
@@ -191,28 +168,7 @@ $username = $_SESSION['username'] ?? 'User';
   .empty { text-align: center; padding: 24px 16px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
 
   /* Cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; margin-top: 22px; cursor: move; transition: all 0.15s; position: relative; overflow: visible; }
-  .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; margin-top: 22px !important; overflow: visible !important; }
-  .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
-  /* 資料夾標籤：左上角小標籤，只有文字寬度 */
-  .card.is-project .card-top::before {
-    content: "專案筆記";
-    display: inline-block;
-    width: auto;
-    background: #C8922A;
-    color: #FFF8EE;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 10px;
-    border-radius: 6px 6px 0 0;
-    position: absolute;
-    top: -20px;
-    left: 12px;
-  }
-  .card.is-project .card-top .card-title { color: #4A3520 !important; }
-  .card.is-project .card-top .drag-handle { color: rgba(74,53,32,0.4) !important; }
-  .card.is-project .card-top .card-actions-menu button { color: #4A3520 !important; border-color: rgba(74,53,32,0.3) !important; background: rgba(74,53,32,0.08) !important; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card.dragging { opacity: 0.5; cursor: grabbing; }
   .card.open { padding-bottom: 6px; }
@@ -220,27 +176,7 @@ $username = $_SESSION['username'] ?? 'User';
   .card.open .card-preview { display: none; }
   .card.open .chevron { transform: rotate(180deg); }
 
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
-    background: #C8D4DC; margin: -12px -12px 10px -12px; padding: 8px 12px;
-    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-    position: relative;
-  }
-  .card-top::before { 
-    content: "筆記";
-    display: inline-block;
-    background: #4A7A9B;
-    color: #FFF;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 10px;
-    border-radius: 6px 6px 0 0;
-    position: absolute;
-    top: -20px;
-    left: 12px;
-  }
-  .card-top .card-title { color: #1A2C3A !important; }
-  .card-top .drag-handle { color: rgba(26,44,58,0.4) !important; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
   .drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; margin-right: 4px; }
   .card-title { font-size: 14px; font-weight: 500; line-height: 1.45; flex: 1; }
   .card-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
@@ -266,8 +202,8 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-container { margin-bottom: 12px; }
   .checklist-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px; background: var(--surface2); border-radius: 6px; margin-bottom: 6px; }
   .checklist-item input[type="checkbox"] { margin-top: 3px; cursor: pointer; width: 16px; height: 16px; }
-  .checklist-item textarea { flex: 1; border: none; background: transparent; font-size: 13px; padding: 0; font-family: inherit; resize: none; overflow: hidden; min-height: 20px; line-height: 1.5; word-break: break-all; }
-  .checklist-item textarea:focus { outline: none; }
+  .checklist-item input[type="text"] { flex: 1; border: none; background: transparent; font-size: 13px; padding: 0; font-family: inherit; }
+  .checklist-item input[type="text"]:focus { outline: none; }
   .checklist-item-delete { padding: 2px 8px; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 4px; font-size: 11px; cursor: pointer; }
   .checklist-item-delete:hover { background: #FEF2F2; }
   .add-checklist-item-btn { width: 100%; padding: 8px; border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; }
@@ -359,8 +295,8 @@ $username = $_SESSION['username'] ?? 'User';
   
   .color-section { margin-bottom: 16px; }
   .color-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; display: block; }
-  .swatches { display: flex; gap: 12px; flex-wrap: wrap; }
-  .swatch { width: 48px; height: 48px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .swatch { width: 36px; height: 36px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
   .swatch.selected { border-color: var(--accent-week); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-week); }
 
   .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; }
@@ -369,18 +305,6 @@ $username = $_SESSION['username'] ?? 'User';
   .modal-btn.secondary { background: var(--surface2); color: var(--text-secondary); }
 
   /* 專案管理 Modal */
-
-  /* 專案顏色色票 */
-  .proj-color-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-  .proj-color-swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; transition: transform 0.1s; }
-  .proj-color-swatch:hover { transform: scale(1.2); }
-  .proj-color-swatch.selected { border-color: #333; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333; }
-  .project-edit-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; margin-top: 6px; }
-  .project-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
-  .project-edit-input { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: inherit; }
-  .project-edit-save { padding: 6px 12px; background: var(--accent-week); color: white; border: none; border-radius: var(--radius); font-size: 12px; cursor: pointer; font-weight: 500; }
-  .project-edit-cancel { padding: 6px 12px; background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; cursor: pointer; }
-  .project-edit-btn { padding: 5px 10px; background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; cursor: pointer; }
   .project-list { margin-top: 16px; }
   .project-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 8px; }
   .project-info { display: flex; align-items: center; gap: 12px; flex: 1; }
@@ -406,8 +330,8 @@ $username = $_SESSION['username'] ?? 'User';
   .export-option-desc { font-size: 11px; color: var(--text-muted); }
 
   /* 四象限優先級 */
-  .priority-grid { display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 4px; }
-  .priority-btn { flex: 1; padding: 7px 4px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 8px; font-size: 11px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); white-space: nowrap; }
+  .priority-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .priority-btn { padding: 10px 8px; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.12s; text-align: center; color: var(--text-secondary); }
   .priority-btn:hover { background: var(--surface2); }
   .priority-btn.active[data-value="urgent_important"] { background: #FFF0F0; border-color: #FF4444; color: #CC0000; }
   .priority-btn.active[data-value="important_not_urgent"] { background: #FFF8EC; border-color: #FF9800; color: #CC7700; }
@@ -418,8 +342,8 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-tab-bar { display: none; }
 
   /* 手機版下拉選單 */
-  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 10px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
-  .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; }
+  .mobile-menu-btn { display: none; }
+  .mobile-dropdown { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300; }
   .mobile-dropdown.open { display: block; }
   .mobile-dropdown-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
   .mobile-dropdown-panel { position: absolute; top: 0; right: 0; width: 260px; height: 100%; background: var(--surface); display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.15); }
@@ -446,9 +370,9 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-note-input:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .cornell-note-input::placeholder { color: var(--text-muted); font-style: italic; }
   .cornell-add-item { display: flex; gap: 6px; margin-top: 8px; align-items: center; width: 100%; }
-  .cornell-add-input { flex: 1; min-width: 0; border: 1px dashed #E8763E; border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; width: 100%; }
-  .cornell-add-input:focus { border-color: var(--accent-lib); border-style: solid; }
-  .cornell-add-btn { padding: 8px 12px; border: none; background: #E8763E; color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .cornell-add-input { flex: 1; min-width: 0; border: 1px dashed var(--border-strong); border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; width: 100%; }
+  .cornell-add-input:focus { border-color: var(--accent-focus); border-style: solid; }
+  .cornell-add-btn { padding: 8px 12px; border: none; background: var(--accent-focus); color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .card-checklist-item .del-item { opacity: 0; background: none; border: none; color: #E24B4A; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; }
   .card-checklist-item:hover .del-item { opacity: 1; }
   /* 康乃爾裡的 checkbox */
@@ -460,8 +384,11 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-text-edit:focus { background: var(--surface); border-radius: 4px; padding: 2px 4px; border: 1px solid var(--accent-lib); white-space: normal; overflow: visible; width: 100%; box-sizing: border-box; }
   .checklist-text-edit:focus ~ .subtask-menu-btn { display: none; }
   /* 編輯待辦時左欄展開到 70% */
+  .cornell-top:has(.checklist-text-edit:focus) .cornell-a { width: 70%; }
+  .cornell-top:has(.checklist-text-edit:focus) .cornell-b { flex: none; width: 30%; overflow: hidden; }
   /* 編輯筆記時右欄展開到 80% */
-
+  .cornell-top:has(.cornell-note-input:focus) .cornell-b { flex: none; width: 80%; }
+  .cornell-top:has(.cornell-note-input:focus) .cornell-a { width: 20%; overflow: hidden; }
   .cornell-a { transition: width 0.2s; }
   .cornell-b { transition: width 0.2s; flex: 1; }
   .card-checklist-item.checked .checklist-text-edit { text-decoration: line-through; color: var(--text-muted); }
@@ -470,24 +397,6 @@ $username = $_SESSION['username'] ?? 'User';
   .saving-indicator.show { display: block; }
   .subtask-menu-btn { background: none; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; padding: 2px 7px; color: var(--text-muted); flex-shrink: 0; }
   .subtask-menu-btn:hover { background: var(--surface2); color: var(--text); }
-  .inline-item-btn { background: none; border: none; cursor: pointer; line-height: 1; flex-shrink: 0; }
-  /* 今日專注：實心橘底白字，更清楚 */
-  .inline-item-btn.focus-btn {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    background: var(--accent-focus);
-    border: none;
-    color: #FFF;
-    border-radius: 6px;
-    white-space: nowrap;
-    margin-right: 8px;
-  }
-  .inline-item-btn.focus-btn:hover,
-  .inline-item-btn.focus-btn:active { opacity: 0.85; }
-  .inline-item-btn.del-btn { font-size: 16px; color: #E24B4A; opacity: 0.7; padding: 0 4px; margin-left: 4px; }
-  .inline-item-btn.del-btn:hover,
-  .inline-item-btn.del-btn:active { opacity: 1; }
   .subtask-dropdown { display: none; position: fixed; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px; z-index: 500; overflow: hidden; }
   .subtask-dropdown.open { display: block; }
   .subtask-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); background: none; border-left: none; border-right: none; border-top: none; font-family: inherit; width: 100%; text-align: left; }
@@ -497,22 +406,9 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 康乃爾筆記格式 */
   .cornell-layout { display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
-  /* 預設上下排列（手機桌機一致） */
-  .cornell-top { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
-  .cornell-a { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
-  .cornell-b { flex: 1; padding: 10px 10px 10px 14px; font-size: 12px; line-height: 1.8; overflow-wrap: break-word; cursor: text; position: relative;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent calc(1.8em - 1px),
-      rgba(0,0,0,0.15) calc(1.8em - 1px),
-      rgba(0,0,0,0.15) 1.8em
-    );
-    background-size: 100% 1.8em;
-  }
-  /* 編輯模式才左右康乃爾並排 */
-  .cornell-layout.edit-mode .cornell-top { flex-direction: row; }
-  .cornell-layout.edit-mode .cornell-a { width: 45%; border-right: 1px solid var(--border); border-bottom: none; }
+  .cornell-top { display: flex; border-bottom: 1px solid var(--border); }
+  .cornell-a { width: 45%; border-right: 1px solid var(--border); padding: 8px; background: var(--surface2); overflow: hidden; }
+  .cornell-b { flex: 1; padding: 10px; font-size: 12px; line-height: 1.6; overflow-wrap: break-word; cursor: text; position: relative; }
   .cornell-b * { max-width: 100%; }
   .cornell-b p { margin-bottom: 6px; }
   .cornell-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
@@ -521,7 +417,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 卡片動作選單 */
   .card-actions-menu { position: relative; display: inline-block; margin-left: auto; flex-shrink: 0; }
-  .card-actions-toggle { background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 5px 14px; font-size: 16px; color: var(--text); cursor: pointer; line-height: 1; margin-left: 8px; font-weight: 700; }
+  .card-actions-toggle { background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 5px 14px; font-size: 16px; color: var(--text-secondary); cursor: pointer; line-height: 1; margin-left: 8px; }
   .card-actions-toggle:hover { background: var(--surface2); color: var(--text); }
   .card-actions-dropdown { display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 140px; z-index: 50; overflow: hidden; }
   .card-actions-dropdown.open { display: block; }
@@ -573,7 +469,7 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions .notification-btn { display: none !important; }
 
     /* 漢堡按鈕顯示 */
-
+    .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; }
 
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
@@ -589,7 +485,7 @@ $username = $_SESSION['username'] ?? 'User';
       display: grid !important;
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       height: 64px;
       background: var(--surface);
       border-top: 1px solid var(--border);
@@ -606,14 +502,7 @@ $username = $_SESSION['username'] ?? 'User';
     .mobile-tab.active { color: var(--accent-focus); background: var(--accent-focus-bg); }
 
     .card { padding: 14px; border-radius: 0 !important; margin-bottom: 0 !important; border-left: none !important; border-right: none !important; border-top: none !important; border-bottom: 1px solid var(--border) !important; }
-    .act-btn { padding: 7px 10px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
-    .card-actions { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .card-actions::-webkit-scrollbar { display: none; }
-    .cornell-top { flex-direction: column; }
-    .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
-    .cornell-b { width: 100%; }
-    #mobile-logout-btn { display: block !important; }
-    #float-toolbar { display: flex !important; }
+    .act-btn { padding: 8px 12px; font-size: 12px; } 
   }
 </style>
 </head>
@@ -625,9 +514,7 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="header-center">
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片..." readonly>
-      <button id="search-close-btn" onclick="closeSearchDropdown()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:#999;padding:4px;">✕</button>
-      <div class="search-dropdown" id="search-dropdown"></div>
+      <input type="text" class="search-input" id="search-input" placeholder="搜尋卡片...">
     </div>
     <div class="filter-tags" id="filter-tags"></div>
     <div class="privacy-filters">
@@ -647,7 +534,6 @@ $username = $_SESSION['username'] ?? 'User';
     </button>
     <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
-    <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?><a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a><?php endif; ?>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
@@ -671,6 +557,8 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
     <button class="help-toggle" id="help-btn" onclick="toggleHelp()">💡 說明</button>
     <button class="notification-btn" onclick="logout()" style="background:#FFF3F2;color:#991B1B;border-color:#FCA5A5;">登出</button>
+    <!-- 手機版漢堡選單按鈕 -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
   </div>
 </header>
 
@@ -774,113 +662,20 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
-  <a href="users.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;" onclick="window.location.href='users.php';return false;">
-    <span style="font-size:22px;line-height:1;">⚙️</span>
-    <span style="font-size:11px;font-weight:500;">管理</span>
-  </a>
-  <?php endif; ?>
-  <a href="index.php?action=logout" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;" onclick="window.location.href='index.php?action=logout';return false;">
-    <span style="font-size:22px;line-height:1;">🚪</span>
-    <span style="font-size:11px;font-weight:500;">登出</span>
-  </a>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
-    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="modal-header">
       <div class="modal-title" id="modal-title">新增卡片</div>
-      <button class="modal-btn primary" onclick="saveCard()" style="padding:7px 20px;font-size:13px;">儲存</button>
     </div>
     <div class="modal-body">
       <div class="field">
         <label class="field-label">標題 *</label>
         <input type="text" class="field-input" id="input-title" placeholder="輸入任務標題...">
       </div>
-      <!-- 康乃爾筆記本 -->
-      <div class="field">
-        <label class="field-label">✓ 康乃爾筆記本</label>
-        <div style="display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5;">
-          <!-- 上半：左欄待辦 + 右欄筆記 -->
-          <div style="display:flex; min-height:260px;">
-            <!-- 左欄：待辦清單 -->
-            <div style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto;">
-              <div style="font-size:11px; font-weight:700; color:#E8763E; margin-bottom:8px; letter-spacing:0.5px;">✓ 待辦清單</div>
-              <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:6px; flex:1;"></div>
-              <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
-            </div>
-          <!-- 右欄：詳細筆記＋工具列 -->
-          <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-            <!-- 工具列 -->
-            <div style="display:flex; align-items:center; gap:4px; padding:4px 8px; background:#111110; flex-shrink:0; flex-wrap:wrap;">
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('bold');event.preventDefault()"><b>B</b></button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;padding:0;" onmousedown="modalExecCmd('insertOrderedList');event.preventDefault()">1.</button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:16px;padding:0;" onmousedown="modalExecCmd('insertUnorderedList');event.preventDefault()">•</button>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;" onmousedown="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
-              <div id="modal-color-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-                <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#E24B4A');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#185FA5');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#1D9E75;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1D9E75');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#BA7517;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#BA7517');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetColor('#1A1A18');event.preventDefault()"></button>
-              </div>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <!-- 螢光筆 -->
-              <button class="mini-tb-btn" style="width:28px;height:28px;padding:2px;" onmousedown="toggleModalColorMenu('modal-bg-menu',this);event.preventDefault()">
-                <svg width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
-              </button>
-              <div id="modal-bg-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-                <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#DAEEFF');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFFACC');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#FFE4EC');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:#E8F5E9;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('#E8F5E9');event.preventDefault()"></button>
-                <button style="width:28px;height:28px;border-radius:6px;background:transparent;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="modalSetBgColor('transparent');event.preventDefault()">✕</button>
-              </div>
-              <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);margin:0 2px;"></div>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('undo');event.preventDefault()">↩</button>
-              <button class="mini-tb-btn" style="width:28px;height:28px;font-size:14px;padding:0;" onmousedown="modalExecCmd('redo');event.preventDefault()">↪</button>
-            </div>
-            <!-- 筆記區 -->
-            <div id="input-body-editor" contenteditable="true" style="
-              flex:1;
-              width:100%;
-              min-height:180px;
-              max-height:320px;
-              overflow-y:auto;
-              border:none;
-              padding:10px 10px 10px 14px;
-              font-family:inherit;
-              font-size:14px;
-              color:var(--text);
-              background-color: #FFFDF5;
-              line-height: 1.8em;
-              background-image: repeating-linear-gradient(
-                to bottom,
-                transparent,
-                transparent calc(1.8em - 1px),
-                rgba(0,0,0,0.15) calc(1.8em - 1px),
-                rgba(0,0,0,0.15) 1.8em
-              );
-              background-size: 100% 1.8em;
-              outline:none;
-              word-break:break-word;
-            "></div>
-            <input type="hidden" id="input-body">
-          </div>
-        </div>
-        <!-- 底部摘要欄（康乃爾筆記本底部） -->
-        <div style="border-top:2px solid var(--accent-week); background:#FFFEF0; padding:8px 12px; display:flex; align-items:center; gap:8px;">
-          <span style="font-size:11px; font-weight:700; color:var(--accent-week-text); white-space:nowrap; flex-shrink:0;">💡 摘要</span>
-          <input type="text" class="field-input" id="input-summary" 
-            placeholder="用一句話說明這張卡的重點..." 
-            style="border:none; background:transparent; padding:2px 6px; font-style:italic; font-size:13px; flex:1;">
-        </div>
-      </div>
       <div class="field">
         <label class="field-label">專案類型 <span class="optional">(選填)</span> <a href="javascript:void(0)" onclick="openProjectSettings(); event.stopPropagation();" style="font-size:11px; color:var(--accent-week); text-decoration:underline; margin-left:8px;">⚙️ 管理專案</a></label>
-        <div id="project-btn-group" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;"></div>
-        <input type="hidden" id="input-project">
+        <select class="field-select" id="input-project"></select>
       </div>
       <div class="field">
         <label class="field-label">優先級（四象限） <span class="optional">(選填)</span></label>
@@ -910,8 +705,23 @@ $username = $_SESSION['username'] ?? 'User';
         <input type="url" class="field-input" id="input-source" placeholder="https://...">
       </div>
       <div class="field">
+        <label class="field-label">一句摘要 <span class="optional">(選填)</span></label>
+        <input type="text" class="field-input" id="input-summary" placeholder="用一句話說明這張卡的重點...">
+      </div>
+      <div class="field">
         <label class="field-label">下一步行動 <span class="optional">(選填)</span></label>
         <textarea class="field-textarea" id="input-nextstep" placeholder="明確的行動指令，例如：打電話給王先生確認規格"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">✓ 待辦清單 <span class="optional">(選填)</span></label>
+        <div class="checklist-container" id="checklist-container">
+          <!-- 待办项会动态添加到这里 -->
+        </div>
+        <button type="button" class="add-checklist-item-btn" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+      </div>
+      <div class="field">
+        <label class="field-label">詳細內容</label>
+        <textarea id="input-body" style="width:100%;min-height:120px;border:1px solid var(--border-strong);border-radius:var(--radius);padding:10px;font-family:inherit;font-size:14px;resize:vertical;background:var(--surface2);color:var(--text);" placeholder="輸入詳細內容..."></textarea>
       </div>
       <div class="color-section"><label class="color-label">背景顏色</label><div class="swatches" id="bg-swatches"></div></div>
       <div class="color-section"><label class="color-label">文字顏色</label><div class="swatches" id="text-swatches"></div></div>
@@ -936,13 +746,10 @@ $username = $_SESSION['username'] ?? 'User';
       <div class="modal-title">⚙️ 專案類型管理</div>
     </div>
     <div class="modal-body">
-      <div class="add-project-form" style="flex-direction:column; gap:8px;">
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20" style="flex:1;" oninput="const sw=document.getElementById('new-proj-swatches');sw.style.display=this.value.trim()?'flex':'none';if(this.value.trim()&&!sw.children.length)renderProjSwatches('new-proj-swatches','new-project-color','#1E88E5');">
-          <button class="add-project-btn" onclick="addCustomProject()">+ 新增</button>
-        </div>
-        <div class="proj-color-swatches" id="new-proj-swatches" style="display:none;"></div>
-        <input type="hidden" id="new-project-color" value="#1E88E5">
+      <div class="add-project-form">
+        <input type="text" class="add-project-input" id="new-project-name" placeholder="專案名稱..." maxlength="20">
+        <input type="color" class="color-input" id="new-project-color" value="#E3F2FD">
+        <button class="add-project-btn" onclick="addCustomProject()">+ 新增</button>
       </div>
       <div class="project-list" id="project-list"></div>
     </div>
@@ -953,14 +760,23 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 
 <!-- 手機版下拉選單 -->
-<div id="toast"></div>
-<!-- 手機版懸浮工具列 -->
-<div id="float-toolbar" style="display:none;position:fixed;bottom:70px;right:12px;z-index:99999;display:flex;flex-direction:column;gap:8px;">
-  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
-  <a href="users.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#534AB7;color:white;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">⚙️</a>
-  <?php endif; ?>
-  <a href="index.php?action=logout" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#FEE2E2;color:#991B1B;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">🚪</a>
+<div class="mobile-dropdown" id="mobile-dropdown">
+  <div class="mobile-dropdown-bg" onclick="closeMobileMenu()"></div>
+  <div class="mobile-dropdown-panel">
+    <div class="mobile-dropdown-header">
+      <span class="mobile-dropdown-title">👤 <?php echo htmlspecialchars($username); ?></span>
+      <button class="mobile-dropdown-close" onclick="closeMobileMenu()">✕</button>
+    </div>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleNotifications()">🔔 通知</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); openProjectSettings()">⚙️ 專案設定</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); exportToExcel()">📊 匯出 Excel</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); backupData()">💾 備份資料</button>
+    <button class="mobile-dropdown-item" onclick="closeMobileMenu(); toggleHelp()">💡 使用說明</button>
+    <button class="mobile-dropdown-item danger" onclick="closeMobileMenu(); logout()">🚪 登出</button>
+  </div>
 </div>
+
+<div id="toast"></div>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
 
 <!-- 通知弹窗 -->
@@ -991,7 +807,15 @@ let privacyFilter = 'all'; // 隐私筛选：'all', 'shared', 'private'
 let searchQuery = '';
 
 // 預設專案類型（容錯備份）
-const DEFAULT_PROJECTS = {};  // 預設無專案，由使用者自行新增
+const DEFAULT_PROJECTS = {
+  seo: { label: 'SEO', bg: '#E3F2FD', color: '#1565C0', default: true },
+  product: { label: '商品頁', bg: '#F3E5F5', color: '#6A1B9A', default: true },
+  client: { label: '客戶', bg: '#FFF3E0', color: '#E65100', default: true },
+  family: { label: '家庭', bg: '#FCE4EC', color: '#C2185B', default: true },
+  sop: { label: 'SOP', bg: '#E8F5E9', color: '#2E7D32', default: true },
+  finance: { label: '財務', bg: '#FFF9C4', color: '#F57F17', default: true },
+  other: { label: '其他', bg: '#ECEFF1', color: '#455A64', default: true }
+};
 
 // 專案資料（優先從資料庫載入，失敗則使用預設）
 let ALL_PROJECTS = { ...DEFAULT_PROJECTS };
@@ -1375,154 +1199,27 @@ function handleProjectSettingsClick(e) {
   if (e.target.id === 'project-settings-overlay') closeProjectSettings();
 }
 
-// 固定色票
-const PROJ_COLORS = [
-  { val: '#E53935', label: '紅 · 緊急重要' },
-  { val: '#FB8C00', label: '橙 · 財務金錢' },
-  { val: '#FDD835', label: '黃 · 注意待確認' },
-  { val: '#43A047', label: '綠 · 進行中' },
-  { val: '#1E88E5', label: '藍 · 工作專案' },
-  { val: '#8E24AA', label: '紫 · 個人創意' },
-  { val: '#212121', label: '黑 · 私人機密' },
-  { val: '#78909C', label: '灰 · 一般其他' },
-];
-
-function renderProjSwatches(containerId, inputId, selectedColor) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-  PROJ_COLORS.forEach(item => {
-    const c = item.val;
-    const s = document.createElement('div');
-    s.className = 'proj-color-swatch' + (c === selectedColor ? ' selected' : '');
-    s.style.background = c;
-    s.title = item.label;
-    s.onclick = () => {
-      document.getElementById(inputId).value = c;
-      container.querySelectorAll('.proj-color-swatch').forEach(x => x.classList.remove('selected'));
-      s.classList.add('selected');
-    };
-    container.appendChild(s);
-  });
-}
-
 function renderProjectList() {
   const allProjects = getAllProjects();
   const list = document.getElementById('project-list');
   list.innerHTML = '';
-
-  // 初始化新增表單色票
-  const initColor = document.getElementById('new-project-color')?.value || '#1E88E5';
-  renderProjSwatches('new-proj-swatches', 'new-project-color', initColor);
-
-  if (Object.keys(allProjects).length === 0) {
-    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">尚無專案，請新增</div>';
-    return;
-  }
-
+  
   Object.keys(allProjects).forEach(key => {
     const proj = allProjects[key];
     const item = document.createElement('div');
-    item.id = 'proj-item-' + key;
-    item.style.cssText = 'border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;';
+    item.className = 'project-item';
     item.innerHTML = `
-      <!-- 標題列 -->
-      <div id="proj-header-${key}"
-        style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:${!proj.default ? 'pointer' : 'default'};background:var(--surface);user-select:none;">
-        <div style="width:14px;height:14px;border-radius:50%;background:${proj.color || proj.textColor || '#999'};flex-shrink:0;"></div>
-        <span style="flex:1;font-size:13px;font-weight:500;">${proj.label}</span>
-        ${proj.default ? '<span style="font-size:11px;color:var(--text-muted);">預設</span>' : ''}
-        ${!proj.default ? '<span style="font-size:11px;color:var(--text-muted);">▾</span>' : ''}
-        ${!proj.default ? `<button id="proj-del-${key}" style="padding:3px 8px;font-size:11px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;cursor:pointer;">刪除</button>` : ''}
-      </div>
-      <!-- 編輯區 -->
-      <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);">
-        <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;box-sizing:border-box;">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">選擇顏色（懸停看說明）</div>
-        <div class="proj-color-swatches" id="proj-edit-swatches-${key}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
-        <input type="hidden" id="proj-edit-color-${key}">
-        <div style="display:flex;gap:6px;">
-          <button id="proj-save-${key}" style="padding:6px 16px;background:var(--accent-week);color:white;border:none;border-radius:var(--radius);font-size:12px;cursor:pointer;font-weight:500;">儲存</button>
-          <button id="proj-cancel-${key}" style="padding:6px 12px;background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;">取消</button>
+      <div class="project-info">
+        <div class="project-color-preview" style="background: ${proj.bg}; color: ${proj.color};">●</div>
+        <div>
+          <div class="project-name">${proj.label}</div>
+          ${proj.default ? '<div class="project-default">預設類型</div>' : ''}
         </div>
       </div>
+      ${!proj.default ? `<button class="project-delete" onclick="deleteCustomProject('${key}')">刪除</button>` : ''}
     `;
     list.appendChild(item);
-    // 用 addEventListener 避免 onclick 衝突
-    if (!proj.default) {
-      document.getElementById('proj-header-' + key).addEventListener('click', () => toggleEditProject(key));
-      document.getElementById('proj-del-' + key).addEventListener('click', (e) => { e.stopPropagation(); deleteCustomProject(key); });
-      document.getElementById('proj-save-' + key).addEventListener('click', (e) => { e.stopPropagation(); saveEditProject(key); });
-      document.getElementById('proj-cancel-' + key).addEventListener('click', (e) => { e.stopPropagation(); toggleEditProject(key); });
-    }
   });
-}
-
-function toggleEditProject(key) {
-  const editDiv = document.getElementById('proj-edit-' + key);
-  if (!editDiv) return;
-  const isOpen = editDiv.style.display !== 'none';
-  // 關閉所有其他編輯區
-  document.querySelectorAll('div[id^="proj-edit-"]').forEach(d => d.style.display = 'none');
-  // 新增色票：有編輯展開時隱藏，全部收合時恢復（若輸入框有值才顯示）
-  const newSwatches = document.getElementById('new-proj-swatches');
-  if (!isOpen) {
-    // 展開編輯：隱藏新增色票
-    if (newSwatches) newSwatches.style.display = 'none';
-    editDiv.style.display = 'block';
-    const proj = ALL_PROJECTS[key];
-    const currentColor = proj.color || proj.textColor || '#1E88E5';
-    // 填入名稱（避免 HTML 特殊字元問題）
-    const nameInput = document.getElementById('proj-edit-name-' + key);
-    if (nameInput) nameInput.value = proj.label || '';
-    // 色票容器顯示
-    const swatchContainer = document.getElementById('proj-edit-swatches-' + key);
-    if (swatchContainer) swatchContainer.style.display = 'flex';
-    renderProjSwatches('proj-edit-swatches-' + key, 'proj-edit-color-' + key, currentColor);
-    const colorInput = document.getElementById('proj-edit-color-' + key);
-    if (colorInput) colorInput.value = currentColor;
-  } else {
-    // 收合：若新增欄位有輸入值則恢復色票
-    const nameField = document.getElementById('new-project-name');
-    if (newSwatches && nameField && nameField.value.trim()) {
-      newSwatches.style.display = 'flex';
-    }
-  }
-}
-
-async function saveEditProject(key) {
-  const name  = document.getElementById('proj-edit-name-' + key).value.trim();
-  const color = document.getElementById('proj-edit-color-' + key).value;
-  if (!name) { toast('請輸入名稱'); return; }
-  const bg = color + '22';
-
-  if (isDBMode) {
-    const proj = ALL_PROJECTS[key];
-    try {
-      const res = await fetch('api/projects.php?action=update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: proj.id, label: name, bgColor: bg, textColor: color })
-      });
-      const data = await res.json();
-      if (data.error || data.success === false) { toast(data.error || '更新失敗'); return; }
-      await initProjects();
-    } catch(e) { toast('更新失敗'); return; }
-  } else {
-    const customProjects = loadCustomProjects();
-    if (customProjects[key]) {
-      customProjects[key].label = name;
-      customProjects[key].color = color;
-      customProjects[key].bg = bg;
-      saveCustomProjects(customProjects);
-      ALL_PROJECTS[key] = customProjects[key];
-    }
-  }
-  renderProjectList();
-  renderProjectSelect();
-  injectProjectStyles();
-  render();
-  toast('✅ 專案已更新');
 }
 
 async function addCustomProject() {
@@ -1665,30 +1362,15 @@ async function deleteCustomProject(key) {
 }
 
 function renderProjectSelect() {
-  const group = document.getElementById('project-btn-group');
-  if (!group) return;
+  const select = document.getElementById('input-project');
   const allProjects = getAllProjects();
-  const current = document.getElementById('input-project').value;
-
-  group.innerHTML = '';
-  // 無 按鈕
-  const noneBtn = document.createElement('button');
-  noneBtn.type = 'button';
-  noneBtn.className = 'proj-select-btn' + (current === '' ? ' active' : '');
-  noneBtn.textContent = '無';
-  noneBtn.style.cssText = 'padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:' + (current==='' ? 'var(--surface2)' : 'var(--surface)') + ';font-family:inherit;';
-  noneBtn.onclick = () => { document.getElementById('input-project').value = ''; setTimeout(renderProjectSelect, 10); renderProjectSelect(); };
-  group.appendChild(noneBtn);
-
+  
+  select.innerHTML = '<option value="">無</option>';
   Object.keys(allProjects).forEach(key => {
-    const proj = allProjects[key];
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'proj-select-btn' + (current === key ? ' active' : '');
-    btn.textContent = proj.label;
-    btn.style.cssText = 'padding:5px 12px;border:1.5px solid ' + (proj.color||'var(--border-strong)') + ';border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:' + (current===key ? (proj.color||'#eee') : 'var(--surface)') + ';color:' + (current===key ? '#fff' : 'var(--text)') + ';font-family:inherit;';
-    btn.onclick = () => { document.getElementById('input-project').value = key; renderProjectSelect(); };
-    group.appendChild(btn);
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = allProjects[key].label;
+    select.appendChild(option);
   });
 }
 
@@ -1901,57 +1583,36 @@ function render() {
 
 function renderFilterTags() {
   const container = document.getElementById('filter-tags'); container.innerHTML = '';
-  const projects = new Set();
-  ['lib','week','focus','done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
-
-  const allTag = document.createElement('div');
-  allTag.className = 'filter-tag' + (!currentFilter ? ' active' : '');
-  allTag.textContent = '全部';
-  allTag.onclick = () => { currentFilter = null; render(); };
-  container.appendChild(allTag);
-
+  const projects = new Set(); ['lib', 'week', 'focus', 'done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
+  
+  const allTag = document.createElement('div'); allTag.className = 'filter-tag' + (!currentFilter ? ' active' : ''); allTag.textContent = '全部';
+  allTag.onclick = () => { currentFilter = null; render(); }; container.appendChild(allTag);
+  
   projects.forEach(p => {
-    const proj = ALL_PROJECTS[p];
-    const label = (proj && proj.label) ? proj.label : (PROJECT_LABELS[p] || null);
-    if (!label) return; // 跳過找不到名稱的（舊 key）
-    const color = (proj && (proj.color || proj.textColor)) || '#666';
-    const bg    = (proj && proj.bg) || color + '20';
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag' + (currentFilter === p ? ' active' : '');
-    tag.textContent = label;
-    if (currentFilter === p) {
-      tag.style.background = color;
-      tag.style.color = '#fff';
-      tag.style.borderColor = color;
-    } else {
-      tag.style.background = bg;
-      tag.style.color = color;
-      tag.style.borderColor = color + '60';
-    }
-    tag.onclick = () => { currentFilter = p; render(); };
-    container.appendChild(tag);
+    const tag = document.createElement('div'); tag.className = 'filter-tag' + (currentFilter === p ? ' active' : ''); tag.textContent = PROJECT_LABELS[p] || p;
+    tag.onclick = () => { currentFilter = p; render(); }; container.appendChild(tag);
   });
 }
 
 function buildCard(card, col, cardNo) {
   const div = document.createElement('div');
-  const isProjectCard = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
-  div.className = 'card' + (isProjectCard ? ' is-project' : ''); div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
+  div.className = 'card'; div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
 
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
-  if (card.priority || card.isPrivate) {
+  if (card.project || card.priority || card.createdByUsername || card.isPrivate || (col === 'done' && card.completedAt)) {
     metaHTML = '<div class="card-meta">';
     if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
-    if (card.priority && !(col === 'lib' && cardNo)) {
-      // 非 lib 欄或無序號時才單獨顯示優先級（lib+有序號已在 noTag 合併）
+    if (card.priority) {
       const pLabels = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
       const pColors = { urgent_important:'#FF4444', important_not_urgent:'#FF9800', urgent_not_important:'#2196F3', not_urgent_not_important:'#9E9E9E' };
       const pc = pColors[card.priority] || '#666';
       metaHTML += `<span class="priority-tag" style="background:${pc}20;color:${pc};border:1px solid ${pc}40;">${pLabels[card.priority] || card.priority}</span>`;
     }
-    if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒</span>`;
+    if (card.createdByUsername) metaHTML += `<span class="created-by">by ${card.createdByUsername}</span>`;
+    if (card.isPrivate) metaHTML += `<span class="privacy-tag private">🔒 私人</span>`;
+    if (col === 'done' && card.completedAt) metaHTML += `<span class="completed-time">✓ ${formatDateTime(card.completedAt)}</span>`;
     metaHTML += '</div>';
   }
 
@@ -1982,30 +1643,16 @@ function buildCard(card, col, cardNo) {
     if (col !== 'focus' && myFocusCnt < 1) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'focus');closeCardMenu('${menuId}');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') menuItems += `<button class="card-action-item" onclick="moveAPI(${card.id},'lib');closeCardMenu('${menuId}');event.stopPropagation()">↩ 退回策略庫</button>`;
     menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯卡片</button>`;
-    const sfCheck = getSubtaskFocus();
-    const isSubtask = sfCheck && sfCheck.cardId === card.id;
-    if (col === 'focus' && isSubtask) {
-      menuItems += `<button class="card-action-item done-btn" onclick="completeSubtask(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成子任務（回策略庫）</button>`;
-    } else {
-      menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
-    }
+    menuItems += `<button class="card-action-item done-btn" onclick="moveAPI(${card.id},'done');closeCardMenu('${menuId}');event.stopPropagation()">✓ 完成</button>`;
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 刪除</button>`;
   } else {
     menuItems += `<button class="card-action-item danger" onclick="deleteAPI(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🗑 移除</button>`;
   }
   const actsHTML = `<div class="card-actions-menu"><button class="card-actions-toggle" onclick="toggleCardMenu('${menuId}');event.stopPropagation()">⋯</button><div class="card-actions-dropdown" id="${menuId}">${menuItems}</div></div>`;
 
-  const pLabelsAll = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
-  const pColorsAll = { urgent_important:'#FF4444', important_not_urgent:'#FF9800', urgent_not_important:'#2196F3', not_urgent_not_important:'#9E9E9E' };
-  let noTag = '';
-  if (col === 'lib' && cardNo && card.priority) {
-    // 合併 No.X 和優先級
-    const pc = pColorsAll[card.priority] || '#FF4444';
-    const pl = pLabelsAll[card.priority] || '';
-    noTag = `<span style="font-size:10px;font-weight:700;color:${pc};background:${pc}18;border:1px solid ${pc}50;border-radius:6px;padding:2px 8px;margin-right:4px;flex-shrink:0;white-space:nowrap;">No.${cardNo} ${pl}</span>`;
-  } else if (col === 'lib' && cardNo) {
-    noTag = `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>`;
-  }
+  const noTag = (col === 'lib' && card.priority === 'urgent_important' && cardNo) 
+    ? `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
+    : '';
 
   // 康乃爾格式
   const hasChecklist = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
@@ -2032,10 +1679,13 @@ function buildCard(card, col, cardNo) {
       const cbId = `cb-${cardIdStr}-${idx}`;
       const smId = `sm-${cardIdStr}-${idx}`;
       editableA += `<div class="card-checklist-item${item.checked ? ' checked' : ''}" style="padding:3px 0;position:relative;">`;
-      editableA += `<input type="checkbox" id="${cbId}" data-card="${cardIdStr}" data-idx="${idx}" data-col="${col}" ${item.checked ? 'checked' : ''} class="inline-cb" style="cursor:pointer;width:16px;height:16px;accent-color:var(--accent-lib);">`;
+      editableA += `<input type="checkbox" id="${cbId}" ${item.checked ? 'checked' : ''} onchange="inlineToggleChecklist(${cardIdStr}, ${idx}, '${col}', this); event.stopPropagation();" onclick="event.stopPropagation();">`;
       editableA += `<input type="text" class="checklist-text-edit" value="${escHtml(item.text)}" onclick="event.stopPropagation()" onblur="inlineEditChecklistText(${cardIdStr}, ${idx}, '${col}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault();}">`;
-      editableA += `<button class="inline-item-btn focus-btn" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="今日專注">→ 今日專注</button>`;
-      editableA += `<button class="inline-item-btn del-btn" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');event.stopPropagation()" title="刪除">🗑</button>`;
+      editableA += `<button class="subtask-menu-btn" onclick="toggleSubtaskMenu('${smId}', event); event.stopPropagation();">⋯</button>`;
+      editableA += `<div class="subtask-dropdown" id="${smId}">
+        <button class="subtask-dropdown-item" onclick="promoteSubtaskToFocus(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🎯 今日專注</button>
+        <button class="subtask-dropdown-item danger" onclick="inlineDeleteChecklist(${cardIdStr},${idx},'${col}');closeSubtaskMenu('${smId}');event.stopPropagation()">🗑 刪除</button>
+      </div>`;
       editableA += `</div>`;
     });
   } else {
@@ -2055,9 +1705,7 @@ function buildCard(card, col, cardNo) {
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
           onblur="hideMiniToolbar('mtb-${cardIdStr}');const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
-          onmousedown="event.stopPropagation()"
-          ondragstart="event.preventDefault();event.stopPropagation()"
-          style="cursor:text;min-height:60px;user-select:text;-webkit-user-select:text;"
+          style="cursor:text;min-height:60px;"
         >${noteHTML}</div>
 
       </div>
@@ -2067,7 +1715,7 @@ function buildCard(card, col, cardNo) {
         <!-- 格式按鈕 -->
         <div style="position:relative;">
           <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">¶</button>
-          <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+          <div id="fmt-menu-${cardIdStr}" style="display:none;position:absolute;right:38px;top:0;background:#111110;border-radius:8px;padding:6px;flex-direction:column;gap:6px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.5);">
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"><b>B</b></button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">1.</button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">•</button>
@@ -2078,10 +1726,10 @@ function buildCard(card, col, cardNo) {
         <div style="position:relative;">
           <button id="color-btn-${cardIdStr}" class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;font-weight:900;border-bottom:3px solid #E24B4A;" onmousedown="toggleSubMenu('color-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">A</button>
           <div id="color-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
           </div>
         </div>
         <!-- 螢光筆 -->
@@ -2090,10 +1738,10 @@ function buildCard(card, col, cardNo) {
             <svg id="bg-icon-${cardIdStr}" width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
           </button>
           <div id="bg-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:8px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:8px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:8px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:48px;height:48px;border-radius:8px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
           </div>
         </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
@@ -2105,18 +1753,7 @@ function buildCard(card, col, cardNo) {
   // 康乃爾展開區塊
 
   // 康乃爾展開區塊（可編輯版）
-  // 左右箭頭邏輯
-  const colOrder = ['lib','week','focus','done'];
-  const colIdx = colOrder.indexOf(col);
-  const prevCol = colIdx > 0 ? colOrder[colIdx-1] : null;
-  const nextCol = colIdx < colOrder.length-1 ? colOrder[colIdx+1] : null;
-  const colNames = {lib:'策略',week:'本週',focus:'今日',done:'完成'};
-  const prevBtn = prevCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
-  const nextBtn = nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
-  const editBtn = `<div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-    <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}</div>
-    <button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button>
-  </div>`;
+  const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
   const cornellHTML = `<div class="cornell-layout" data-col="${col}" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
@@ -2133,65 +1770,11 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // div.onclick 已移除，不攔截任何點擊事件
-  // 筆記區選文字時停止拖移
-  div.addEventListener('mousedown', (e) => {
-    const noteEl = e.target.closest('.note-editable, .cornell-b, [contenteditable]');
-    if (noteEl) { div.draggable = false; }
-    else { div.draggable = true; }
-  });
-  div.addEventListener('mouseup', () => { div.draggable = true; });
+  // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
+  div.onclick = (e) => { return; };
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
-
-// Modal 編輯器工具列函數
-function modalExecCmd(cmd, val) {
-  const ed = document.getElementById('input-body-editor');
-  if (!ed) return;
-  ed.focus();
-  document.execCommand(cmd, false, val || null);
-}
-function modalSetColor(color) {
-  const ed = document.getElementById('input-body-editor');
-  if (!ed) return;
-  ed.focus();
-  document.execCommand('foreColor', false, color);
-  document.getElementById('modal-color-menu').style.display = 'none';
-}
-function modalSetBgColor(color) {
-  const ed = document.getElementById('input-body-editor');
-  if (!ed) return;
-  ed.focus();
-  document.execCommand('hiliteColor', false, color === 'transparent' ? 'transparent' : color);
-  document.getElementById('modal-bg-menu').style.display = 'none';
-}
-function toggleModalColorMenu(menuId, btn) {
-  const menu = document.getElementById(menuId);
-  if (!menu) return;
-  const isOpen = menu.style.display === 'flex';
-  // 關閉所有 modal 選單
-  ['modal-color-menu','modal-bg-menu'].forEach(id => {
-    const m = document.getElementById(id);
-    if (m) m.style.display = 'none';
-  });
-  if (!isOpen) {
-    menu.style.display = 'flex';
-    const rect = btn.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      menu.style.left = rect.left + 'px';
-      menu.style.top = (rect.bottom + 4) + 'px';
-    });
-  }
-}
-document.addEventListener('mousedown', (e) => {
-  ['modal-color-menu','modal-bg-menu'].forEach(id => {
-    const menu = document.getElementById(id);
-    if (menu && !menu.contains(e.target) && !e.target.closest('[onmousedown*="toggleModalColorMenu"]')) {
-      menu.style.display = 'none';
-    }
-  });
-});
 
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDateTime(ts) {
@@ -2203,38 +1786,10 @@ function formatDateTime(ts) {
 // 拖曳處理
 // ==========================================
 let draggedCard = null;
-function handleDragStart(e) {
-  // 如果選取了文字，不觸發拖移
-  const sel = window.getSelection();
-  if (sel && sel.toString().length > 0) { e.preventDefault(); return; }
-  // 如果點擊來自 contenteditable、checkbox、input、button 區域，不觸發拖移
-  if (e.target.closest('[contenteditable]') || e.target.closest('.note-editable') || 
-      e.target.closest('.cornell-b') || e.target.closest('.checklist-text-edit') ||
-      e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' ||
-      e.target.tagName === 'A' || e.target.closest('.card-checklist-item') ||
-      e.target.closest('.cornell-a')) {
-    e.preventDefault(); return;
-  }
-  draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col };
-  this.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-}
+function handleDragStart(e) { draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col }; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
 function handleDragEnd(e) { this.classList.remove('dragging'); document.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over')); }
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.cards-area').forEach(a => { a.addEventListener('dragover', handleDragOver); a.addEventListener('drop', handleDrop); a.addEventListener('dragleave', handleDragLeave); });
-});
-
-// 事件委派處理卡片上的 checkbox（避免被 div.onclick 攔截）
-document.addEventListener('change', (e) => {
-  if (e.target.classList.contains('inline-cb') && e.target.dataset.card) {
-    const cardId = parseInt(e.target.dataset.card);
-    const idx = parseInt(e.target.dataset.idx);
-    const col = e.target.dataset.col;
-    if (cardId && !isNaN(cardId)) {
-      inlineToggleChecklist(cardId, idx, col);
-      e.stopPropagation();
-    }
-  }
 });
 function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.closest('.col').classList.add('drag-over'); }
 function handleDragLeave(e) { if (e.target === this) this.closest('.col').classList.remove('drag-over'); }
@@ -2262,7 +1817,7 @@ function openModal(col) {
   if (col === 'focus' && myFocusCount >= 1) { toast('你的今日專注已有 1 張！'); return; }
   if (col === 'week' && state.week.length >= 3) { toast('本週目標已滿 3 張！'); return; }
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
-  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = ''; const bodyEditorClr = document.getElementById('input-body-editor'); if(bodyEditorClr) bodyEditorClr.innerHTML = '';
+  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = '';
   
   // 清空待办清单
   document.getElementById('checklist-container').innerHTML = '';
@@ -2277,7 +1832,7 @@ function openModal(col) {
 function editCard(id, col) {
   const card = state[col].find(c => c.id === id); if (!card) return;
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
-  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; setTimeout(renderProjectSelect, 10); document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
+  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || '';
   
   // 设置隐私选项
   if (card.isPrivate) {
@@ -2303,7 +1858,7 @@ async function saveCard() {
   const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
   const checklist = getChecklistData();
   const priority = document.getElementById('input-priority').value || null;
-  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: document.getElementById('input-body').value.trim(), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist };
   const eid = document.getElementById('input-edit-id').value; if (eid) data.id = eid;
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
@@ -2316,76 +1871,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
 });
 document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
-
-function openSearchDropdown() {
-  const inp = document.getElementById('search-input');
-  inp.removeAttribute('readonly');
-  inp.focus();
-  renderSearchDropdown('');
-  document.getElementById('search-close-btn').style.display = 'block';
-}
-function closeSearchDropdown() {
-  document.getElementById('search-dropdown').classList.remove('show');
-  document.getElementById('search-close-btn').style.display = 'none';
-  const inp = document.getElementById('search-input');
-  inp.value = '';
-  inp.setAttribute('readonly', true);
-  inp.blur();
-  searchQuery = '';
-  render();
-}
-document.getElementById('search-input').addEventListener('click', openSearchDropdown);
-document.getElementById('search-input').addEventListener('input', e => {
-  searchQuery = e.target.value.trim();
-  render();
-  renderSearchDropdown(searchQuery);
-});
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-box')) {
-    closeSearchDropdown();
-  }
-});
-
-function renderSearchDropdown(q) {
-  const dropdown = document.getElementById('search-dropdown');
-  if (!dropdown) return;
-  const colNames = {lib:'策略', week:'本週', focus:'今日', done:'完成'};
-  let results = [];
-  ['lib','week','focus','done'].forEach(col => {
-    state[col].forEach(card => {
-      const t = (card.title||'').toLowerCase();
-      if (!q || t.includes(q.toLowerCase())) {
-        results.push({card, col});
-      }
-    });
-  });
-  if (results.length === 0) { dropdown.classList.remove('show'); return; }
-  dropdown.innerHTML = '';
-  results.forEach(({card, col}) => {
-    const item = document.createElement('div');
-    item.className = 'search-result-item';
-    const projInfo = card.project && ALL_PROJECTS[card.project]
-      ? `<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:${ALL_PROJECTS[card.project].bg||'#eee'};color:${ALL_PROJECTS[card.project].color||'#666'};font-weight:600;flex-shrink:0;">${ALL_PROJECTS[card.project].label}</span>`
-      : '';
-    const isProj = card.checklist && card.checklist.length > 0
-      ? `<span style="font-size:10px;color:#C8922A;font-weight:700;flex-shrink:0;">📁</span>`
-      : '';
-    item.innerHTML = `<span class="search-result-col">${colNames[col]}</span>${isProj}<span class="search-result-title">${escHtml(card.title)}</span>${projInfo}`;
-    item.onclick = () => {
-      closeSearchDropdown();
-      // 手機版自動切換到對應 tab
-      if (window.innerWidth <= 768) {
-        switchMobileTab(col);
-      }
-      setTimeout(() => {
-        const el = document.getElementById('card-' + card.id);
-        if (el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='2px solid var(--accent-week)'; setTimeout(()=>el.style.outline='',1500); }
-      }, 150);
-    };
-    dropdown.appendChild(item);
-  });
-  dropdown.classList.add('show');
-}
+document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
 
 function setPrivacyFilter(filter) {
   privacyFilter = filter;
@@ -2448,17 +1934,16 @@ function addChecklistItem(text = '', checked = false) {
   item.dataset.id = id;
   item.innerHTML = `
     <input type="checkbox" ${checked ? 'checked' : ''}>
-    <textarea placeholder="輸入待辦事項..." rows="1" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(text)}</textarea>
+    <input type="text" placeholder="輸入待辦事項..." value="${escHtml(text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
     <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();">刪除</button>
   `;
   
   container.appendChild(item);
-
-  // 初始化高度
-  const ta = item.querySelector('textarea');
-  if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
-
-  if (!text && ta) ta.focus();
+  
+  // 自动聚焦到新添加的输入框
+  if (!text) {
+    item.querySelector('input[type="text"]').focus();
+  }
 }
 
 // 删除待办项
@@ -2474,8 +1959,8 @@ function getChecklistData() {
   const items = [];
   document.querySelectorAll('#checklist-container .checklist-item').forEach(item => {
     const checkbox = item.querySelector('input[type="checkbox"]');
-    const textInput = item.querySelector('textarea') || item.querySelector('input[type="text"]');
-    const text = textInput ? textInput.value.trim() : '';
+    const textInput = item.querySelector('input[type="text"]');
+    const text = textInput.value.trim();
     
     if (text) { // 只保存有内容的项目
       items.push({
@@ -2818,18 +2303,34 @@ async function inlineSave(cardId, col, updates) {
 }
 
 // 勾選待辦
-async function inlineToggleChecklist(cardId, idx, col) {
+const _checklistSaveLock = new Set(); // 防止同一個 item 快速連點造成 race condition
+async function inlineToggleChecklist(cardId, idx, col, checkboxEl) {
+  const lockKey = `${cardId}-${idx}`;
+  if (_checklistSaveLock.has(lockKey)) {
+    // 正在儲存中，把 checkbox 恢復到鎖定前的狀態
+    if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+    return;
+  }
+  _checklistSaveLock.add(lockKey);
+
+  // 直接讀 checkbox 的當前值（browser 已翻轉），避免 state 讀取 race condition
+  const newChecked = checkboxEl ? checkboxEl.checked : null;
   const found = getCard(cardId);
-  if (!found) return;
+  if (!found) { _checklistSaveLock.delete(lockKey); return; }
   const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
-  if (checklist[idx]) checklist[idx].checked = !checklist[idx].checked;
-  await inlineSave(cardId, col, { checklist });
-  // 更新 label 樣式
+  if (!checklist[idx]) { _checklistSaveLock.delete(lockKey); return; }
+  checklist[idx].checked = newChecked !== null ? newChecked : !checklist[idx].checked;
+
+  // 立即更新 DOM 樣式（不等 API 回應，讓使用者感覺即時）
   const cardEl = document.getElementById('card-' + cardId);
   if (cardEl) {
     const items = cardEl.querySelectorAll('.card-checklist-item');
     if (items[idx]) items[idx].classList.toggle('checked', checklist[idx].checked);
+    if (checkboxEl) checkboxEl.checked = checklist[idx].checked;
   }
+
+  await inlineSave(cardId, col, { checklist });
+  _checklistSaveLock.delete(lockKey);
 }
 
 // 刪除待辦項
@@ -2987,19 +2488,11 @@ function toggleSubMenu(menuId, btn) {
   document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"],[id^="fmt-menu-"]').forEach(m => m.style.display = 'none');
   if (!isOpen) {
     menu.style.display = 'flex';
+    // 定位在按鈕上方
     if (btn) {
       const rect = btn.getBoundingClientRect();
-      requestAnimationFrame(() => {
-        const menuW = menu.offsetWidth || 120;
-        const menuH = menu.offsetHeight || 48;
-        let left = rect.left - menuW - 8;
-        if (left < 8) left = rect.right + 8;
-        let top = rect.top + (rect.height / 2) - (menuH / 2);
-        top = Math.max(8, Math.min(top, window.innerHeight - menuH - 8));
-        menu.style.left = left + 'px';
-        menu.style.top = top + 'px';
-        menu.style.right = 'auto';
-      });
+      const menuH = 80;
+      menu.style.top = Math.max(8, rect.top - menuH - 8) + 'px';
     }
   }
 }
@@ -3205,20 +2698,9 @@ function selectPriority(value) {
 }
 
 // 手機版選單
-function toggleMobileMenu() {
-  // 先關閉搜尋下拉
-  const sd = document.getElementById('search-dropdown');
-  if (sd) sd.classList.remove('show');
-  document.getElementById('mobile-dropdown').classList.toggle('open');
-}
+function toggleMobileMenu() { document.getElementById('mobile-dropdown').classList.toggle('open'); }
 function closeMobileMenu() { document.getElementById('mobile-dropdown').classList.remove('open'); }
 
 </script>
-<div style="position:fixed;bottom:0;left:0;right:0;height:50px;background:white;border-top:2px solid #eee;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;z-index:999999;">
-  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
-  <a href="users.php" style="padding:8px 16px;background:#534AB7;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">⚙️ 管理</a>
-  <?php endif; ?>
-  <a href="index.php?action=logout" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
-</div>
 </body>
 </html>
