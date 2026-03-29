@@ -710,8 +710,9 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
-    <div class="modal-header">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="modal-title" id="modal-title">新增卡片</div>
+      <button class="modal-btn primary" onclick="saveCard()" style="padding:7px 20px;font-size:13px;">儲存</button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -1832,14 +1833,35 @@ function render() {
 
 function renderFilterTags() {
   const container = document.getElementById('filter-tags'); container.innerHTML = '';
-  const projects = new Set(); ['lib', 'week', 'focus', 'done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
-  
-  const allTag = document.createElement('div'); allTag.className = 'filter-tag' + (!currentFilter ? ' active' : ''); allTag.textContent = '全部';
-  allTag.onclick = () => { currentFilter = null; render(); }; container.appendChild(allTag);
-  
+  const projects = new Set();
+  ['lib','week','focus','done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
+
+  const allTag = document.createElement('div');
+  allTag.className = 'filter-tag' + (!currentFilter ? ' active' : '');
+  allTag.textContent = '全部';
+  allTag.onclick = () => { currentFilter = null; render(); };
+  container.appendChild(allTag);
+
   projects.forEach(p => {
-    const tag = document.createElement('div'); tag.className = 'filter-tag' + (currentFilter === p ? ' active' : ''); tag.textContent = PROJECT_LABELS[p] || p;
-    tag.onclick = () => { currentFilter = p; render(); }; container.appendChild(tag);
+    const proj = ALL_PROJECTS[p];
+    const label = (proj && proj.label) ? proj.label : (PROJECT_LABELS[p] || null);
+    if (!label) return; // 跳過找不到名稱的（舊 key）
+    const color = (proj && (proj.color || proj.textColor)) || '#666';
+    const bg    = (proj && proj.bg) || color + '20';
+    const tag = document.createElement('div');
+    tag.className = 'filter-tag' + (currentFilter === p ? ' active' : '');
+    tag.textContent = label;
+    if (currentFilter === p) {
+      tag.style.background = color;
+      tag.style.color = '#fff';
+      tag.style.borderColor = color;
+    } else {
+      tag.style.background = bg;
+      tag.style.color = color;
+      tag.style.borderColor = color + '60';
+    }
+    tag.onclick = () => { currentFilter = p; render(); };
+    container.appendChild(tag);
   });
 }
 
@@ -1957,7 +1979,9 @@ function buildCard(card, col, cardNo) {
           onfocus="showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
           onblur="hideMiniToolbar('mtb-${cardIdStr}');const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
-          style="cursor:text;min-height:60px;"
+          onmousedown="event.stopPropagation()"
+          ondragstart="event.preventDefault();event.stopPropagation()"
+          style="cursor:text;min-height:60px;user-select:text;-webkit-user-select:text;"
         >${noteHTML}</div>
 
       </div>
@@ -2005,7 +2029,18 @@ function buildCard(card, col, cardNo) {
   // 康乃爾展開區塊
 
   // 康乃爾展開區塊（可編輯版）
-  const editBtn = `<div style="padding:6px 10px;text-align:right;border-top:1px solid var(--border);"><button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button></div>`;
+  // 左右箭頭邏輯
+  const colOrder = ['lib','week','focus','done'];
+  const colIdx = colOrder.indexOf(col);
+  const prevCol = colIdx > 0 ? colOrder[colIdx-1] : null;
+  const nextCol = colIdx < colOrder.length-1 ? colOrder[colIdx+1] : null;
+  const colNames = {lib:'策略',week:'本週',focus:'今日',done:'完成'};
+  const prevBtn = prevCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
+  const nextBtn = nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
+  const editBtn = `<div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+    <div style="display:flex;gap:6px;">${prevBtn}${nextBtn}</div>
+    <button style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="editCard(${cardIdStr},'${col}');event.stopPropagation()">✏️ 編輯全卡片</button>
+  </div>`;
   const cornellHTML = `<div class="cornell-layout" data-col="${col}" style="position:relative;"><div class="cornell-top"><div class="cornell-a">${editableA}</div><div class="cornell-b">${editableB}</div></div>${cornellC}${editBtn}</div>`;
 
   // 收合預覽（只顯示摘要或body首行）
