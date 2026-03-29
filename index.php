@@ -432,13 +432,13 @@ $username = $_SESSION['username'] ?? 'User';
   .mobile-dropdown-item:hover { background: var(--surface2); }
   .mobile-dropdown-item.danger { color: #991B1B; }
 
-  /* 迷你富文字工具列（聚焦時顯示在頂部） */
+  /* 迷你富文字工具列 - 直接顯示在 cornell-b 右側，不依賴任何狀態 */
   .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #111110; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
   .mini-toolbar.show { display: flex; }
-  /* 卡片展開時，cornell-b 內的工具列永遠顯示，不依賴 focus */
-  .card.open .cornell-b .mini-toolbar { display: flex; }
-  /* 手動關閉後保持隱藏 */
-  .card.open .cornell-b .mini-toolbar.hidden { display: none; }
+  /* cornell-b 內的工具列永遠顯示 */
+  .cornell-b .mini-toolbar { display: flex !important; }
+  /* 手動關閉後隱藏 */
+  .cornell-b .mini-toolbar.hidden { display: none !important; }
   /* done 欄卡片預設收合，點標題展開 */
   .col-done .card .cornell-layout,
   .col-done .card .card-meta,
