@@ -177,21 +177,23 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* Cards */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.15s; position: relative; }
-  .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; }
-  .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 4px 12px 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; flex-wrap: wrap; }
-  /* 資料夾標籤：左上角小標籤，在 card-top 內 */
+  .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; margin-top: 22px !important; overflow: visible !important; }
+  .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
+  /* 資料夾標籤：左上角小標籤，只有文字寬度 */
   .card.is-project .card-top::before {
     content: "專案";
     display: inline-block;
-    background: #D4A855;
-    color: #5C3D10;
+    width: auto;
+    background: #C8922A;
+    color: #FFF8EE;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    padding: 1px 8px;
-    border-radius: 0 0 6px 6px;
-    margin: -4px 0 4px -12px;
-    align-self: flex-start;
+    padding: 2px 10px;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: -20px;
+    left: 12px;
   }
   .card.is-project .card-top .card-title { color: #4A3520 !important; }
   .card.is-project .card-top .drag-handle { color: rgba(74,53,32,0.4) !important; }
