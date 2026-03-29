@@ -1725,7 +1725,7 @@ function buildCard(card, col, cardNo) {
         <!-- 格式按鈕 -->
         <div style="position:relative;">
           <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">¶</button>
-          <div id="fmt-menu-${cardIdStr}" style="display:none;position:absolute;right:38px;top:0;background:#111110;border-radius:8px;padding:6px;flex-direction:column;gap:6px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+          <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"><b>B</b></button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">1.</button>
             <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">•</button>
