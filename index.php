@@ -1926,7 +1926,8 @@ function buildCard(card, col, cardNo) {
   if (card.priority || card.isPrivate) {
     metaHTML = '<div class="card-meta">';
     if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
-    if (card.priority) {
+    if (card.priority && !(col === 'lib' && cardNo)) {
+      // 非 lib 欄或無序號時才單獨顯示優先級（lib+有序號已在 noTag 合併）
       const pLabels = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
       const pColors = { urgent_important:'#FF4444', important_not_urgent:'#FF9800', urgent_not_important:'#2196F3', not_urgent_not_important:'#9E9E9E' };
       const pc = pColors[card.priority] || '#666';
@@ -1976,9 +1977,17 @@ function buildCard(card, col, cardNo) {
   }
   const actsHTML = `<div class="card-actions-menu"><button class="card-actions-toggle" onclick="toggleCardMenu('${menuId}');event.stopPropagation()">⋯</button><div class="card-actions-dropdown" id="${menuId}">${menuItems}</div></div>`;
 
-  const noTag = (col === 'lib' && card.priority === 'urgent_important' && cardNo) 
-    ? `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>` 
-    : '';
+  const pLabelsAll = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
+  const pColorsAll = { urgent_important:'#FF4444', important_not_urgent:'#FF9800', urgent_not_important:'#2196F3', not_urgent_not_important:'#9E9E9E' };
+  let noTag = '';
+  if (col === 'lib' && cardNo && card.priority) {
+    // 合併 No.X 和優先級
+    const pc = pColorsAll[card.priority] || '#FF4444';
+    const pl = pLabelsAll[card.priority] || '';
+    noTag = `<span style="font-size:10px;font-weight:700;color:${pc};background:${pc}18;border:1px solid ${pc}50;border-radius:6px;padding:2px 8px;margin-right:4px;flex-shrink:0;white-space:nowrap;">No.${cardNo} ${pl}</span>`;
+  } else if (col === 'lib' && cardNo) {
+    noTag = `<span style="font-size:10px;font-weight:700;color:#CC0000;background:#FFF0F0;border:1px solid #FF444440;border-radius:6px;padding:2px 6px;margin-right:4px;flex-shrink:0;">No.${cardNo}</span>`;
+  }
 
   // 康乃爾格式
   const hasChecklist = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
