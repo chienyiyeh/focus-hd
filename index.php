@@ -509,7 +509,7 @@ $username = $_SESSION['username'] ?? 'User';
     .card-actions { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .card-actions::-webkit-scrollbar { display: none; }
 
-    /* 手機版 cornell 改上下排列，避免序列表跑到下面 */
+    /* 手機版 cornell 改上下排列 */
     .cornell-top { flex-direction: column; }
     .cornell-a { width: 100% !important; border-right: none; border-bottom: 1px solid var(--border); }
     .cornell-b { width: 100%; }
@@ -1736,10 +1736,10 @@ function buildCard(card, col, cardNo) {
         <div style="position:relative;">
           <button id="color-btn-${cardIdStr}" class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;font-weight:900;border-bottom:3px solid #E24B4A;" onmousedown="toggleSubMenu('color-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">A</button>
           <div id="color-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:48px;height:48px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
           </div>
         </div>
         <!-- 螢光筆 -->
@@ -1748,10 +1748,10 @@ function buildCard(card, col, cardNo) {
             <svg id="bg-icon-${cardIdStr}" width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
           </button>
           <div id="bg-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:48px;height:48px;border-radius:8px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:8px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:8px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:48px;height:48px;border-radius:8px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
+            <button style="width:28px;height:28px;border-radius:6px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
           </div>
         </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
