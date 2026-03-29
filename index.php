@@ -2086,67 +2086,54 @@ function buildCard(card, col, cardNo) {
   editableA += `<div class="cornell-add-item"><input class="cornell-add-input" id="add-item-${cardIdStr}" placeholder="新增項目..." onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){cbAdd(${cardIdStr},'${col}');event.preventDefault();}"><button class="cornell-add-btn" onclick="cbAdd(${cardIdStr},'${col}');event.stopPropagation()">+</button></div>`;
 
   // B區可編輯：筆記 textarea + 編輯整張卡片按鈕
-  const noteVal = card.body ? card.body.replace(/<[^>]+>/g, '') : '';
-  const noteHTML = card.body || '';
   const editableB = `
     <div style="display:flex;gap:0;align-items:flex-start;height:100%;">
       <!-- 筆記欄 -->
-      <div style="flex:1;min-width:0;position:relative;padding:4px;"
-        onmousedown="if(document.getElementById('note-${cardIdStr}').contentEditable!=='true'){toggleNoteEdit('${cardIdStr}','${col}');}event.stopPropagation();">
+      <div style="flex:1;min-width:0;position:relative;padding:4px;">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
-          onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb)tb.classList.remove('hidden');showMiniToolbar('mtb-${cardIdStr}');event.stopPropagation()"
+          onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb)tb.classList.remove('hidden');event.stopPropagation()"
           onblur="const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           onmousedown="event.stopPropagation()"
           ondragstart="event.preventDefault();event.stopPropagation()"
           style="cursor:text;min-height:60px;user-select:text;-webkit-user-select:text;"
         >${noteHTML}</div>
-
       </div>
       <!-- 工具列 -->
       <div class="mini-toolbar" id="mtb-${cardIdStr}"
-        style="flex-shrink:0;width:38px;border-radius:0 0 0 0;padding:6px 4px;gap:7px;flex-direction:column;align-items:center;border-left:1px solid rgba(255,255,255,0.1);">
-        <!-- 格式按鈕 -->
-        <div style="position:relative;">
-          <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">¶</button>
-          <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;" onmousedown="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"><b>B</b></button>
-            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:13px;padding:0;" onmousedown="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">1.</button>
-            <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()">•</button>
-          </div>
+        style="flex-shrink:0;width:44px;padding:6px 4px;gap:6px;flex-direction:column;align-items:center;border-left:1px solid rgba(255,255,255,0.1);touch-action:manipulation;">
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.stopPropagation()">¶</button>
+        <div id="fmt-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+          <button class="mini-tb-btn" style="width:36px;height:36px;font-size:15px;padding:0;touch-action:manipulation;" onclick="applyFormatBefore('bold');hideSubMenu('fmt-menu-${cardIdStr}');event.stopPropagation()"><b>B</b></button>
+          <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="miniCmd('insertOrderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.stopPropagation()">1.</button>
+          <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="miniCmd('insertUnorderedList');hideSubMenu('fmt-menu-${cardIdStr}');event.stopPropagation()">•</button>
         </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
-        <!-- 文字色 -->
-        <div style="position:relative;">
-          <button id="color-btn-${cardIdStr}" class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;font-weight:900;border-bottom:3px solid #E24B4A;" onmousedown="toggleSubMenu('color-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">A</button>
-          <div id="color-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:28px;height:28px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-          </div>
+        <button id="color-btn-${cardIdStr}" class="mini-tb-btn" style="width:36px;height:36px;font-size:14px;padding:0;font-weight:900;border-bottom:3px solid #E24B4A;touch-action:manipulation;" onclick="toggleSubMenu('color-menu-${cardIdStr}',this);event.stopPropagation()">A</button>
+        <div id="color-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+          <button style="width:32px;height:32px;border-radius:50%;background:#E24B4A;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteColor(this,'#E24B4A');setLastColor('${cardIdStr}','#E24B4A');hideSubMenu('color-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:50%;background:#185FA5;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteColor(this,'#185FA5');setLastColor('${cardIdStr}','#185FA5');hideSubMenu('color-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:50%;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteColor(this,'#1A1A18');setLastColor('${cardIdStr}','#1A1A18');hideSubMenu('color-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:50%;background:#FFFFFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteColor(this,'#FFFFFF');setLastColor('${cardIdStr}','#FFFFFF');hideSubMenu('color-menu-${cardIdStr}');event.stopPropagation()"></button>
         </div>
-        <!-- 螢光筆 -->
-        <div style="position:relative;">
-          <button id="bg-btn-${cardIdStr}" style="width:30px;height:30px;background:transparent;border:none;cursor:pointer;padding:2px;" onmousedown="toggleSubMenu('bg-menu-${cardIdStr}',this);event.preventDefault();event.stopPropagation()">
-            <svg id="bg-icon-${cardIdStr}" width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
-          </button>
-          <div id="bg-menu-${cardIdStr}" style="display:none;position:fixed;right:8px;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
-            <button style="width:28px;height:28px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-            <button style="width:28px;height:28px;border-radius:6px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;" onmousedown="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.preventDefault();event.stopPropagation()"></button>
-          </div>
+        <button id="bg-btn-${cardIdStr}" style="width:36px;height:36px;background:transparent;border:none;cursor:pointer;padding:2px;touch-action:manipulation;" onclick="toggleSubMenu('bg-menu-${cardIdStr}',this);event.stopPropagation()">
+          <svg id="bg-icon-${cardIdStr}" width="22" height="22" viewBox="0 0 18 18"><rect x="2" y="13" width="14" height="3" rx="1" fill="#FFFACC"/><polygon points="4,13 7,4 11,4 14,13" fill="rgba(255,255,255,0.4)"/><rect x="7" y="2" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.5)"/></svg>
+        </button>
+        <div id="bg-menu-${cardIdStr}" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:12px;flex-direction:row;gap:10px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+          <button style="width:32px;height:32px;border-radius:6px;background:#DAEEFF;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteBgColor(this,'#DAEEFF');setLastBgColor('${cardIdStr}','#DAEEFF');hideSubMenu('bg-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:6px;background:#FFFACC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteBgColor(this,'#FFFACC');setLastBgColor('${cardIdStr}','#FFFACC');hideSubMenu('bg-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:6px;background:#FFE4EC;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteBgColor(this,'#FFE4EC');setLastBgColor('${cardIdStr}','#FFE4EC');hideSubMenu('bg-menu-${cardIdStr}');event.stopPropagation()"></button>
+          <button style="width:32px;height:32px;border-radius:6px;background:#1A1A18;border:2px solid rgba(255,255,255,0.5);cursor:pointer;padding:0;touch-action:manipulation;" onclick="setNoteBgColor(this,'#1A1A18');setLastBgColor('${cardIdStr}','#1A1A18');hideSubMenu('bg-menu-${cardIdStr}');event.stopPropagation()"></button>
         </div>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('undo');event.preventDefault();event.stopPropagation()">↩</button>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:16px;padding:0;" onmousedown="miniCmd('redo');event.preventDefault();event.stopPropagation()">↪</button>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="miniCmd('undo');event.stopPropagation()">↩</button>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:16px;padding:0;touch-action:manipulation;" onclick="miniCmd('redo');event.stopPropagation()">↪</button>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:14px;padding:0;" title="儲存筆記"
-          onmousedown="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);setTimeout(()=>{const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}},50);}})();event.preventDefault();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:14px;padding:0;touch-action:manipulation;" title="儲存筆記"
+          onclick="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}}})();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
-        <button class="mini-tb-btn" style="width:30px;height:30px;font-size:15px;padding:0;color:#aaa;" title="關閉工具列"
-          onmousedown="document.getElementById('mtb-${cardIdStr}').classList.add('hidden');event.preventDefault();event.stopPropagation()">✕</button>
+        <button class="mini-tb-btn" style="width:36px;height:36px;font-size:15px;padding:0;color:#aaa;touch-action:manipulation;" title="關閉工具列"
+          onclick="document.getElementById('mtb-${cardIdStr}').classList.add('hidden');event.stopPropagation()">✕</button>
       </div>
     </div>`;
 
