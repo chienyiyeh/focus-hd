@@ -587,6 +587,23 @@ $username = $_SESSION['username'] ?? 'User';
     .header-actions #notification-sound-toggle,
     .header-actions .notification-btn { display: none !important; }
 
+    /* 手機版專案篩選列 */
+    .mobile-filter-bar {
+      display: flex;
+      gap: 6px;
+      padding: 6px 16px 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-filter-bar::-webkit-scrollbar { display: none; }
+    .mobile-filter-bar .filter-tag {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
     /* 漢堡按鈕顯示 */
 
 
@@ -726,6 +743,7 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
         <div class="col-sub">長期儲存 • 無限制</div>
       </div>
+      <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
       <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib')">+ 新增筆記</button></div>
       <div class="cards-area" id="cards-lib"></div>
     </div>
@@ -1916,35 +1934,43 @@ function render() {
 
 function renderFilterTags() {
   const container = document.getElementById('filter-tags'); container.innerHTML = '';
+  const mobileContainer = document.getElementById('mobile-filter-bar');
+  if (mobileContainer) mobileContainer.innerHTML = '';
+
   const projects = new Set();
   ['lib','week','focus','done'].forEach(col => state[col].forEach(c => { if (c.project) projects.add(c.project); }));
 
-  const allTag = document.createElement('div');
-  allTag.className = 'filter-tag' + (!currentFilter ? ' active' : '');
-  allTag.textContent = '全部';
-  allTag.onclick = () => { currentFilter = null; render(); };
-  container.appendChild(allTag);
-
-  projects.forEach(p => {
-    const proj = ALL_PROJECTS[p];
-    const label = (proj && proj.label) ? proj.label : (PROJECT_LABELS[p] || null);
-    if (!label) return; // 跳過找不到名稱的（舊 key）
-    const color = (proj && (proj.color || proj.textColor)) || '#666';
-    const bg    = (proj && proj.bg) || color + '20';
+  // 建立一個 tag 的工廠函數，桌面和手機共用
+  function makeTag(label, isActive, color, bg, onClick) {
     const tag = document.createElement('div');
-    tag.className = 'filter-tag' + (currentFilter === p ? ' active' : '');
+    tag.className = 'filter-tag' + (isActive ? ' active' : '');
     tag.textContent = label;
-    if (currentFilter === p) {
-      tag.style.background = color;
+    if (isActive) {
+      tag.style.background = color || 'var(--accent-lib)';
       tag.style.color = '#fff';
-      tag.style.borderColor = color;
-    } else {
+      tag.style.borderColor = color || 'var(--accent-lib)';
+    } else if (color) {
       tag.style.background = bg;
       tag.style.color = color;
       tag.style.borderColor = color + '60';
     }
-    tag.onclick = () => { currentFilter = p; render(); };
-    container.appendChild(tag);
+    tag.onclick = onClick;
+    return tag;
+  }
+
+  const allOnClick = () => { currentFilter = null; render(); };
+  container.appendChild(makeTag('全部', !currentFilter, null, null, allOnClick));
+  if (mobileContainer) mobileContainer.appendChild(makeTag('全部', !currentFilter, null, null, allOnClick));
+
+  projects.forEach(p => {
+    const proj = ALL_PROJECTS[p];
+    const label = (proj && proj.label) ? proj.label : (PROJECT_LABELS[p] || null);
+    if (!label) return;
+    const color = (proj && (proj.color || proj.textColor)) || '#666';
+    const bg    = (proj && proj.bg) || color + '20';
+    const onClick = () => { currentFilter = p; render(); };
+    container.appendChild(makeTag(label, currentFilter === p, color, bg, onClick));
+    if (mobileContainer) mobileContainer.appendChild(makeTag(label, currentFilter === p, color, bg, onClick));
   });
 }
 
