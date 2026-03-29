@@ -2317,10 +2317,14 @@ function renderSearchDropdown(q) {
       document.getElementById('search-input').value = '';
       searchQuery = '';
       render();
+      // 手機版自動切換到對應 tab
+      if (window.innerWidth <= 768) {
+        switchMobileTab(col);
+      }
       setTimeout(() => {
         const el = document.getElementById('card-' + card.id);
         if (el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='2px solid var(--accent-week)'; setTimeout(()=>el.style.outline='',1500); }
-      }, 100);
+      }, 150);
     };
     dropdown.appendChild(item);
   });
