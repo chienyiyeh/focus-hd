@@ -775,12 +775,12 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-label">完成</div>
   </button>
   <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
-  <a href="users.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;">
+  <a href="users.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;" onclick="window.location.href='users.php';return false;">
     <span style="font-size:22px;line-height:1;">⚙️</span>
     <span style="font-size:11px;font-weight:500;">管理</span>
   </a>
   <?php endif; ?>
-  <a href="index.php?action=logout" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;">
+  <a href="index.php?action=logout" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;" onclick="window.location.href='index.php?action=logout';return false;">
     <span style="font-size:22px;line-height:1;">🚪</span>
     <span style="font-size:11px;font-weight:500;">登出</span>
   </a>
@@ -2133,8 +2133,17 @@ function buildCard(card, col, cardNo) {
 
   div.innerHTML = `<div class="card-top"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
-  // 點卡片不觸發編輯（編輯入口在 ⋯ 選單）
-  div.onclick = (e) => { return; };
+  // 點卡片不觸發編輯（但允許 checkbox、input、button、a 正常運作）
+  div.onclick = (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || 
+        e.target.tagName === 'A' || e.target.tagName === 'LABEL' ||
+        e.target.closest('a') || e.target.closest('button') ||
+        e.target.closest('.card-actions-menu') || e.target.closest('.cornell-a') ||
+        e.target.closest('.cornell-b') || e.target.closest('.mini-toolbar')) {
+      return;
+    }
+    return;
+  };
   // 筆記區選文字時停止拖移
   div.addEventListener('mousedown', (e) => {
     const noteEl = e.target.closest('.note-editable, .cornell-b, [contenteditable]');
