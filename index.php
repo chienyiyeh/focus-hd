@@ -446,9 +446,9 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-note-input:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .cornell-note-input::placeholder { color: var(--text-muted); font-style: italic; }
   .cornell-add-item { display: flex; gap: 6px; margin-top: 8px; align-items: center; width: 100%; }
-  .cornell-add-input { flex: 1; min-width: 0; border: 1px dashed var(--border-strong); border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; width: 100%; }
+  .cornell-add-input { flex: 1; min-width: 0; border: 1px dashed #E8763E; border-radius: 6px; padding: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); outline: none; width: 100%; }
   .cornell-add-input:focus { border-color: var(--accent-lib); border-style: solid; }
-  .cornell-add-btn { padding: 8px 12px; border: none; background: var(--accent-lib); color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .cornell-add-btn { padding: 8px 12px; border: none; background: #E8763E; color: white; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .card-checklist-item .del-item { opacity: 0; background: none; border: none; color: #E24B4A; font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; }
   .card-checklist-item:hover .del-item { opacity: 1; }
   /* 康乃爾裡的 checkbox */
