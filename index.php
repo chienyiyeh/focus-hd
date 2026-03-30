@@ -200,18 +200,17 @@ $username = $_SESSION['username'] ?? 'User';
   .card.is-project .card-top::before {
     content: var(--card-tag-label, "專案筆記");
     display: inline-block;
-    width: auto;
-    background: #C8922A;
-    color: #FFF8EE;
+    background: var(--card-tag-bg, #C8922A);
+    color: var(--card-tag-color, #FFF8EE);
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     padding: 2px 10px;
     border-radius: 6px 6px 0 0;
     position: absolute;
     top: -20px;
     left: 12px;
-    max-width: 160px;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -737,7 +736,7 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-year-progress-bar { height: 4px; background: rgba(255,215,0,0.15); margin: 0 12px 10px; border-radius: 2px; overflow: hidden; }
   .goal-year-progress-fill { height: 100%; background: linear-gradient(90deg,#FFD700,#FFA500); border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-year-progress-fill.complete { background: #22c55e; }
-  .goal-year-children { padding: 0 8px 8px; display: none; }
+  .goal-year-children { padding: 0 4px 8px 12px; display: none; border-left: 2px solid rgba(255,215,0,0.2); margin-left: 10px; margin-top: 2px; }
   .goal-year-card.open .goal-year-children { display: block; }
 
   /* 月度卡 - 中等，紫色邊框，縮排 */
@@ -751,7 +750,7 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-month-progress-bar { height: 3px; background: rgba(99,102,241,0.15); margin: 0 10px 8px; border-radius: 2px; overflow: hidden; }
   .goal-month-progress-fill { height: 100%; background: #6366f1; border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-month-progress-fill.complete { background: #22c55e; }
-  .goal-month-children { padding: 0 6px 6px 10px; display: none; }
+  .goal-month-children { padding: 0 4px 6px 10px; display: none; border-left: 2px solid rgba(99,102,241,0.25); margin-left: 8px; margin-top: 2px; }
   .goal-month-card.open .goal-month-children { display: block; }
 
   /* 週卡 - 最小，橘色細線，更深縮排 */
@@ -2275,7 +2274,7 @@ function buildYearCard(year, allGoalCards) {
   const isComplete = progress.total > 0 && progress.done === progress.total;
 
   const div = document.createElement('div');
-  div.className = 'goal-year-card';
+  div.className = 'goal-year-card open';
   div.id = 'goal-year-' + year.id;
 
   div.innerHTML = `
@@ -2308,7 +2307,7 @@ function buildMonthCard(month, allGoalCards) {
   const isComplete = progress.total > 0 && progress.done === progress.total;
 
   const div = document.createElement('div');
-  div.className = 'goal-month-card';
+  div.className = 'goal-month-card open';
   div.id = 'goal-month-' + month.id;
 
   div.innerHTML = `
@@ -2750,27 +2749,39 @@ function buildCard(card, col, cardNo) {
   div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
 
-  // 動態設定卡片標籤文字（覆蓋 CSS ::before）
+  // 動態設定卡片標籤文字和顏色
   if (isProjectCard) {
     let tagLabel = '筆記';
+    let tagBg = '#C8922A';
+    let tagColor = '#FFF8EE';
+
     if (card.parentId) {
-      // 追溯到最頂層
+      // 追溯到直接父層和最頂層
+      let directParent = null;
       let topCard = null;
       let currentId = card.parentId;
       let safety = 0;
       while (currentId && safety < 5) {
         const found = state.goal.find(c => c.id === currentId);
         if (!found) break;
+        if (!directParent) directParent = found;
         topCard = found;
         currentId = found.parentId;
         safety++;
       }
-      if (topCard) {
-        tagLabel = topCard.title.length > 12 ? topCard.title.slice(0,12)+'…' : topCard.title;
+      if (directParent) {
+        const levelPrefix = { year: '📌年', month: '📅月', week: '📋週' };
+        const levelBg    = { year: '#92750A', month: '#4338ca', week: '#c2410c' };
+        const prefix = levelPrefix[directParent.level] || '';
+        const name = directParent.title.length > 10 ? directParent.title.slice(0,10)+'…' : directParent.title;
+        tagLabel = `${prefix} ${name}`;
+        tagBg = levelBg[directParent.level] || '#C8922A';
+        tagColor = '#fff';
       }
     }
-    // 用 CSS 變數傳遞標籤文字
     div.style.setProperty('--card-tag-label', `"${tagLabel.replace(/"/g, '\\"')}"`);
+    div.style.setProperty('--card-tag-bg', tagBg);
+    div.style.setProperty('--card-tag-color', tagColor);
   }
 
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
