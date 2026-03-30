@@ -2805,6 +2805,7 @@ function openModal(col) {
   
   initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
+  const bb = document.getElementById('bottom-bar'); if (bb) bb.style.display = 'none';
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
@@ -2828,6 +2829,7 @@ function editCard(id, col) {
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
   const backBtn2 = document.getElementById('modal-back-btn'); if (backBtn2) backBtn2.style.display = 'none';
+  const bb2 = document.getElementById('bottom-bar'); if (bb2) bb2.style.display = 'none';
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
@@ -2854,6 +2856,9 @@ const saveCardNoClose = saveCard;
 
 function closeModal() {
   document.getElementById('overlay').classList.remove('open');
+  // 恢復底部管理/登出列
+  const bb = document.getElementById('bottom-bar');
+  if (bb) bb.style.display = 'flex';
   // 重置返回按鈕
   const backBtn = document.getElementById('modal-back-btn');
   if (backBtn) backBtn.style.display = 'none';
@@ -4067,7 +4072,7 @@ function toggleMobileMenu() {
 function closeMobileMenu() { document.getElementById('mobile-dropdown').classList.remove('open'); }
 
 </script>
-<div style="position:fixed;bottom:0;left:0;right:0;height:50px;background:white;border-top:2px solid #eee;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;z-index:999999;">
+<div id="bottom-bar" style="position:fixed;bottom:0;left:0;right:0;height:50px;background:white;border-top:2px solid #eee;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;z-index:90;">
   <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" style="padding:8px 16px;background:#534AB7;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">⚙️ 管理</a>
   <?php endif; ?>
