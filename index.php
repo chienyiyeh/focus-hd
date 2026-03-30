@@ -1143,7 +1143,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 <!-- 戰略目標 Modal -->
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center;">
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border-radius:16px;padding:0;width:90%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.3);overflow:hidden;">
     <!-- Header -->
     <div id="gm-header" style="padding:18px 20px 16px;border-bottom:1px solid var(--border);">
@@ -1999,22 +1999,32 @@ async function saveCardToAPI(cardData) {
     const data = await res.json();
     if (data.success) {
       toast(cardData.id ? '✅ 卡片更新成功' : '✅ 卡片新增成功');
-      // 記住當前分頁與卡片 ID，儲存後不跳走
       const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
       const editingId = cardData.id || null;
+      const newId = !cardData.id ? (data.data?.id || null) : null;
       await loadCards();
       if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
-      // 儲存後捲回原本的卡片位置
-      if (editingId) {
-        setTimeout(() => {
+
+      setTimeout(() => {
+        if (editingId) {
+          // 編輯：捲回原卡片
           const cardEl = document.getElementById('card-' + editingId);
           if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
-      }
+        } else if (newId) {
+          // 新增：捲到新卡片並高亮
+          const newCardEl = document.getElementById('card-' + newId);
+          if (newCardEl) {
+            newCardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newCardEl.style.outline = '2px solid var(--accent-week)';
+            newCardEl.style.outlineOffset = '2px';
+            setTimeout(() => { newCardEl.style.outline = ''; newCardEl.style.outlineOffset = ''; }, 2000);
+          }
+        }
+      }, 150);
+
       // 不自動關閉 modal，顯示「返回外部」按鈕
       const backBtn = document.getElementById('modal-back-btn');
       if (backBtn) backBtn.style.display = 'inline-flex';
-      toast('✅ 已儲存');
     } else toast('❌ ' + (data.error || '儲存失敗'));
   } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
 }
@@ -2283,7 +2293,9 @@ function buildYearCard(year, allGoalCards) {
       <span class="goal-year-chevron">▶</span>
       <span class="goal-year-icon">📌</span>
       <span class="goal-year-title">${escHtml(year.title)}</span>
-      <span style="font-size:10px;color:rgba(255,255,255,0.4);flex-shrink:0;">${pct}%</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);flex-shrink:0;margin-right:4px;">${pct}%</span>
+      <button onclick="editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+      <button onclick="deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
     </div>
     <div class="goal-year-progress-bar">
       <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2292,13 +2304,8 @@ function buildYearCard(year, allGoalCards) {
   `;
 
   const childrenEl = div.querySelector('#year-children-' + year.id);
+  monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards)));
 
-  // 渲染月度卡
-  monthCards.forEach(month => {
-    childrenEl.appendChild(buildMonthCard(month, allGoalCards));
-  });
-
-  // 新增月度目標按鈕
   const addMonthBtn = document.createElement('button');
   addMonthBtn.className = 'goal-inline-add';
   addMonthBtn.textContent = '＋ 新增月度目標';
@@ -2324,6 +2331,8 @@ function buildMonthCard(month, allGoalCards) {
       <span class="goal-month-chevron">▶</span>
       <span class="goal-month-title">${escHtml(month.title)}</span>
       <span class="goal-month-badge">${progress.done}/${progress.total}</span>
+      <button onclick="editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
+      <button onclick="deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
     </div>
     <div class="goal-month-progress-bar">
       <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2678,13 +2687,34 @@ function buildCard(card, col, cardNo) {
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
 
-  // parent-badge：如果有 parentId，顯示所屬週目標名稱
+  // parent-badge：追溯祖先鏈，顯示「年度 > 月度 > 週」路徑
   let parentBadgeHTML = '';
   if (card.parentId) {
-    const parentCard = state.goal.find(c => c.id === card.parentId)
-      || [...state.lib, ...state.week, ...state.focus, ...state.done].find(c => c.id === card.parentId);
-    const parentTitle = parentCard ? parentCard.title : '目標任務';
-    parentBadgeHTML = `<span class="parent-badge" title="${escHtml(parentTitle)}">🎯 ${escHtml(parentTitle.length > 10 ? parentTitle.slice(0,10)+'…' : parentTitle)}</span>`;
+    // 遞迴追溯祖先
+    const ancestors = [];
+    let currentId = card.parentId;
+    let safety = 0;
+    while (currentId && safety < 5) {
+      const found = state.goal.find(c => c.id === currentId);
+      if (!found) break;
+      ancestors.unshift(found);
+      currentId = found.parentId;
+      safety++;
+    }
+    if (ancestors.length > 0) {
+      const levelColors = { year: '#FFD700', month: '#a5b4fc', week: '#f97316' };
+      const levelIcons = { year: '📌', month: '📅', week: '📋' };
+      const topAncestor = ancestors[0];
+      const directParent = ancestors[ancestors.length - 1];
+      const pathText = ancestors.length > 1
+        ? `${ancestors[0].title} › ${directParent.title}`
+        : directParent.title;
+      const badgeColor = levelColors[directParent.level] || '#6366f1';
+      const badgeIcon = levelIcons[directParent.level] || '🎯';
+      parentBadgeHTML = `<span class="parent-badge" style="color:${badgeColor};border-color:${badgeColor}40;background:${badgeColor}15;" title="${escHtml(pathText)}">${badgeIcon} ${escHtml(directParent.title.length > 12 ? directParent.title.slice(0,12)+'…' : directParent.title)}</span>`;
+    } else {
+      parentBadgeHTML = `<span class="parent-badge">🎯 目標任務</span>`;
+    }
   }
 
   if (card.priority || card.isPrivate || card.project || card.parentId) {
