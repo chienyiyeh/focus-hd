@@ -367,7 +367,7 @@ $username = $_SESSION['username'] ?? 'User';
   .swatch { width: 48px; height: 48px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
   .swatch.selected { border-color: var(--accent-week); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-week); }
 
-  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; }
+  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0; position: sticky; bottom: 0; background: var(--surface); z-index: 10; }
   .modal-btn { padding: 12px 24px; border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
   .modal-btn.primary { background: var(--accent-week); color: white; }
   .modal-btn.secondary { background: var(--surface2); color: var(--text-secondary); }
@@ -957,11 +957,6 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="modal">
     <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="modal-title" id="modal-title">新增卡片</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button id="modal-back-btn" onclick="closeModal()" style="display:none;padding:7px 14px;font-size:13px;border:1px solid var(--accent-week);border-radius:var(--radius);background:none;cursor:pointer;color:var(--accent-week);font-weight:600;">← 返回外部</button>
-        <button onclick="printModalContent()" style="padding:7px 14px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);cursor:pointer;color:var(--text);">🖨️ 列印</button>
-        <button class="modal-btn primary" onclick="saveCardNoClose()" style="padding:7px 20px;font-size:13px;">儲存</button>
-      </div>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -1101,9 +1096,13 @@ $username = $_SESSION['username'] ?? 'User';
       <input type="hidden" id="input-bgcolor">
       <input type="hidden" id="input-textcolor">
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn secondary" onclick="closeModal()">取消</button>
-      <button class="modal-btn primary" onclick="saveCard()">儲存</button>
+    <div class="modal-footer" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <button id="modal-back-btn" onclick="closeModal()" style="display:none;padding:8px 16px;font-size:13px;border:1px solid var(--accent-week);border-radius:var(--radius);background:none;cursor:pointer;color:var(--accent-week);font-weight:600;">← 返回外部</button>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button onclick="printModalContent()" style="padding:8px 16px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);cursor:pointer;color:var(--text);">🖨️ 列印</button>
+        <button class="modal-btn secondary" onclick="closeModal()">取消</button>
+        <button class="modal-btn primary" onclick="saveCardNoClose()">儲存</button>
+      </div>
     </div>
   </div>
 </div>
