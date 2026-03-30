@@ -1987,7 +1987,13 @@ function buildCard(card, col, cardNo) {
   let metaHTML = '';
   if (card.priority || card.isPrivate) {
     metaHTML = '<div class="card-meta">';
-    if (card.project) metaHTML += `<span class="project-tag ${card.project}">${PROJECT_LABELS[card.project] || card.project}</span>`;
+    if (card.project) {
+      const projData = ALL_PROJECTS[card.project];
+      const projLabel = (projData && projData.label) ? projData.label : (PROJECT_LABELS[card.project] || card.project);
+      const projBg = (projData && projData.bg) ? projData.bg : '#eee';
+      const projColor = (projData && projData.color) ? projData.color : '#666';
+      metaHTML += `<span class="project-tag ${card.project}" style="background:${projBg};color:${projColor};">${projLabel}</span>`;
+    }
     if (card.priority && !(col === 'lib' && cardNo)) {
       // 非 lib 欄或無序號時才單獨顯示優先級（lib+有序號已在 noTag 合併）
       const pLabels = { urgent_important:'🔥 重要緊急', important_not_urgent:'⭐ 重要不緊急', urgent_not_important:'⚡ 緊急不重要', not_urgent_not_important:'💤 不重要不緊急' };
