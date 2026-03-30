@@ -939,7 +939,7 @@ $username = $_SESSION['username'] ?? 'User';
       <!-- 康乃爾筆記本 -->
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本</label>
-        <div style="display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5;">
+        <div style="width:80%; margin:0 auto; display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
           <!-- 工具列：在左右欄上方，橫跨全寬 -->
           <div style="background:#111110; flex-shrink:0; padding:4px 8px; display:flex; flex-wrap:nowrap; gap:2px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); overflow-x:auto;">
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;touch-action:manipulation;flex-shrink:0;" onclick="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
@@ -2906,7 +2906,7 @@ function printModalContent() {
   const dlg = document.createElement('div');
   dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
   dlg.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:24px;min-width:280px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="background:#fff;border-radius:12px;padding:24px;min-width:300px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
       <div style="font-size:16px;font-weight:700;margin-bottom:16px;">🖨️ 選擇列印內容</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
@@ -2921,12 +2921,23 @@ function printModalContent() {
         ${hasChecklist ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
           <input type="checkbox" id="print-checklist" checked style="width:16px;height:16px;"> 待辦清單
         </label>` : ''}
-        ${hasBody ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
-          <input type="checkbox" id="print-body" checked style="width:16px;height:16px;"> 筆記內容
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;margin-left:24px;color:#666;">
-          <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新頁開始（第2份）
-        </label>` : ''}
+        ${hasBody ? `
+        <div style="border-top:1px solid #eee;padding-top:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+            <input type="checkbox" id="print-body" checked style="width:16px;height:16px;"> 筆記內容
+          </label>
+          <div style="margin-left:24px;margin-top:8px;display:flex;flex-direction:column;gap:7px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-body-header" checked style="width:14px;height:14px;"> 顯示「📝 標題 — 筆記」標頭
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新頁開始
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-h-break" checked style="width:14px;height:14px;"> 每個 H1/H2 標題自動換頁
+            </label>
+          </div>
+        </div>` : ''}
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;">
         <button id="print-cancel" style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
@@ -2939,11 +2950,14 @@ function printModalContent() {
   document.getElementById('print-cancel').onclick = () => document.body.removeChild(dlg);
 
   document.getElementById('print-confirm').onclick = () => {
-    const printTitle   = document.getElementById('print-title')?.checked;
-    const printSummary = document.getElementById('print-summary')?.checked;
-    const printNext    = document.getElementById('print-nextstep')?.checked;
-    const printCl      = document.getElementById('print-checklist')?.checked;
-    const printBody    = document.getElementById('print-body')?.checked;
+    const printTitle      = document.getElementById('print-title')?.checked;
+    const printSummary    = document.getElementById('print-summary')?.checked;
+    const printNext       = document.getElementById('print-nextstep')?.checked;
+    const printCl         = document.getElementById('print-checklist')?.checked;
+    const printBody       = document.getElementById('print-body')?.checked;
+    const printNewPage    = document.getElementById('print-body-newpage')?.checked;
+    const printBodyHeader = document.getElementById('print-body-header')?.checked;
+    const printHBreak     = document.getElementById('print-h-break')?.checked;
 
     let checklistHTML = '';
     if (printCl && hasChecklist) {
@@ -2960,7 +2974,15 @@ function printModalContent() {
       checklistHTML += '</ul></div>';
     }
 
-    const printNewPage = document.getElementById('print-body-newpage')?.checked;
+    // H1/H2 自動換頁：在 body HTML 裡的 h1/h2 前插入 page-break（第一個不換）
+    let processedBody = body;
+    if (printHBreak && hasBody) {
+      let isFirst = true;
+      processedBody = body.replace(/<(h1|h2)(\s[^>]*)?>/gi, (match, tag, attrs) => {
+        if (isFirst) { isFirst = false; return match; }
+        return `<div class="page-break"></div><${tag}${attrs || ''}>`;
+      });
+    }
 
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`<!DOCTYPE html><html><head>
@@ -2968,14 +2990,18 @@ function printModalContent() {
       <title>${title}</title>
       <style>
         body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1A2C3A; line-height: 1.8; }
-        h1 { font-size: 22px; margin-bottom: 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
-        h2 { font-size: 16px; font-weight: 700; color: #534AB7; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px; margin-bottom: 12px; }
+        h1 { font-size: 20px; margin: 0 0 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
+        h2 { font-size: 15px; font-weight: 700; color: #534AB7; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; margin: 12px 0 8px; }
+        h3 { font-size: 13px; font-weight: 700; margin: 10px 0 6px; }
         .section { margin-bottom: 14px; }
         .label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         .summary { background: #FFFEF0; border-left: 4px solid #E8763E; padding: 8px 12px; border-radius: 4px; font-style: italic; }
         .nextstep { background: #F0FFF4; border-left: 4px solid #22c55e; padding: 8px 12px; border-radius: 4px; font-weight: 600; }
-        .body-content { padding: 12px 0; }
-        .page-break { page-break-before: always; break-before: always; padding-top: 20px; }
+        .note-header { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
+        .body-content { padding: 4px 0; }
+        .page-break { page-break-before: always; break-before: always; padding-top: 16px; }
+        ul, ol { margin-left: 20px; margin-bottom: 8px; }
+        li { margin-bottom: 4px; }
         @media print { body { margin: 10px; } }
       </style>
     </head><body>
@@ -2983,7 +3009,11 @@ function printModalContent() {
       ${printSummary && summary ? `<div class="section"><div class="summary">💡 ${summary}</div></div>` : ''}
       ${printNext && nextStep ? `<div class="section"><div class="label">下一步</div><div class="nextstep">→ ${nextStep}</div></div>` : ''}
       ${checklistHTML}
-      ${printBody && hasBody ? `<div class="${printNewPage ? 'page-break' : 'section'}"><h2>📝 ${title} — 筆記</h2><div class="body-content">${body}</div></div>` : ''}
+      ${printBody && hasBody ? `
+        <div class="${printNewPage ? 'page-break' : 'section'}">
+          ${printBodyHeader ? `<div class="note-header">📝 ${title} — 筆記</div>` : ''}
+          <div class="body-content">${processedBody}</div>
+        </div>` : ''}
       <script>window.onload = function(){ window.print(); }<\/script>
     </body></html>`);
     printWindow.document.close();
