@@ -32,6 +32,9 @@ function ensureColumns($db) {
     if (!in_array('is_private', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 0");
     if (!in_array('created_by', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN created_by INT DEFAULT NULL");
     if (!in_array('postponed_count', $cols))$db->exec("ALTER TABLE cards ADD COLUMN postponed_count INT DEFAULT 0");
+    // 戰略樹新欄位
+    if (!in_array('level', $cols))          $db->exec("ALTER TABLE cards ADD COLUMN level VARCHAR(20) DEFAULT 'general' COMMENT '層級: year/month/week/project/general'");
+    if (!in_array('parent_id', $cols))      $db->exec("ALTER TABLE cards ADD COLUMN parent_id INT DEFAULT NULL COMMENT '父卡片ID'");
 }
 
 // ============================================
@@ -46,7 +49,7 @@ function handleList($userId) {
             SELECT c.id, c.col, c.title, c.project, c.priority, c.source_link,
                    c.summary, c.next_step, c.body, c.checklist, c.bgcolor,
                    c.textcolor, c.is_private, c.created_by, c.completed_at,
-                   c.created_at, c.updated_at,
+                   c.created_at, c.updated_at, c.level, c.parent_id,
                    u.username as created_by_username
             FROM cards c
             LEFT JOIN users u ON c.created_by = u.id
@@ -56,7 +59,7 @@ function handleList($userId) {
         $stmt->execute([$userId]);
         $cards = $stmt->fetchAll();
 
-        $result = ['lib' => [], 'week' => [], 'focus' => [], 'done' => []];
+        $result = ['lib' => [], 'week' => [], 'focus' => [], 'done' => [], 'goal' => []];
         foreach ($cards as $card) {
             $col = $card['col'];
             if (!isset($result[$col])) continue;
@@ -78,6 +81,8 @@ function handleList($userId) {
                 'completedAt'       => $card['completed_at'],
                 'createdAt'         => $card['created_at'],
                 'updatedAt'         => $card['updated_at'],
+                'level'             => $card['level'] ?? 'general',
+                'parentId'          => $card['parent_id'] ? (int)$card['parent_id'] : null,
             ];
         }
         jsonResponse($result);
@@ -122,52 +127,55 @@ function handleSave($userId, $isAdmin) {
     $isPrivate  = isset($input['isPrivate']) ? (int)$input['isPrivate'] : 0;
     $checklist  = !empty($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
     $completedAt = $input['completedAt'] ?? null;
+    $level      = cleanInput($input['level'] ?? 'general');
+    $parentId   = isset($input['parentId']) ? (int)$input['parentId'] : null;
 
     if (empty($title)) errorResponse('標題不能為空');
-    if (!in_array($col, ['lib', 'week', 'focus', 'done'])) errorResponse('無效的欄位');
+    $validCols = ['lib', 'week', 'focus', 'done', 'goal'];
+    if (!in_array($col, $validCols)) errorResponse('無效的欄位');
+    $validLevels = ['year', 'month', 'week', 'project', 'general'];
+    if (!in_array($level, $validLevels)) $level = 'general';
 
     try {
         $db = getDB();
         ensureColumns($db);
 
         if ($id) {
-            // 管理員：可編輯任何卡片
-            // 一般用戶：可編輯自己的卡片 或 共用卡片(is_private=0)
             if ($isAdmin) {
                 $stmt = $db->prepare("
                     UPDATE cards SET
                         col=?, title=?, project=?, priority=?, source_link=?,
                         summary=?, next_step=?, body=?, checklist=?,
-                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?,
+                        level=?, parent_id=?
                     WHERE id=?
                 ");
                 $stmt->execute([
                     $col, $title, $project, $priority, $sourceLink,
                     $summary, $nextStep, $body, $checklist,
                     $bgcolor, $textcolor, $isPrivate, $completedAt,
-                    $id
+                    $level, $parentId, $id
                 ]);
             } else {
                 $stmt = $db->prepare("
                     UPDATE cards SET
                         col=?, title=?, project=?, priority=?, source_link=?,
                         summary=?, next_step=?, body=?, checklist=?,
-                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?,
+                        level=?, parent_id=?
                     WHERE id=? AND (user_id=? OR is_private=0)
                 ");
                 $stmt->execute([
                     $col, $title, $project, $priority, $sourceLink,
                     $summary, $nextStep, $body, $checklist,
                     $bgcolor, $textcolor, $isPrivate, $completedAt,
-                    $id, $userId
+                    $level, $parentId, $id, $userId
                 ]);
             }
 
             if ($stmt->rowCount() > 0) {
                 successResponse(['id' => $id], '卡片更新成功');
             } else {
-                // rowCount=0 可能是資料完全相同（未實際更新），不代表卡片不存在
-                // 再查一次確認 ID 是否存在
                 $check = $db->prepare("SELECT id FROM cards WHERE id=?");
                 $check->execute([$id]);
                 if ($check->fetch()) {
@@ -181,13 +189,15 @@ function handleSave($userId, $isAdmin) {
                 INSERT INTO cards
                     (user_id, col, title, project, priority, source_link,
                      summary, next_step, body, checklist,
-                     bgcolor, textcolor, is_private, created_by, completed_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                     bgcolor, textcolor, is_private, created_by, completed_at,
+                     level, parent_id)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ");
             $stmt->execute([
                 $userId, $col, $title, $project, $priority, $sourceLink,
                 $summary, $nextStep, $body, $checklist,
-                $bgcolor, $textcolor, $isPrivate, $userId, $completedAt
+                $bgcolor, $textcolor, $isPrivate, $userId, $completedAt,
+                $level, $parentId
             ]);
             successResponse(['id' => $db->lastInsertId()], '卡片新增成功');
         }
