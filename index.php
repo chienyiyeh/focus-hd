@@ -1143,29 +1143,31 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 <!-- 戰略目標 Modal -->
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
-  <div style="background:var(--surface);border-radius:16px;padding:0;width:90%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.3);overflow:hidden;">
-    <!-- Header -->
-    <div id="gm-header" style="padding:18px 20px 16px;border-bottom:1px solid var(--border);">
-      <div id="gm-title" style="font-size:16px;font-weight:700;color:var(--text);"></div>
-      <div id="gm-parent-info" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none;"></div>
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
+  <div style="background:var(--surface);border-radius:16px;width:90%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden;position:relative;">
+    <div id="gm-header" style="padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#534AB7,#7C3AED);">
+      <div id="gm-title" style="font-size:16px;font-weight:700;color:#fff;"></div>
+      <div id="gm-parent-info" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;display:none;"></div>
     </div>
-    <!-- Body -->
-    <div style="padding:20px;">
+    <div style="padding:20px 20px 8px;">
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">標題 *</label>
-        <input id="gm-title-input" type="text" placeholder="輸入目標標題..." style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('gm-confirm').click()">
+        <input id="gm-title-input" type="text" placeholder="輸入目標標題..."
+          style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('gm-confirm').click();}">
       </div>
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">摘要 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
-        <input id="gm-summary-input" type="text" placeholder="一句話說明這個目標..." style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);box-sizing:border-box;">
+        <input id="gm-summary-input" type="text" placeholder="一句話說明這個目標..."
+          style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;">
       </div>
-      <!-- 年份/月份選擇（年度目標和月目標才顯示） -->
-      <div id="gm-period-row" style="display:none;margin-bottom:14px;gap:10px;display:none;">
-        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">期間 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
+      <div id="gm-period-row" style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">年份 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
         <div style="display:flex;gap:8px;">
-          <input id="gm-year-input" type="number" placeholder="年份 2026" min="2020" max="2035" style="flex:1;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);">
-          <select id="gm-month-input" style="flex:1;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);display:none;">
+          <input id="gm-year-input" type="number" placeholder="例：2026" min="2020" max="2035"
+            style="flex:1;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;">
+          <select id="gm-month-input"
+            style="flex:1;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);display:none;outline:none;">
             <option value="">月份（選填）</option>
             <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
             <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
@@ -1175,10 +1177,9 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
-    <!-- Footer -->
-    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface2);">
-      <button onclick="closeGoalModal()" style="padding:8px 18px;border:1px solid var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text);">取消</button>
-      <button id="gm-confirm" onclick="confirmGoalModal()" style="padding:8px 20px;border:none;border-radius:var(--radius);background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
+    <div style="padding:12px 20px 16px;display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeGoalModal()" style="padding:9px 20px;border:1px solid var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text);">取消</button>
+      <button id="gm-confirm" onclick="confirmGoalModal()" style="padding:9px 24px;border:none;border-radius:var(--radius);background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
     </div>
   </div>
 </div>
@@ -2445,14 +2446,18 @@ function openGoalModal(level, parentId, editId = null) {
     if (summaryInput) summaryInput.value = '';
   }
 
-  // 確保 display:flex 讓 align-items/justify-content 生效
+  // 雙重保險：同時用 inline style 和 class
   overlay.style.display = 'flex';
-  setTimeout(() => { if (titleInput) titleInput.focus(); }, 80);
+  overlay.classList.add('open');
+  setTimeout(() => { if (titleInput) { titleInput.focus(); titleInput.select(); } }, 100);
 }
 
 function closeGoalModal() {
   const overlay = document.getElementById('goal-modal-overlay');
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.classList.remove('open');
+  }
   _goalModalState = {};
 }
 
