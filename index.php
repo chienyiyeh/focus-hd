@@ -319,9 +319,9 @@ $username = $_SESSION['username'] ?? 'User';
   .clear-done-btn { width: 100%; padding: 10px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 8px; }
 
   /* Modal & Overlay */
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 100; padding: 16px; overflow-y: auto; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; overflow-y: auto; }
   .overlay.open { display: flex; }
-  .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: calc(100vw - 32px); max-height: none; display: flex; flex-direction: column; margin: auto; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); display: flex; flex-direction: column; margin: auto; overflow: hidden; }
   .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .modal-title { font-size: 16px; font-weight: 700; }
   .modal-body { padding: 20px; flex: 1; overflow-y: auto; }
