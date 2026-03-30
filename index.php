@@ -33,10 +33,12 @@ $username = $_SESSION['username'] ?? 'User';
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FOCUS 專注看板</title>
 
+<!-- PWA 支援 -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#667eea">
 <meta name="description" content="蘋果印刷設計工坊 - 任務管理與專注看板系統">
 
+<!-- iOS Safari PWA 支援 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="專注看板">
@@ -45,6 +47,7 @@ $username = $_SESSION['username'] ?? 'User';
 <link rel="shortcut icon" href="/icon-192.png">
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<!-- Quill ImageResize 模組 -->
 <link href="https://unpkg.com/quill-image-resize-module@3.0.0/image-resize.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -193,9 +196,22 @@ $username = $_SESSION['username'] ?? 'User';
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; margin-top: 22px; cursor: move; transition: all 0.15s; position: relative; overflow: visible; }
   .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; margin-top: 22px !important; overflow: visible !important; }
   .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
-  
-  /* 移除原本寫死的 CSS pseudo-element，改由 JS 動態生成 HTML */
-  
+  /* 資料夾標籤：左上角小標籤，只有文字寬度 */
+  .card.is-project .card-top::before {
+    content: "專案筆記";
+    display: inline-block;
+    width: auto;
+    background: #C8922A;
+    color: #FFF8EE;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 10px;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: -20px;
+    left: 12px;
+  }
   .card.is-project .card-top .card-title { color: #4A3520 !important; }
   .card.is-project .card-top .drag-handle { color: rgba(74,53,32,0.4) !important; }
   .card.is-project .card-top .card-actions-menu button { color: #4A3520 !important; border-color: rgba(74,53,32,0.3) !important; background: rgba(74,53,32,0.08) !important; }
@@ -213,7 +229,20 @@ $username = $_SESSION['username'] ?? 'User';
     border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
     position: relative;
   }
-  
+  .card-top::before { 
+    content: "筆記";
+    display: inline-block;
+    background: #4A7A9B;
+    color: #FFF;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 10px;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: -20px;
+    left: 12px;
+  }
   .card-top .card-title { color: #1A2C3A !important; }
   .card-top .drag-handle { color: rgba(26,44,58,0.4) !important; }
   .drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; margin-right: 4px; }
@@ -480,6 +509,8 @@ $username = $_SESSION['username'] ?? 'User';
   .checklist-text-edit { flex: 1; border: none; background: transparent; font-size: 12px; font-family: inherit; color: var(--text); padding: 0; outline: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; cursor: text; }
   .checklist-text-edit:focus { background: var(--surface); border-radius: 4px; padding: 2px 4px; border: 1px solid var(--accent-lib); white-space: normal; overflow: visible; width: 100%; box-sizing: border-box; }
   .checklist-text-edit:focus ~ .subtask-menu-btn { display: none; }
+  /* 編輯待辦時左欄展開到 70% */
+  /* 編輯筆記時右欄展開到 80% */
 
   .cornell-a { transition: width 0.2s; }
   .cornell-b { transition: width 0.2s; flex: 1; }
@@ -608,6 +639,9 @@ $username = $_SESSION['username'] ?? 'User';
       flex-shrink: 0;
     }
 
+    /* 漢堡按鈕顯示 */
+
+
     .sidebar { width: 100%; position: relative; top: 0; border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
     .main-wrap { flex-direction: column; padding: 0 !important; gap: 0; }
     .col-header { padding: 14px 16px; }
@@ -693,10 +727,9 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-year-card { background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; border: 1px solid rgba(255,215,0,0.3); }
   .goal-year-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; user-select: none; }
   .goal-year-header:hover { background: rgba(255,255,255,0.05); }
-  .goal-year-chevron { font-size: 10px; color: rgba(255,255,255,0.5); transition: transform 0.2s; flex-shrink: 0; padding: 4px; }
+  .goal-year-chevron { font-size: 10px; color: rgba(255,255,255,0.5); transition: transform 0.2s; flex-shrink: 0; }
   .goal-year-card.open .goal-year-chevron { transform: rotate(90deg); }
-  .goal-year-title { font-size: 13px; font-weight: 700; color: #FFD700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-  .goal-year-title:hover { text-decoration: underline; }
+  .goal-year-title { font-size: 13px; font-weight: 700; color: #FFD700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .goal-year-progress-bar { height: 3px; background: rgba(255,255,255,0.1); margin: 0 12px 10px; border-radius: 2px; overflow: hidden; }
   .goal-year-progress-fill { height: 100%; background: #FFD700; border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-year-progress-fill.complete { background: #22c55e; }
@@ -707,10 +740,9 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-month-card { background: rgba(255,255,255,0.05); border-radius: calc(var(--radius) - 2px); margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
   .goal-month-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; user-select: none; }
   .goal-month-header:hover { background: rgba(255,255,255,0.05); }
-  .goal-month-chevron { font-size: 9px; color: rgba(255,255,255,0.4); transition: transform 0.2s; flex-shrink: 0; padding: 4px; }
+  .goal-month-chevron { font-size: 9px; color: rgba(255,255,255,0.4); transition: transform 0.2s; flex-shrink: 0; }
   .goal-month-card.open .goal-month-chevron { transform: rotate(90deg); }
-  .goal-month-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-  .goal-month-title:hover { text-decoration: underline; }
+  .goal-month-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .goal-month-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: rgba(99,102,241,0.3); color: #a5b4fc; flex-shrink: 0; }
   .goal-month-progress-bar { height: 3px; background: rgba(255,255,255,0.08); margin: 0 10px 8px; border-radius: 2px; overflow: hidden; }
   .goal-month-progress-fill { height: 100%; background: #6366f1; border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
@@ -722,8 +754,7 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-week-card { background: rgba(255,255,255,0.03); border-radius: calc(var(--radius) - 3px); margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06); padding: 6px 10px; }
   .goal-week-card.goal-active-filter { border-color: #6366f1; background: rgba(99,102,241,0.08); }
   .goal-week-header { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
-  .goal-week-title { font-size: 11px; color: rgba(255,255,255,0.7); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-  .goal-week-title:hover { text-decoration: underline; color: #fff; }
+  .goal-week-title { font-size: 11px; color: rgba(255,255,255,0.7); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .goal-week-progress { font-size: 10px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
   .goal-week-bar { height: 2px; background: rgba(255,255,255,0.06); margin-top: 5px; border-radius: 1px; overflow: hidden; }
   .goal-week-bar-fill { height: 100%; background: #f97316; border-radius: 1px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
@@ -735,6 +766,9 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-action-btn.primary:hover { background: rgba(99,102,241,0.5); color: #fff; }
   .goal-inline-add { width: 100%; padding: 5px 8px; border: 1px dashed rgba(255,255,255,0.15); background: none; border-radius: 4px; font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s; margin-top: 4px; }
   .goal-inline-add:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+
+  /* 子任務標籤（右側看板卡片） */
+  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   @media (max-width: 768px) { .goal-panel { display: none; } }
 </style>
@@ -823,13 +857,15 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
   </aside>
 
+  <!-- 戰略樹面板（左側收折） -->
   <div class="goal-panel" id="goal-panel">
     <div class="goal-panel-header">
       <span class="goal-panel-title">🏆 戰略目標</span>
       <button class="goal-panel-toggle" onclick="toggleGoalPanel()" title="收折/展開">◀</button>
     </div>
     <div class="goal-panel-body" id="goal-panel-body">
-      </div>
+      <!-- 動態渲染 -->
+    </div>
     <button class="goal-add-btn" onclick="openGoalModal('year', null)">＋ 新增年度目標</button>
   </div>
 
@@ -889,15 +925,18 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
+<!-- 手機版年度計畫面板 -->
 <div id="mobile-goal-panel" style="display:none;padding:16px;padding-bottom:80px;">
   <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
     🏆 戰略目標
     <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 新增年度目標</button>
   </div>
   <div id="mobile-goal-body">
-    </div>
+    <!-- 由 renderGoalTree 同步渲染 -->
+  </div>
 </div>
 
+<!-- 手機版底部 Tab Bar -->
 <div class="mobile-tab-bar">
   <button class="mobile-tab" data-col="goal" onclick="switchMobileTab('goal')">
     <div class="mobile-tab-icon">🏆</div>
@@ -925,6 +964,7 @@ $username = $_SESSION['username'] ?? 'User';
   </button>
 </div>
 
+<!-- 手機版設定底部 Sheet -->
 <div id="mobile-settings-sheet" style="display:none;position:fixed;inset:0;z-index:9999;">
   <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);" onclick="closeMobileSettings()"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 0 32px;">
@@ -956,9 +996,11 @@ $username = $_SESSION['username'] ?? 'User';
         <label class="field-label">標題 *</label>
         <input type="text" class="field-input" id="input-title" placeholder="輸入任務標題...">
       </div>
+      <!-- 康乃爾筆記本 -->
       <div class="field">
         <label class="field-label">✓ 康乃爾筆記本</label>
         <div style="width:80%; margin:0 auto; display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:var(--radius); overflow:hidden; background:#FFFDF5; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <!-- 工具列：在左右欄上方，橫跨全寬 -->
           <div style="background:#111110; flex-shrink:0; padding:4px 8px; display:flex; flex-wrap:nowrap; gap:2px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); overflow-x:auto;">
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;font-weight:900;padding:0;border-bottom:3px solid #E24B4A;touch-action:manipulation;flex-shrink:0;" onclick="toggleModalColorMenu('modal-color-menu',this);event.preventDefault()">A</button>
             <div id="modal-color-menu" style="display:none;position:fixed;background:#111110;border-radius:12px;padding:10px;flex-direction:row;gap:8px;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.6);">
@@ -992,7 +1034,9 @@ $username = $_SESSION['username'] ?? 'User';
             <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 3px;flex-shrink:0;"></div>
             <button class="mini-tb-btn" style="width:44px;height:34px;font-size:11px;padding:0;touch-action:manipulation;flex-shrink:0;line-height:1.2;letter-spacing:-0.5px;" title="插入分頁線（列印時換頁）" onclick="insertPageBreak();event.preventDefault()">－頁－</button>
           </div>
+          <!-- 下半：左欄待辦 + 右欄筆記 -->
           <div style="display:flex; min-height:260px;">
+            <!-- 左欄：待辦清單（可收折，自適應寬度） -->
             <div id="modal-checklist-col" style="width:fit-content; min-width:36px; max-width:260px; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto; transition:width 0.2s; flex-shrink:0;">
               <div style="font-size:11px; font-weight:700; color:#E8763E; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; user-select:none; margin-bottom:4px;"
                 onclick="toggleModalChecklist()">
@@ -1004,7 +1048,9 @@ $username = $_SESSION['username'] ?? 'User';
                 <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
               </div>
             </div>
+          <!-- 右欄：詳細筆記 -->
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <!-- 筆記區 -->
             <div id="input-body-editor" contenteditable="true" style="
               flex:1;
               width:100%;
@@ -1032,6 +1078,7 @@ $username = $_SESSION['username'] ?? 'User';
             <input type="hidden" id="input-body">
           </div>
         </div>
+        <!-- 底部摘要欄（康乃爾筆記本底部） -->
         <div style="border-top:2px solid var(--accent-week); background:#FFFEF0; padding:8px 12px; display:flex; align-items:center; gap:8px;">
           <span style="font-size:11px; font-weight:700; color:var(--accent-week-text); white-space:nowrap; flex-shrink:0;">💡 摘要</span>
           <input type="text" class="field-input" id="input-summary" 
@@ -1095,12 +1142,15 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;">
+<!-- 戰略目標 Modal -->
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;flex-direction:column;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
   <div style="background:var(--surface);border-radius:16px;padding:0;width:90%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.3);overflow:hidden;">
+    <!-- Header -->
     <div id="gm-header" style="padding:18px 20px 16px;border-bottom:1px solid var(--border);">
       <div id="gm-title" style="font-size:16px;font-weight:700;color:var(--text);"></div>
       <div id="gm-parent-info" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none;"></div>
     </div>
+    <!-- Body -->
     <div style="padding:20px;">
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">標題 *</label>
@@ -1110,6 +1160,7 @@ $username = $_SESSION['username'] ?? 'User';
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">摘要 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
         <input id="gm-summary-input" type="text" placeholder="一句話說明這個目標..." style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);box-sizing:border-box;">
       </div>
+      <!-- 年份/月份選擇（年度目標和月目標才顯示） -->
       <div id="gm-period-row" style="display:none;margin-bottom:14px;gap:10px;display:none;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">期間 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
         <div style="display:flex;gap:8px;">
@@ -1124,6 +1175,7 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
       </div>
     </div>
+    <!-- Footer -->
     <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface2);">
       <button onclick="closeGoalModal()" style="padding:8px 18px;border:1px solid var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text);">取消</button>
       <button id="gm-confirm" onclick="confirmGoalModal()" style="padding:8px 20px;border:none;border-radius:var(--radius);background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
@@ -1131,6 +1183,7 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
+<!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -1153,7 +1206,9 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
+<!-- 手機版下拉選單 -->
 <div id="toast"></div>
+<!-- 手機版懸浮工具列 -->
 <div id="float-toolbar" style="display:none;position:fixed;bottom:70px;right:12px;z-index:99999;display:flex;flex-direction:column;gap:8px;">
   <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
   <a href="users.php" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:#534AB7;color:white;border-radius:50%;text-decoration:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">⚙️</a>
@@ -1162,6 +1217,7 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
 
+<!-- 通知弹窗 -->
 <div class="notification-panel" id="notification-panel">
   <div class="notification-header">
     <div class="notification-title">🔔 通知</div>
@@ -1176,6 +1232,7 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<!-- Quill ImageResize 模組 -->
 <script src="https://unpkg.com/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
 
 <script>
@@ -1624,6 +1681,7 @@ function renderProjectList() {
     item.id = 'proj-item-' + key;
     item.style.cssText = 'border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;';
     item.innerHTML = `
+      <!-- 標題列 -->
       <div id="proj-header-${key}"
         style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:${!proj.default ? 'pointer' : 'default'};background:var(--surface);user-select:none;">
         <div style="width:14px;height:14px;border-radius:50%;background:${proj.color || proj.textColor || '#999'};flex-shrink:0;"></div>
@@ -1632,6 +1690,7 @@ function renderProjectList() {
         ${!proj.default ? '<span style="font-size:11px;color:var(--text-muted);">▾</span>' : ''}
         ${!proj.default ? `<button id="proj-del-${key}" style="padding:3px 8px;font-size:11px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;cursor:pointer;">刪除</button>` : ''}
       </div>
+      <!-- 編輯區 -->
       <div id="proj-edit-${key}" style="display:none;padding:12px;background:var(--surface2);border-top:1px solid var(--border);">
         <input class="project-edit-input" id="proj-edit-name-${key}" maxlength="20" placeholder="專案名稱..." style="width:100%;margin-bottom:10px;box-sizing:border-box;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">選擇顏色（懸停看說明）</div>
@@ -2131,9 +2190,10 @@ function buildMobileYearCard(year, allGoalCards) {
   div.style.cssText = 'background:var(--surface);border:1px solid var(--border-strong);border-radius:12px;margin-bottom:12px;overflow:hidden;';
 
   div.innerHTML = `
-    <div style="padding:12px 14px;background:linear-gradient(135deg,#534AB7,#7C3AED);cursor:pointer;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:16px;" onclick="this.closest('div').nextElementSibling.nextElementSibling.style.display=this.closest('div').nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'; event.stopPropagation();">📌</span>
-      <div style="flex:1;min-width:0;" onclick="editGoalCard(${year.id}, event); event.stopPropagation();">
+    <div style="padding:12px 14px;background:linear-gradient(135deg,#534AB7,#7C3AED);cursor:pointer;display:flex;align-items:center;gap:10px;"
+      onclick="this.closest('div').querySelector('.m-year-body').style.display=this.closest('div').querySelector('.m-year-body').style.display==='none'?'block':'none'">
+      <span style="font-size:16px;">📌</span>
+      <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(year.title)}</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;">${pct}% 完成 · ${progress.done}/${progress.total} 任務</div>
       </div>
@@ -2165,9 +2225,10 @@ function buildMobileMonthCard(month, allGoalCards) {
   div.style.cssText = 'background:var(--surface2);border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border);';
 
   div.innerHTML = `
-    <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;">
-      <span style="font-size:13px;" onclick="this.parentElement.nextElementSibling.nextElementSibling.style.display=this.parentElement.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'; event.stopPropagation();">📅</span>
-      <div style="flex:1;min-width:0;" onclick="editGoalCard(${month.id}, event); event.stopPropagation();">
+    <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;"
+      onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">
+      <span style="font-size:13px;">📅</span>
+      <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${pct}% · ${progress.done}/${progress.total}</div>
       </div>
@@ -2201,15 +2262,15 @@ function buildMobileWeekCard(week) {
 
   div.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="editGoalCard(${week.id}, event); event.stopPropagation();">📋 ${escHtml(week.title)}</span>
+      <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📋 ${escHtml(week.title)}</span>
       <span style="font-size:11px;color:var(--text-muted);">${doneCount}/${total}</span>
     </div>
     <div style="height:2px;background:var(--border);border-radius:1px;margin-bottom:8px;">
       <div style="height:100%;background:${isComplete?'#22c55e':'#f97316'};width:${pct}%;transition:width 0.6s;border-radius:1px;"></div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button onclick="spawnProjectCard(${week.id},'${escHtml(week.title)}') ;event.stopPropagation()" style="padding:4px 10px;background:#534AB720;border:1px solid #534AB740;color:#534AB7;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">＋ 子任務</button>
-      <button onclick="filterByParent(${week.id});switchMobileTab('lib'); event.stopPropagation()" style="padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔍 查看</button>
+      <button onclick="spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="padding:4px 10px;background:#534AB720;border:1px solid #534AB740;color:#534AB7;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">＋ 子任務</button>
+      <button onclick="filterByParent(${week.id});switchMobileTab('lib')" style="padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔍 查看</button>
     </div>
   `;
 
@@ -2228,13 +2289,13 @@ function buildYearCard(year, allGoalCards) {
   div.id = 'goal-year-' + year.id;
 
   div.innerHTML = `
-    <div class="goal-year-header">
-      <span class="goal-year-chevron" onclick="this.closest('.goal-year-card').classList.toggle('open'); event.stopPropagation();">▶</span>
-      <span class="goal-year-icon" onclick="this.closest('.goal-year-card').classList.toggle('open'); event.stopPropagation();">📌</span>
-      <span class="goal-year-title" onclick="editGoalCard(${year.id}, event); event.stopPropagation();" title="點擊編輯">${escHtml(year.title)}</span>
+    <div class="goal-year-header" onclick="this.closest('.goal-year-card').classList.toggle('open')">
+      <span class="goal-year-chevron">▶</span>
+      <span class="goal-year-icon">📌</span>
+      <span class="goal-year-title">${escHtml(year.title)}</span>
       <span style="font-size:10px;color:rgba(255,255,255,0.4);flex-shrink:0;margin-right:4px;">${pct}%</span>
-      <button onclick="editGoalCard(${year.id},event); event.stopPropagation();" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-      <button onclick="deleteGoalCard(${year.id},event); event.stopPropagation();" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+      <button onclick="deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
     </div>
     <div class="goal-year-progress-bar">
       <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2266,12 +2327,12 @@ function buildMonthCard(month, allGoalCards) {
   div.id = 'goal-month-' + month.id;
 
   div.innerHTML = `
-    <div class="goal-month-header">
-      <span class="goal-month-chevron" onclick="this.closest('.goal-month-card').classList.toggle('open'); event.stopPropagation();">▶</span>
-      <span class="goal-month-title" onclick="editGoalCard(${month.id}, event); event.stopPropagation();" title="點擊編輯">${escHtml(month.title)}</span>
+    <div class="goal-month-header" onclick="this.closest('.goal-month-card').classList.toggle('open')">
+      <span class="goal-month-chevron">▶</span>
+      <span class="goal-month-title">${escHtml(month.title)}</span>
       <span class="goal-month-badge">${progress.done}/${progress.total}</span>
-      <button onclick="editGoalCard(${month.id},event); event.stopPropagation();" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
-      <button onclick="deleteGoalCard(${month.id},event); event.stopPropagation();" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
+      <button onclick="deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
     </div>
     <div class="goal-month-progress-bar">
       <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2311,7 +2372,7 @@ function buildWeekCard(week) {
 
   div.innerHTML = `
     <div class="goal-week-header" onclick="filterByParent(${week.id})" title="點擊篩選此週子任務" style="cursor:pointer;">
-      <span class="goal-week-title" onclick="editGoalCard(${week.id}, event); event.stopPropagation();" title="點擊編輯">📋 ${escHtml(week.title)}</span>
+      <span class="goal-week-title">📋 ${escHtml(week.title)}</span>
       <span class="goal-week-progress">${doneCount}/${total}</span>
     </div>
     <div class="goal-week-bar">
@@ -2319,8 +2380,8 @@ function buildWeekCard(week) {
     </div>
     <div class="goal-week-actions">
       <button class="goal-action-btn primary" onclick="spawnProjectCard(${week.id}, '${escHtml(week.title)}');event.stopPropagation()">＋ 子任務</button>
-      <button class="goal-action-btn" onclick="editGoalCard(${week.id},event); event.stopPropagation();">✏️ 編輯</button>
-      <button class="goal-action-btn" onclick="deleteGoalCard(${week.id},event); event.stopPropagation();" style="color:#E24B4A;">🗑</button>
+      <button class="goal-action-btn" onclick="editGoalCard(${week.id},event)">✏️ 編輯</button>
+      <button class="goal-action-btn" onclick="deleteGoalCard(${week.id},event)" style="color:#E24B4A;">🗑</button>
     </div>
   `;
 
@@ -2341,47 +2402,52 @@ function openGoalModal(level, parentId, editId = null) {
 
   _goalModalState = { level, parentId, editId };
 
-  // 設定標題
-  document.getElementById('gm-title').textContent =
-    (editId ? '編輯' : '新增') + (levelIcons[level] || '') + ' ' + (levelNames[level] || '目標');
+  // 標題
+  const titleEl = document.getElementById('gm-title');
+  if (titleEl) titleEl.textContent =
+    (editId ? '✏️ 編輯' : '＋ 新增') + ' ' + (levelIcons[level] || '') + ' ' + (levelNames[level] || '目標');
 
   // 父層資訊
   const parentInfoEl = document.getElementById('gm-parent-info');
-  if (parentId) {
-    const parentCard = state.goal.find(c => c.id === parentId);
-    if (parentCard) {
-      parentInfoEl.textContent = `隸屬：${parentCard.title}`;
-      parentInfoEl.style.display = 'block';
+  if (parentInfoEl) {
+    if (parentId) {
+      const parentCard = state.goal.find(c => c.id === parentId);
+      parentInfoEl.textContent = parentCard ? `隸屬：${parentCard.title}` : '';
+      parentInfoEl.style.display = parentCard ? 'block' : 'none';
+    } else {
+      parentInfoEl.style.display = 'none';
     }
-  } else {
-    parentInfoEl.style.display = 'none';
   }
 
   // 期間欄位
   const periodRow = document.getElementById('gm-period-row');
-  const monthSel = document.getElementById('gm-month-input');
-  if (level === 'year' || level === 'month') {
-    periodRow.style.display = 'block';
-    monthSel.style.display = level === 'month' ? 'block' : 'none';
-    document.getElementById('gm-year-input').value = new Date().getFullYear();
-  } else {
-    periodRow.style.display = 'none';
+  const monthSel  = document.getElementById('gm-month-input');
+  if (periodRow) {
+    if (level === 'year' || level === 'month') {
+      periodRow.style.display = 'block';
+      if (monthSel) monthSel.style.display = level === 'month' ? 'block' : 'none';
+      const yearInp = document.getElementById('gm-year-input');
+      if (yearInp && !yearInp.value) yearInp.value = new Date().getFullYear();
+    } else {
+      periodRow.style.display = 'none';
+    }
   }
 
-  // 編輯模式：填入現有資料
+  // 填入資料（新增清空，編輯填入現有）
+  const titleInput = document.getElementById('gm-title-input');
+  const summaryInput = document.getElementById('gm-summary-input');
   if (editId) {
     const card = state.goal.find(c => c.id === editId);
-    if (card) {
-      document.getElementById('gm-title-input').value = card.title || '';
-      document.getElementById('gm-summary-input').value = card.summary || '';
-    }
+    if (titleInput)   titleInput.value   = card?.title   || '';
+    if (summaryInput) summaryInput.value = card?.summary || '';
   } else {
-    document.getElementById('gm-title-input').value = '';
-    document.getElementById('gm-summary-input').value = '';
+    if (titleInput)   titleInput.value   = '';
+    if (summaryInput) summaryInput.value = '';
   }
 
+  // 確保 display:flex 讓 align-items/justify-content 生效
   overlay.style.display = 'flex';
-  setTimeout(() => document.getElementById('gm-title-input').focus(), 60);
+  setTimeout(() => { if (titleInput) titleInput.focus(); }, 80);
 }
 
 function closeGoalModal() {
@@ -2514,15 +2580,17 @@ function render() {
     let visibleCards = state[col].filter(shouldShowCard);
 
     if (col === 'lib') {
-      // 分成自己和別人兩組，各自內部重要緊急排前面，且 ID 越新的排越上面
-      const sortByPriority = arr => [...arr].sort((a, b) => {
+      // 排序：有 parentId 的子任務排最前，再按重要緊急排
+      const sortCards = arr => [...arr].sort((a, b) => {
+        const aIsProject = a.parentId ? 0 : 1;
+        const bIsProject = b.parentId ? 0 : 1;
+        if (aIsProject !== bIsProject) return aIsProject - bIsProject;
         const pa = a.priority === 'urgent_important' ? 0 : 1;
         const pb = b.priority === 'urgent_important' ? 0 : 1;
-        if (pa !== pb) return pa - pb;
-        return b.id - a.id; // 新卡片放上面
+        return pa - pb;
       });
-      const myCards = sortByPriority(visibleCards.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername));
-      const otherCards = sortByPriority(visibleCards.filter(c => c.createdByUsername && c.createdByUsername !== CURRENT_USERNAME));
+      const myCards = sortCards(visibleCards.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername));
+      const otherCards = sortCards(visibleCards.filter(c => c.createdByUsername && c.createdByUsername !== CURRENT_USERNAME));
 
       if (visibleCards.length === 0) {
         const empty = document.createElement('div'); empty.className = 'empty';
@@ -2624,57 +2692,47 @@ function buildCard(card, col, cardNo) {
   div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
 
+  const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
 
-  // parent-badge：追溯祖先鏈，顯示「年度 > 月度 > 週」路徑，並且改為非常顯眼的標籤
+  // parent-badge：追溯完整祖先鏈，「年度 › 月度 › 週」完整路徑
   let parentBadgeHTML = '';
-  let cardTypeTag = '筆記';
-  let cardTypeBg = '#4A7A9B';
-  let cardTypeColor = '#FFF';
-
   if (card.parentId) {
-    // 遞迴追溯祖先
     const ancestors = [];
     let currentId = card.parentId;
     let safety = 0;
     while (currentId && safety < 5) {
       const found = state.goal.find(c => c.id === currentId);
       if (!found) break;
-      ancestors.unshift(found);
+      ancestors.unshift(found); // 最高層放最前
       currentId = found.parentId;
       safety++;
     }
     if (ancestors.length > 0) {
-      const levelColors = { year: '#FFD700', month: '#a5b4fc', week: '#f97316' };
-      const levelIcons = { year: '📌', month: '📅', week: '📋' };
+      const levelColors = { year: '#E8A800', month: '#6366f1', week: '#f97316' };
+      const levelIcons  = { year: '📌', month: '📅', week: '📋' };
+      // 完整路徑文字：年度 › 月度 › 週
+      const pathParts = ancestors.map(a => {
+        const icon = levelIcons[a.level] || '';
+        return icon + ' ' + a.title;
+      });
+      const pathText = pathParts.join(' › ');
+      // badge 用最高層（年度）的顏色
+      const topAncestor = ancestors[0];
+      const badgeColor = levelColors[topAncestor.level] || '#6366f1';
+      // 顯示最直接父層名稱，hover 顯示完整路徑
       const directParent = ancestors[ancestors.length - 1];
-      const pathText = ancestors.length > 1
-        ? `${ancestors[0].title} › ${directParent.title}`
-        : directParent.title;
-      const badgeColor = levelColors[directParent.level] || '#6366f1';
-      const badgeIcon = levelIcons[directParent.level] || '🎯';
-
-      // 橫幅認親標籤
-      parentBadgeHTML = `<div class="parent-badge" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:4px 10px; border-radius:12px; background:${badgeColor}15; color:${badgeColor}; border:1px solid ${badgeColor}40; font-weight:700; margin-bottom:8px; max-width:100%; white-space:normal; line-height:1.4;">${badgeIcon} 隸屬目標：${escHtml(pathText)}</div><br>`;
-
-      // 動態左上角標籤
-      if (directParent.level === 'year') { cardTypeTag = '📌 年度專案'; cardTypeBg = '#B8860B'; cardTypeColor = '#FFF'; }
-      else if (directParent.level === 'month') { cardTypeTag = '📅 月度專案'; cardTypeBg = '#4169E1'; cardTypeColor = '#FFF'; }
-      else if (directParent.level === 'week') { cardTypeTag = '📋 週專案'; cardTypeBg = '#D2691E'; cardTypeColor = '#FFF'; }
+      const displayName = directParent.title.length > 14 ? directParent.title.slice(0,14)+'…' : directParent.title;
+      const levelIcon = levelIcons[topAncestor.level] || '🎯';
+      parentBadgeHTML = `<span class="parent-badge" style="color:${badgeColor};border-color:${badgeColor}40;background:${badgeColor}12;" title="${escHtml(pathText)}">${levelIcon} ${escHtml(displayName)}</span>`;
     } else {
-      parentBadgeHTML = `<div class="parent-badge" style="display:inline-flex; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; margin-bottom:8px;">🎯 戰略目標</div><br>`;
+      parentBadgeHTML = `<span class="parent-badge">🎯 目標任務</span>`;
     }
-  } else if (isProjectCard) {
-    cardTypeTag = '專案筆記';
-    cardTypeBg = '#C8922A';
-    cardTypeColor = '#FFF8EE';
   }
 
-  const folderTagHTML = `<div style="display:inline-block;background:${cardTypeBg};color:${cardTypeColor};font-size:10px;font-weight:700;letter-spacing:0.5px;padding:2px 10px;border-radius:6px 6px 0 0;position:absolute;top:-20px;left:12px;">${cardTypeTag}</div>`;
-
-
-  if (card.priority || card.isPrivate || card.project) {
+  if (card.priority || card.isPrivate || card.project || card.parentId) {
     metaHTML = '<div class="card-meta">';
+    if (parentBadgeHTML) metaHTML += parentBadgeHTML;
     if (card.project) {
       const projData = ALL_PROJECTS[card.project];
       const projLabel = (projData && projData.label) ? projData.label : (PROJECT_LABELS[card.project] || card.project);
@@ -2693,6 +2751,9 @@ function buildCard(card, col, cardNo) {
   }
 
   let sourceHTML = card.sourceLink ? `<a href="${escHtml(card.sourceLink)}" target="_blank" class="source-link" onclick="event.stopPropagation()">🔗 來源連結</a>` : '';
+  // 摘要和下一步在康乃爾區塊處理
+  
+
   
   let timerHTML = '';
   if (col === 'focus') {
@@ -2780,6 +2841,7 @@ function buildCard(card, col, cardNo) {
   const noteHTML = card.body || '';
   const editableB = `
     <div style="display:flex;gap:0;align-items:flex-start;height:100%;">
+      <!-- 筆記欄 -->
       <div style="flex:1;min-width:0;position:relative;padding:4px;">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
           onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb){tb.classList.add('active');tb.classList.remove('hidden');}event.stopPropagation()"
@@ -2789,6 +2851,7 @@ function buildCard(card, col, cardNo) {
           style="cursor:text;"
         >${noteHTML}</div>
       </div>
+      <!-- 工具列 -->
       <div class="mini-toolbar" id="mtb-${cardIdStr}"
         style="flex-shrink:0;width:44px;padding:6px 4px;gap:6px;flex-direction:column;align-items:center;border-left:1px solid rgba(255,255,255,0.1);touch-action:manipulation;">
         <button class="mini-tb-btn" style="width:36px;height:36px;font-size:13px;padding:0;touch-action:manipulation;" onclick="toggleSubMenu('fmt-menu-${cardIdStr}',this);event.stopPropagation()">¶</button>
@@ -2831,12 +2894,18 @@ function buildCard(card, col, cardNo) {
       </div>
     </div>`;
 
+  // 康乃爾展開區塊
+
   // 康乃爾展開區塊（可編輯版）
+  // 左右箭頭邏輯
   const colOrder = ['lib','week','focus','done'];
   const colIdx = colOrder.indexOf(col);
   const prevCol = colIdx > 0 ? colOrder[colIdx-1] : null;
   const nextCol = colIdx < colOrder.length-1 ? colOrder[colIdx+1] : null;
   const colNames = {lib:'策略',week:'本週',focus:'今日',done:'完成'};
+  // lib 欄專案卡（有 checklist）：只顯示「→ 本週」，不顯示「→ 今日」（子任務各自有今日專注按鈕）
+  // lib 欄一般筆記卡：顯示「→ 本週」＋額外「→ 今日」（直接跳兩格）
+  // week 欄：不管哪種卡，保留「→ 今日」（nextBtn 正常顯示）
   const prevBtn = (col !== 'lib' && prevCol) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${prevCol}');event.stopPropagation()">← ${colNames[prevCol]}</button>` : '';
   const nextBtn = nextCol ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'${nextCol}');event.stopPropagation()">→ ${colNames[nextCol]}</button>` : '';
   const focusDirectBtn = (col === 'lib' && !isProjectCard) ? `<button style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-secondary);" onclick="moveAPI(${cardIdStr},'focus');event.stopPropagation()">→ 今日</button>` : '';
@@ -2851,7 +2920,1497 @@ function buildCard(card, col, cardNo) {
   if (hasSummary) previewHTML = `<div class="card-summary">${escHtml(card.summary)}</div>`;
   else if (hasBody) previewHTML = `<div class="card-preview">${card.body}</div>`;
 
+  // 筆記指示圖示（收合時顯示）
+  // 標題右側資訊（與 ⋯ 選單之間加 flex 間距）
   const noteIndicator = '';
+
+  // 摘要永遠顯示在卡片上（康乃爾外面）
   const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+
+  // div.onclick 已移除，不攔截任何點擊事件
+  // 筆記區選文字時停止拖移
+  div.addEventListener('mousedown', (e) => {
+    const noteEl = e.target.closest('.note-editable, .cornell-b, [contenteditable]');
+    if (noteEl) { div.draggable = false; }
+    else { div.draggable = true; }
+  });
+  div.addEventListener('mouseup', () => { div.draggable = true; });
+  // 手機長按筆記區時，停止卡片拖曳讓系統選字
+  div.addEventListener('touchstart', (e) => {
+    const noteEl = e.target.closest('.note-editable, [contenteditable]');
+    if (noteEl) { div.draggable = false; }
+  }, { passive: true });
+  div.addEventListener('touchend', () => { div.draggable = true; });
+  div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
+  return div;
+}
+
+// 插入分頁線
+function insertPageBreak() {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  // 用 div 取代 hr，避免瀏覽器預設綠色 focus 框
+  const divider = document.createElement('div');
+  divider.className = 'page-break-divider';
+  divider.contentEditable = 'false';
+  divider.setAttribute('data-page-break', '1');
+  range.insertNode(divider);
+
+  // 在分頁線後插入新段落
+  const p = document.createElement('p');
+  p.innerHTML = '<br>';
+  divider.after(p);
+
+  // 把游標移到新段落
+  const newRange = document.createRange();
+  newRange.setStart(p, 0);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+}
+
+// Modal 編輯器工具列函數
+function modalExecCmd(cmd, val) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand(cmd, false, val || null);
+}
+function modalSetColor(color) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('foreColor', false, color);
+  document.getElementById('modal-color-menu').style.display = 'none';
+}
+function modalSetBgColor(color) {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('hiliteColor', false, color === 'transparent' ? 'transparent' : color);
+  document.getElementById('modal-bg-menu').style.display = 'none';
+}
+function toggleModalColorMenu(menuId, btn) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.style.display === 'flex';
+  // 關閉所有 modal 選單
+  ['modal-color-menu','modal-bg-menu'].forEach(id => {
+    const m = document.getElementById(id);
+    if (m) m.style.display = 'none';
+  });
+  if (!isOpen) {
+    menu.style.display = 'flex';
+    const rect = btn.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      menu.style.left = rect.left + 'px';
+      menu.style.top = (rect.bottom + 4) + 'px';
+    });
+  }
+}
+document.addEventListener('mousedown', (e) => {
+  ['modal-color-menu','modal-bg-menu'].forEach(id => {
+    const menu = document.getElementById(id);
+    if (menu && !menu.contains(e.target) && !e.target.closest('[onmousedown*="toggleModalColorMenu"]')) {
+      menu.style.display = 'none';
+    }
+  });
+});
+
+function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDateTime(ts) {
+  const d = new Date(ts.replace ? ts.replace(' ', 'T') : ts); if(isNaN(d)) return ts;
+  return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// ==========================================
+// 拖曳處理
+// ==========================================
+let draggedCard = null;
+function handleDragStart(e) {
+  // 如果選取了文字，不觸發拖移
+  const sel = window.getSelection();
+  if (sel && sel.toString().length > 0) { e.preventDefault(); return; }
+  // 如果點擊來自 contenteditable、checkbox、input、button 區域，不觸發拖移
+  if (e.target.closest('[contenteditable]') || e.target.closest('.note-editable') || 
+      e.target.closest('.cornell-b') || e.target.closest('.checklist-text-edit') ||
+      e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' ||
+      e.target.tagName === 'A' || e.target.closest('.card-checklist-item') ||
+      e.target.closest('.cornell-a')) {
+    e.preventDefault(); return;
+  }
+  draggedCard = { id: parseInt(this.dataset.cardId), fromCol: this.dataset.col };
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function handleDragEnd(e) { this.classList.remove('dragging'); document.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over')); }
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.cards-area').forEach(a => { a.addEventListener('dragover', handleDragOver); a.addEventListener('drop', handleDrop); a.addEventListener('dragleave', handleDragLeave); });
+});
+
+// 事件委派處理卡片上的 checkbox
+function handleInlineCb(e) {
+  const t = e.target;
+  if (t.classList.contains('inline-cb') && t.dataset.card) {
+    const cardId = parseInt(t.dataset.card);
+    const idx = parseInt(t.dataset.idx);
+    const col = t.dataset.col;
+    if (cardId && !isNaN(cardId)) {
+      e.stopPropagation();
+      inlineToggleChecklist(cardId, idx, col);
+    }
+  }
+}
+document.addEventListener('change', handleInlineCb);
+document.addEventListener('click', (e) => {
+  // 手機上 checkbox 點擊有時只觸發 click 不觸發 change
+  if (e.target.classList.contains('inline-cb') && e.target.dataset.card) {
+    // change 事件會緊接著觸發，稍微延遲避免重複執行
+    clearTimeout(e.target._cbTimer);
+    e.target._cbTimer = setTimeout(() => handleInlineCb(e), 50);
+  }
+});
+function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.closest('.col').classList.add('drag-over'); }
+function handleDragLeave(e) { if (e.target === this) this.closest('.col').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault(); if (!draggedCard) return;
+  const toCol = this.closest('.col').dataset.col;
+  const myFocus = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (toCol === 'focus' && myFocus >= 1 && draggedCard.fromCol !== 'focus') { toast('你的今日專注已有 1 張！'); this.closest('.col').classList.remove('drag-over'); return; }
+  if (toCol === 'week' && state.week.length >= 3 && draggedCard.fromCol !== 'week') { toast('本週目標已滿 3 張！'); this.closest('.col').classList.remove('drag-over'); return; }
+  if (draggedCard.fromCol !== toCol) moveAPI(draggedCard.id, toCol);
+  this.closest('.col').classList.remove('drag-over'); draggedCard = null;
+}
+function postponeCard() { toast('⏭ 已標記延到下週'); }
+async function clearDone() {
+  if (!confirm('確定永久清空已完成區塊嗎？')) return;
+  toast('清空中...'); for (const c of state.done) await fetch(`api/cards.php?action=delete&id=${c.id}`);
+  toast('已清除完成區'); await loadCards();
+}
+
+// ==========================================
+// 表單與 UI
+// ==========================================
+function openModal(col) {
+  const myFocusCount = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (col === 'focus' && myFocusCount >= 1) { toast('你的今日專注已有 1 張！'); return; }
+  if (col === 'week' && state.week.length >= 3) { toast('本週目標已滿 3 張！'); return; }
+  document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
+  document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = ''; const bodyEditorClr = document.getElementById('input-body-editor'); if(bodyEditorClr) bodyEditorClr.innerHTML = '';
+  
+  // 清空待辦清單並收起
+  document.getElementById('checklist-container').innerHTML = '';
+  toggleModalChecklist(false);
+  // 清空優先級
+  document.getElementById('input-priority').value = '';
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  
+  initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
+  const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
+  const bb = document.getElementById('bottom-bar'); if (bb) bb.style.display = 'none';
+  document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
+}
+
+function editCard(id, col) {
+  const card = state[col].find(c => c.id === id); if (!card) return;
+  document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
+  document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; setTimeout(renderProjectSelect, 10); document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
+  
+  if (card.isPrivate) {
+    document.getElementById('privacy-private').checked = true;
+  } else {
+    document.getElementById('privacy-shared').checked = true;
+  }
+  
+  renderChecklistEdit(card.checklist);
+  toggleModalChecklist(card.checklist && card.checklist.length > 0);
+  document.getElementById('input-priority').value = card.priority || '';
+  document.querySelectorAll('.priority-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === card.priority);
+  });
+  
+  initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
+  const backBtn2 = document.getElementById('modal-back-btn'); if (backBtn2) backBtn2.style.display = 'none';
+  const bb2 = document.getElementById('bottom-bar'); if (bb2) bb2.style.display = 'none';
+  document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
+}
+
+async function saveCard() {
+  const t = document.getElementById('input-title').value.trim(); if (!t) { document.getElementById('input-title').focus(); return; }
+  const isPrivate = document.getElementById('privacy-private').checked ? 1 : 0;
+  const checklist = getChecklistData();
+  const priority = document.getElementById('input-priority').value || null;
+  const eid = document.getElementById('input-edit-id').value;
+  let completedAt = null;
+  if (eid) {
+    const found = getCard(parseInt(eid));
+    if (found && found.card.completedAt) completedAt = found.card.completedAt;
+  }
+  const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist, completedAt: completedAt };
+  if (eid) data.id = eid;
+  // 子任務發射：帶入 parentId 和 level
+  if (window._spawnParentId) {
+    data.parentId = window._spawnParentId;
+    data.level = window._spawnLevel || 'project';
+    window._spawnParentId = null;
+    window._spawnLevel = null;
+  }
+  const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
+  await saveCardToAPI(data);
+  btn.disabled = false; btn.textContent = '儲存';
+}
+
+// 儲存後不關閉（同 saveCard，但不會觸發 closeModal）
+const saveCardNoClose = saveCard;
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  // 恢復底部管理/登出列
+  const bb = document.getElementById('bottom-bar');
+  if (bb) bb.style.display = 'flex';
+  // 重置返回按鈕
+  const backBtn = document.getElementById('modal-back-btn');
+  if (backBtn) backBtn.style.display = 'none';
+}
+function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+document.addEventListener('keydown', e => { 
+  if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
+});
+document.getElementById('input-title').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-summary').focus(); } });
+
+function openSearchDropdown() {
+  const inp = document.getElementById('search-input');
+  inp.removeAttribute('readonly');
+  inp.focus();
+  renderSearchDropdown('');
+  document.getElementById('search-close-btn').style.display = 'block';
+}
+function closeSearchDropdown() {
+  document.getElementById('search-dropdown').classList.remove('show');
+  document.getElementById('search-close-btn').style.display = 'none';
+  const inp = document.getElementById('search-input');
+  inp.value = '';
+  inp.setAttribute('readonly', true);
+  inp.blur();
+  searchQuery = '';
+  render();
+}
+document.getElementById('search-input').addEventListener('click', openSearchDropdown);
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  render();
+  renderSearchDropdown(searchQuery);
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box')) {
+    closeSearchDropdown();
+  }
+});
+
+function renderSearchDropdown(q) {
+  const dropdown = document.getElementById('search-dropdown');
+  if (!dropdown) return;
+  const colNames = {lib:'策略', week:'本週', focus:'今日', done:'完成'};
+  let results = [];
+  ['lib','week','focus','done'].forEach(col => {
+    state[col].forEach(card => {
+      const t = (card.title||'').toLowerCase();
+      if (!q || t.includes(q.toLowerCase())) {
+        results.push({card, col});
+      }
+    });
+  });
+  if (results.length === 0) { dropdown.classList.remove('show'); return; }
+  dropdown.innerHTML = '';
+  results.forEach(({card, col}) => {
+    const item = document.createElement('div');
+    item.className = 'search-result-item';
+    const projInfo = card.project && ALL_PROJECTS[card.project]
+      ? `<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:${ALL_PROJECTS[card.project].bg||'#eee'};color:${ALL_PROJECTS[card.project].color||'#666'};font-weight:600;flex-shrink:0;">${ALL_PROJECTS[card.project].label}</span>`
+      : '';
+    const isProj = card.checklist && card.checklist.length > 0
+      ? `<span style="font-size:10px;color:#C8922A;font-weight:700;flex-shrink:0;">📁</span>`
+      : '';
+    item.innerHTML = `<span class="search-result-col">${colNames[col]}</span>${isProj}<span class="search-result-title">${escHtml(card.title)}</span>${projInfo}`;
+    item.onclick = () => {
+      closeSearchDropdown();
+      // 手機版自動切換到對應 tab
+      if (window.innerWidth <= 768) {
+        switchMobileTab(col);
+      }
+      setTimeout(() => {
+        const el = document.getElementById('card-' + card.id);
+        if (el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='2px solid var(--accent-week)'; setTimeout(()=>el.style.outline='',1500); }
+      }, 150);
+    };
+    dropdown.appendChild(item);
+  });
+  dropdown.classList.add('show');
+}
+
+function setPrivacyFilter(filter) {
+  privacyFilter = filter;
+  document.querySelectorAll('.privacy-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  render();
+}
+
+function toggleHelp() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('help-btn').classList.toggle('active'); }
+function toggleExportMenu() { document.getElementById('export-dropdown').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.export-btn') && !e.target.closest('.export-dropdown')) document.getElementById('export-dropdown').classList.remove('open'); });
+
+// 色票
+const BG_COLORS = [{val:'',label:'預設'},{val:'#FFFFFF',label:'白'},{val:'#FFF9C4',label:'黃'},{val:'#FAECE7',label:'橘'},{val:'#EEEDFE',label:'紫'},{val:'#E1F5EE',label:'綠'},{val:'#E6F1FB',label:'藍'},{val:'#FBEAF0',label:'粉'},{val:'#EFEDE8',label:'米'},{val:'#2C2C2A',label:'黑'}];
+const TEXT_COLORS = [{val:'',label:'預設'},{val:'#1A1A18',label:'黑'},{val:'#FFFFFF',label:'白'},{val:'#534AB7',label:'紫'},{val:'#D85A30',label:'橘'},{val:'#1D9E75',label:'綠'},{val:'#185FA5',label:'藍'},{val:'#993556',label:'粉'},{val:'#BA7517',label:'金'},{val:'#E24B4A',label:'紅'}];
+function initSwatches(curBg, curText) {
+  const bgEl = document.getElementById('bg-swatches'), textEl = document.getElementById('text-swatches'); bgEl.innerHTML = ''; textEl.innerHTML = '';
+  BG_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curBg?' selected':''); s.title=label; s.style.background=val||'#F5F3EE'; if(!val) s.style.border='2px dashed #ccc'; s.onclick=()=>{ bgEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById('input-bgcolor').value=val; }; bgEl.appendChild(s); });
+  TEXT_COLORS.forEach(({val,label}) => { const s = document.createElement('div'); s.className = 'swatch'+(val===curText?' selected':''); s.title=label; s.style.background=val||'#1A1A18'; if(!val){ s.style.background='linear-gradient(135deg, #fff 50%, #333 50%)'; s.style.border='2px dashed #ccc'; } s.onclick=()=>{ textEl.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); document.getElementById('input-textcolor').value=val; }; textEl.appendChild(s); });
+}
+
+// ==========================================
+// 專注計時與匯出
+// ==========================================
+function toggleTimer(id) { timerRunning ? pauseTimer(id) : startTimer(id); }
+function startTimer(id) { timerRunning = true; document.getElementById(`timer-btn-${id}`).textContent = '暫停'; focusTimer = setInterval(() => { timerSeconds++; updateTimerDisplay(id); }, 1000); }
+function pauseTimer(id) { timerRunning = false; document.getElementById(`timer-btn-${id}`).textContent = '繼續'; clearInterval(focusTimer); }
+function resetTimer(id) { timerRunning = false; timerSeconds = 0; clearInterval(focusTimer); updateTimerDisplay(id); document.getElementById(`timer-btn-${id}`).textContent = '開始專注'; }
+function updateTimerDisplay(id) { const el = document.getElementById(`timer-display-${id}`); if(el) el.textContent = String(Math.floor(timerSeconds/3600)).padStart(2,'0')+':'+String(Math.floor((timerSeconds%3600)/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0'); }
+
+function printModalContent() {
+  const title = document.getElementById('input-title')?.value || '卡片內容';
+  const summary = document.getElementById('input-summary')?.value || '';
+  const nextStep = document.getElementById('input-nextstep')?.value || '';
+  const body = document.getElementById('input-body-editor')?.innerHTML || '';
+
+  // 待辦清單
+  const items = document.querySelectorAll('#checklist-container .checklist-item');
+  const hasChecklist = items.length > 0;
+  const hasBody = body && body.replace(/<[^>]+>/g,'').trim();
+
+  // 建立選項對話框
+  const dlg = document.createElement('div');
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  dlg.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;min-width:300px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px;">🖨️ 選擇列印內容</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-title" checked style="width:16px;height:16px;"> 標題
+        </label>
+        ${summary ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-summary" checked style="width:16px;height:16px;"> 摘要
+        </label>` : ''}
+        ${nextStep ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-nextstep" checked style="width:16px;height:16px;"> 下一步
+        </label>` : ''}
+        ${hasChecklist ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-checklist" checked style="width:16px;height:16px;"> 待辦清單
+        </label>` : ''}
+        ${hasBody ? `
+        <div style="border-top:1px solid #eee;padding-top:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+            <input type="checkbox" id="print-body" checked style="width:16px;height:16px;"> 筆記內容
+          </label>
+          <div style="margin-left:24px;margin-top:8px;display:flex;flex-direction:column;gap:7px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-body-header" checked style="width:14px;height:14px;"> 在筆記前加標題列（📝 ${title} — 筆記）
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新的一頁開始印（不接在待辦後面）
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
+              <input type="checkbox" id="print-h-break" style="width:14px;height:14px;"> 遇到大標題（H1/H2）自動換頁
+            </label>
+          </div>
+        </div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="print-cancel" style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
+        <button id="print-confirm" style="padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-size:14px;font-weight:600;">列印</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dlg);
+
+  document.getElementById('print-cancel').onclick = () => document.body.removeChild(dlg);
+
+  document.getElementById('print-confirm').onclick = () => {
+    const printTitle      = document.getElementById('print-title')?.checked;
+    const printSummary    = document.getElementById('print-summary')?.checked;
+    const printNext       = document.getElementById('print-nextstep')?.checked;
+    const printCl         = document.getElementById('print-checklist')?.checked;
+    const printBody       = document.getElementById('print-body')?.checked;
+    const printNewPage    = document.getElementById('print-body-newpage')?.checked;
+    const printBodyHeader = document.getElementById('print-body-header')?.checked;
+    const printHBreak     = document.getElementById('print-h-break')?.checked;
+
+    let checklistHTML = '';
+    if (printCl && hasChecklist) {
+      checklistHTML = '<div style="margin-bottom:16px;border:1px solid #eee;border-radius:8px;padding:12px;"><strong>待辦清單：</strong><ul style="margin:8px 0 0 20px;">';
+      items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        const ta = item.querySelector('textarea');
+        const text = ta ? ta.value.trim() : '';
+        if (text) {
+          const done = cb && cb.checked;
+          checklistHTML += `<li style="${done ? 'text-decoration:line-through;color:#999;' : ''}">${text}</li>`;
+        }
+      });
+      checklistHTML += '</ul></div>';
+    }
+
+    // H1/H2 自動換頁：在 body HTML 裡的 h1/h2 前插入 page-break（第一個不換）
+    let processedBody = body;
+    if (printHBreak && hasBody) {
+      let isFirst = true;
+      processedBody = body.replace(/<(h1|h2)(\s[^>]*)?>/gi, (match, tag, attrs) => {
+        if (isFirst) { isFirst = false; return match; }
+        return `<div class="page-break"></div><${tag}${attrs || ''}>`;
+      });
+    }
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html><html><head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1A2C3A; line-height: 1.8; }
+        h1 { font-size: 20px; margin: 0 0 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
+        h2 { font-size: 15px; font-weight: 700; color: #534AB7; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; margin: 12px 0 8px; }
+        h3 { font-size: 13px; font-weight: 700; margin: 10px 0 6px; }
+        .section { margin-bottom: 14px; }
+        .label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .summary { background: #FFFEF0; border-left: 4px solid #E8763E; padding: 8px 12px; border-radius: 4px; font-style: italic; }
+        .nextstep { background: #F0FFF4; border-left: 4px solid #22c55e; padding: 8px 12px; border-radius: 4px; font-weight: 600; }
+        .note-header { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
+        .body-content { padding: 4px 0; }
+        .page-break { page-break-before: always; break-before: always; padding-top: 16px; }
+        div.page-break-divider { page-break-after: always; break-after: always; border: none; margin: 0; height: 0; visibility: hidden; }
+        ul, ol { margin-left: 20px; margin-bottom: 8px; }
+        li { margin-bottom: 4px; }
+        @media print { body { margin: 10px; } }
+      </style>
+    </head><body>
+      ${printTitle ? `<h1>${title}</h1>` : ''}
+      ${printSummary && summary ? `<div class="section"><div class="summary">💡 ${summary}</div></div>` : ''}
+      ${printNext && nextStep ? `<div class="section"><div class="label">下一步</div><div class="nextstep">→ ${nextStep}</div></div>` : ''}
+      ${checklistHTML}
+      ${printBody && hasBody ? `
+        <div class="${printNewPage ? 'page-break' : 'section'}">
+          ${printBodyHeader ? `<div class="note-header">📝 ${title} — 筆記</div>` : ''}
+          <div class="body-content">${processedBody}</div>
+        </div>` : ''}
+      <script>window.onload = function(){ window.print(); }<\/script>
+    </body></html>`);
+    printWindow.document.close();
+    document.body.removeChild(dlg);
+  };
+}
+
+function exportToExcel() {
+  let csv = '\uFEFF區域,專案,標題,摘要,下一步,詳細說明,來源連結,完成時間\n';
+  ['lib','week','focus','done'].forEach(col => state[col].forEach(c => { 
+    const plainBody = stripHtml(c.body || '');
+    csv += `"${{lib:'策略',week:'目標',focus:'今日',done:'完成'}[col]}","${c.project?PROJECT_LABELS[c.project]:''}","${(c.title||'').replace(/"/g,'""')}","${(c.summary||'').replace(/"/g,'""')}","${(c.nextStep||'').replace(/"/g,'""').replace(/\n/g,' ')}","${plainBody.replace(/"/g,'""').replace(/\n/g,' ')}","${(c.sourceLink||'').replace(/"/g,'""')}","${c.completedAt?formatDateTime(c.completedAt):''}"\n`; 
+  }));
+  downloadFile(csv, 'kanban.csv', 'text/csv;charset=utf-8;'); toast('✅ Excel 匯出成功'); toggleExportMenu();
+}
+function exportToPDF() {
+  const w = window.open('','_blank'); let h = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:20px}.sec{margin-bottom:30px}.st{font-size:18px;font-weight:bold;color:#534AB7;border-bottom:2px solid #534AB7;margin-bottom:10px}.c{background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px}</style></head><body><h2>專注看板匯出</h2>`;
+  ['lib','week','focus','done'].forEach(col => { h += `<div class="sec"><div class="st">${col} (${state[col].length})</div>`; state[col].forEach(c => { h+=`<div class="c"><b>${escHtml(c.title)}</b><br><small>${c.summary||''}</small></div>`; }); h+='</div>'; }); h+='</body></html>';
+  w.document.write(h); w.document.close(); setTimeout(()=>w.print(),500); toast('✅ 準備列印'); toggleExportMenu();
+}
+function backupData() { downloadFile(JSON.stringify({v:'2.0',data:state},null,2), `kanban-backup.json`, 'application/json;charset=utf-8;'); toast('✅ 備份下載'); toggleExportMenu(); }
+function restoreData(e) { alert("已升級為 MySQL 雲端版，請聯絡管理員手動匯入。"); e.target.value = ''; toggleExportMenu(); }
+function downloadFile(content, filename, mime) { const b = new Blob([content], {type:mime}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); }
+
+// ==========================================
+// 待办清单相关函数
+// ==========================================
+
+// 添加待办项到编辑界面
+// Modal 內待辦清單收折
+function toggleModalChecklist(forceOpen) {
+  const body = document.getElementById('modal-checklist-body');
+  const chevron = document.getElementById('modal-checklist-chevron');
+  const col = document.getElementById('modal-checklist-col');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
+  body.style.display = shouldOpen ? 'flex' : 'none';
+  if (chevron) chevron.style.transform = shouldOpen ? '' : 'rotate(180deg)';
+  if (col) {
+    col.style.width = shouldOpen ? 'fit-content' : '36px';
+    col.style.minWidth = shouldOpen ? '140px' : '36px';
+    col.style.maxWidth = shouldOpen ? '260px' : '36px';
+  }
+}
+
+function addChecklistItem(text = '', checked = false) {
+  const container = document.getElementById('checklist-container');
+  const id = 'checklist-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  
+  const item = document.createElement('div');
+  item.className = 'checklist-item';
+  item.dataset.id = id;
+  item.innerHTML = `
+    <input type="checkbox" ${checked ? 'checked' : ''}>
+    <textarea placeholder="輸入待辦事項..." rows="1" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(text)}</textarea>
+    <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();" style="padding:2px 6px;font-size:15px;background:none;border:none;color:#FCA5A5;cursor:pointer;">🗑</button>
+  `;
+  
+  container.appendChild(item);
+
+  // 初始化高度
+  const ta = item.querySelector('textarea');
+  if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+
+  // 初始刪除線（已勾選時）
+  if (ta && checked) {
+    ta.style.textDecoration = 'line-through';
+    ta.style.color = 'var(--text-muted)';
+  }
+
+  // checkbox 勾選/取消時動態更新刪除線
+  const cb = item.querySelector('input[type="checkbox"]');
+  if (cb && ta) {
+    cb.addEventListener('change', () => {
+      ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
+      ta.style.color = cb.checked ? 'var(--text-muted)' : '';
+    });
+  }
+
+  if (!text && ta) ta.focus();
+}
+
+// 删除待办项
+function deleteChecklistItem(id) {
+  const item = document.querySelector(`.checklist-item[data-id="${id}"]`);
+  if (item) {
+    item.remove();
+  }
+}
+
+// 获取当前编辑界面的待办清单数据
+function getChecklistData() {
+  const items = [];
+  document.querySelectorAll('#checklist-container .checklist-item').forEach(item => {
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    const textInput = item.querySelector('textarea') || item.querySelector('input[type="text"]');
+    const text = textInput ? textInput.value.trim() : '';
+    
+    if (text) { // 只保存有内容的项目
+      items.push({
+        text: text,
+        checked: checkbox.checked
+      });
+    }
+  });
+  return items.length > 0 ? items : null;
+}
+
+// 在编辑界面渲染待办清单
+function renderChecklistEdit(checklist) {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+  
+  if (checklist && Array.isArray(checklist)) {
+    checklist.forEach(item => {
+      addChecklistItem(item.text, item.checked);
+    });
+  }
+}
+
+// 在卡片上切换待办项的勾选状态
+async function toggleChecklistItem(cardId, itemIndex, col) {
+  const card = state[col].find(c => c.id === cardId);
+  if (!card || !card.checklist || !card.checklist[itemIndex]) return;
+  
+  // 切换状态
+  card.checklist[itemIndex].checked = !card.checklist[itemIndex].checked;
+  
+  // 保存到服务器
+  await saveCardToAPI({
+    id: cardId,
+    col: col,
+    title: card.title,
+    project: card.project,
+    sourceLink: card.sourceLink,
+    summary: card.summary,
+    nextStep: card.nextStep,
+    body: card.body,
+    bgcolor: card.bgcolor,
+    textcolor: card.textcolor,
+    isPrivate: card.isPrivate ? 1 : 0,
+    checklist: card.checklist
+  });
+  
+  // 重新渲染
+  render();
+}
+
+// ==========================================
+// 通知功能
+// ==========================================
+
+let notificationPanel = null;
+let notificationCheckInterval = null;
+let lastNotificationCount = 0; // 记录上次的通知数量
+let notificationSoundEnabled = true; // 是否启用提示音
+
+// 播放通知提示音
+function playNotificationSound() {
+  if (!notificationSoundEnabled) return;
+  
+  try {
+    // 使用 Web Audio API 生成简单的"叮"声
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // 设置音调（800Hz，清脆的提示音）
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    // 设置音量渐变（避免突兀）
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    // 播放 0.3 秒
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (err) {
+    console.error('播放提示音失败:', err);
+  }
+}
+
+// 切换提示音开关
+function toggleNotificationSound() {
+  notificationSoundEnabled = !notificationSoundEnabled;
+  localStorage.setItem('notificationSoundEnabled', notificationSoundEnabled);
+  const btn = document.getElementById('notification-sound-toggle');
+  if (btn) {
+    btn.textContent = notificationSoundEnabled ? '🔔' : '🔕';
+    btn.title = notificationSoundEnabled ? '點擊關閉提示音' : '點擊開啟提示音';
+  }
+  toast(notificationSoundEnabled ? '✓ 已開啟提示音' : '✓ 已關閉提示音');
+}
+
+// 初始化通知系统
+function initNotifications() {
+  notificationPanel = document.getElementById('notification-panel');
+  
+  // 读取提示音设置
+  const savedSound = localStorage.getItem('notificationSoundEnabled');
+  if (savedSound !== null) {
+    notificationSoundEnabled = savedSound === 'true';
+  }
+  
+  // 更新按钮状态
+  const soundBtn = document.getElementById('notification-sound-toggle');
+  if (soundBtn) {
+    soundBtn.textContent = notificationSoundEnabled ? '🔔' : '🔕';
+    soundBtn.title = notificationSoundEnabled ? '點擊關閉提示音' : '點擊開啟提示音';
+  }
+  
+  // 启动定期检查（每30秒）
+  checkNotifications();
+  notificationCheckInterval = setInterval(checkNotifications, 30000);
+  
+  // 点击外部关闭通知面板
+  document.addEventListener('click', (e) => {
+    if (notificationPanel && notificationPanel.classList.contains('open')) {
+      if (!e.target.closest('.notification-panel') && !e.target.closest('.notification-btn')) {
+        notificationPanel.classList.remove('open');
+      }
+    }
+  });
+}
+
+// 检查未读通知数量
+async function checkNotifications() {
+  try {
+    const res = await fetch('api/notifications.php?action=count');
+    const data = await res.json();
+    
+    if (data.success && data.count > 0) {
+      // 如果通知数量增加了，播放提示音
+      if (data.count > lastNotificationCount && lastNotificationCount > 0) {
+        playNotificationSound();
+      }
+      lastNotificationCount = data.count;
+      showNotificationBadge(data.count);
+    } else {
+      lastNotificationCount = 0;
+      hideNotificationBadge();
+    }
+  } catch (err) {
+    console.error('检查通知失败:', err);
+  }
+}
+
+// 显示通知红点
+function showNotificationBadge(count) {
+  const badge = document.getElementById('notification-badge');
+  if (badge) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'block';
+  }
+}
+
+// 隐藏通知红点
+function hideNotificationBadge() {
+  const badge = document.getElementById('notification-badge');
+  if (badge) {
+    badge.style.display = 'none';
+  }
+}
+
+// 切换通知面板
+async function toggleNotifications() {
+  if (!notificationPanel) return;
+  
+  if (notificationPanel.classList.contains('open')) {
+    notificationPanel.classList.remove('open');
+  } else {
+    notificationPanel.classList.add('open');
+    await loadNotifications();
+  }
+}
+
+// 加载通知列表
+async function loadNotifications() {
+  try {
+    const res = await fetch('api/notifications.php?action=list');
+    const data = await res.json();
+    
+    const list = document.getElementById('notification-list');
+    
+    if (data.success && data.notifications && data.notifications.length > 0) {
+      list.innerHTML = data.notifications.map(n => `
+        <div class="notification-item ${n.is_read ? '' : 'unread'}" onclick="handleNotificationClick(${n.id})">
+          <div class="notification-item-header">
+            <span class="notification-item-actor">${escHtml(n.actor_username)}</span>
+            <span class="notification-item-time">${formatNotificationTime(n.created_at)}</span>
+          </div>
+          <div class="notification-item-message">${escHtml(n.message)}</div>
+        </div>
+      `).join('');
+    } else {
+      list.innerHTML = '<div class="notification-empty">暫無通知</div>';
+    }
+  } catch (err) {
+    console.error('加载通知失败:', err);
+  }
+}
+
+// 处理通知点击
+async function handleNotificationClick(notificationId) {
+  try {
+    await fetch('api/notifications.php?action=mark_read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: notificationId })
+    });
+    
+    // 重新加载通知和计数
+    await loadNotifications();
+    await checkNotifications();
+  } catch (err) {
+    console.error('标记通知失败:', err);
+  }
+}
+
+// 全部标记为已读
+async function markAllNotificationsRead() {
+  try {
+    await fetch('api/notifications.php?action=mark_all_read', {
+      method: 'POST'
+    });
+    
+    // 重新加载
+    await loadNotifications();
+    await checkNotifications();
+    
+    toast('✓ 已標記所有通知為已讀');
+  } catch (err) {
+    console.error('标记所有通知失败:', err);
+  }
+}
+
+// 格式化通知时间
+function formatNotificationTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000); // 秒
+  
+  if (diff < 60) return '剛剛';
+  if (diff < 3600) return Math.floor(diff / 60) + ' 分鐘前';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' 小時前';
+  if (diff < 604800) return Math.floor(diff / 86400) + ' 天前';
+  
+  return date.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+}
+
+// 页面加载时初始化通知
+document.addEventListener('DOMContentLoaded', function() {
+  initNotifications();
+});
+
+// 手機版 Tab 切換
+function switchMobileTab(colName) {
+  // 使用者手動切換：記住分頁
+  setMobileTab(colName);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function initMobileTabs() {
+  // 重整/首次載入：固定跳今日專注
+  if (window.innerWidth <= 768) {
+    setMobileTab('focus');
+  }
+}
+
+function setMobileTab(colName) {
+  document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+
+  if (colName === 'goal') {
+    // 顯示手機版戰略樹面板
+    const goalMobilePanel = document.getElementById('mobile-goal-panel');
+    if (goalMobilePanel) goalMobilePanel.style.display = 'block';
+    const tab = document.querySelector('.mobile-tab[data-col="goal"]');
+    if (tab) tab.classList.add('active');
+  } else {
+    const goalMobilePanel = document.getElementById('mobile-goal-panel');
+    if (goalMobilePanel) goalMobilePanel.style.display = 'none';
+    const col = document.querySelector(`.col[data-col="${colName}"]`);
+    const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
+    if (col) col.classList.add('active');
+    if (tab) tab.classList.add('active');
+  }
+}
+
+function openMobileSettings() {
+  document.getElementById('mobile-settings-sheet').style.display = 'block';
+}
+function closeMobileSettings() {
+  document.getElementById('mobile-settings-sheet').style.display = 'none';
+}
+
+// ==========================================
+// 行內直接編輯函數
+// ==========================================
+
+// 取得卡片資料
+function getCard(cardId) {
+  for (const col of ['lib','week','focus','done']) {
+    const card = state[col].find(c => c.id === cardId);
+    if (card) return { card, col };
+  }
+  return null;
+}
+
+// 行內儲存（不重新渲染，保留展開狀態）
+async function inlineSave(cardId, col, updates) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const card = found.card;
+  // 用 getCard 找到的 col，比傳入的更可靠
+  const actualCol = found.col || col;
+  const data = {
+    id: cardId, col: actualCol,
+    title: card.title,
+    project: card.project,
+    priority: card.priority,
+    sourceLink: card.sourceLink,
+    summary: card.summary,
+    nextStep: card.nextStep,
+    body: card.body,
+    bgcolor: card.bgcolor,
+    textcolor: card.textcolor,
+    isPrivate: card.isPrivate ? 1 : 0,
+    checklist: card.checklist,
+    ...updates
+  };
+  try {
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      // 更新本地 state，不重新渲染
+      Object.assign(card, updates);
+      // 只更新 checklist 標頭數字
+      const cardEl = document.getElementById('card-' + cardId);
+      if (cardEl) {
+        const checkDone = (card.checklist||[]).filter(i=>i.checked).length;
+        const checkTotal = (card.checklist||[]).length;
+        const labels = cardEl.querySelectorAll('.cornell-label');
+        labels.forEach(l => { if (l.textContent.startsWith('✓ 待辦')) l.textContent = `✓ 待辦 ${checkDone}/${checkTotal}`; });
+      }
+    } else { toast('❌ ' + (result.error || '儲存失敗')); }
+  } catch(e) { toast('❌ 連線錯誤'); }
+}
+
+// 勾選待辦
+// ===== 外部卡片 checklist 簡化版（跟 modal 一樣邏輯）=====
+async function cbSave(cardId, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  // 只從這張卡片的 DOM 讀取，用 card id 精確定位
+  const cardEl = document.getElementById('card-' + cardId);
+  if (!cardEl) return;
+  const checklist = [];
+  // 只選這張卡片內的 cli 項目
+  for (let idx = 0; ; idx++) {
+    const item = document.getElementById('cli-' + cardId + '-' + idx);
+    if (!item) break;
+    const cb = item.querySelector('input[type="checkbox"]');
+    const ta = item.querySelector('textarea');
+    const text = ta ? ta.value.trim() : '';
+    if (text) {
+      checklist.push({ text, checked: cb ? cb.checked : false });
+      // 更新刪除線
+      if (ta) {
+        ta.style.textDecoration = cb.checked ? 'line-through' : 'none';
+        ta.style.color = cb.checked ? 'var(--text-muted)' : 'var(--text)';
+      }
+    }
+  }
+  // 更新計數
+  const done = checklist.filter(i => i.checked).length;
+  const label = document.getElementById('cl-label-' + cardId);
+  if (label) label.textContent = `✓ 待辦 ${done}/${checklist.length}`;
+  await inlineSave(cardId, actualCol, { checklist });
+
+  // 全部完成時彈出通知
+  if (checklist.length > 0 && done === checklist.length && actualCol !== 'done') {
+    setTimeout(() => {
+      if (confirm(`🎉 「${found.card.title}」的待辦事項全部完成！\n要移到「已完成」嗎？`)) {
+        moveAPI(cardId, 'done');
+      }
+    }, 200);
+  }
+}
+
+async function cbAdd(cardId, col) {
+  const input = document.getElementById('add-item-' + cardId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.push({ text, checked: false });
+  await inlineSave(cardId, actualCol, { checklist });
+  input.value = '';
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  setTimeout(() => {
+    const newInput = document.getElementById('add-item-' + cardId);
+    if (newInput) newInput.focus();
+  }, 200);
+}
+
+async function cbDel(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.splice(idx, 1);
+  await inlineSave(cardId, actualCol, { checklist });
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+}
+
+async function inlineToggleChecklist(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  if (checklist[idx]) checklist[idx].checked = !checklist[idx].checked;
+  await inlineSave(cardId, actualCol, { checklist });
+  // 更新視覺樣式（不重新渲染）
+  const cardEl = document.getElementById('card-' + cardId);
+  if (cardEl) {
+    const items = cardEl.querySelectorAll('.card-checklist-item');
+    if (items[idx]) {
+      const isChecked = checklist[idx].checked;
+      items[idx].classList.toggle('checked', isChecked);
+      // 更新文字刪除線
+      const textInput = items[idx].querySelector('.checklist-text-edit');
+      if (textInput) {
+        textInput.style.textDecoration = isChecked ? 'line-through' : 'none';
+        textInput.style.color = isChecked ? 'var(--text-muted)' : 'var(--text)';
+      }
+      // 更新計數
+      const doneCount = checklist.filter(i => i.checked).length;
+      const label = cardEl.querySelector('.cornell-label');
+      if (label && label.textContent.startsWith('✓')) {
+        label.textContent = `✓ 待辦 ${doneCount}/${checklist.length}`;
+      }
+    }
+  }
+}
+
+// 刪除待辦項
+async function inlineDeleteChecklist(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.splice(idx, 1);
+  await inlineSave(cardId, col, { checklist });
+  // 重新渲染這一欄
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  // 重新展開這張卡片
+  setTimeout(() => {
+    const cardEl = document.getElementById('card-' + cardId);
+    if (cardEl) { cardEl.classList.add('open'); cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  }, 150);
+}
+
+// 新增待辦項
+async function inlineAddChecklist(cardId, col) {
+  const input = document.getElementById('add-item-' + cardId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const found = getCard(cardId);
+  if (!found) return;
+  const actualCol = found.col || col;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  checklist.push({ text, checked: false });
+  await inlineSave(cardId, actualCol, { checklist });
+  input.value = '';
+  // 重新渲染並展開
+  const currentTab = document.querySelector('.mobile-tab.active')?.dataset?.col || null;
+  await loadCards();
+  if (currentTab && window.innerWidth <= 768) setMobileTab(currentTab);
+  setTimeout(() => {
+    const cardEl = document.getElementById('card-' + cardId);
+    if (cardEl) { cardEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    // 重新 focus 新增欄位
+    const newInput = document.getElementById('add-item-' + cardId);
+    if (newInput) newInput.focus();
+  }, 200);
+}
+
+// 儲存筆記
+async function inlineSaveNote(cardId, col, text) {
+  const body = text ? text.split('\n').map(l => `<p>${escHtml(l) || '<br>'}</p>`).join('') : '';
+  await inlineSave(cardId, col, { body });
+  toast('✅ 筆記已儲存');
+}
+
+// 浮動迷你富文字工具列
+function miniCmd(cmd, value) {
+  document.execCommand(cmd, false, value || null);
+}
+
+// 全選筆記區文字
+function noteSelectAll(noteId) {
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  note.focus();
+  const range = document.createRange();
+  range.selectNodeContents(note);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// 選取游標所在行
+function noteSelectLine(noteId) {
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const lineEl = getCurrentLineEl(note);
+  const range = document.createRange();
+  range.selectNodeContents(lineEl);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+// 選取游標所在行從行首到游標位置
+// 找游標所在的行元素（li, p, div）
+function getCurrentLineEl(note) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return note;
+  let node = sel.getRangeAt(0).startContainer;
+  while (node && node !== note) {
+    if (node.nodeType === 1 && ['LI','P','DIV'].includes(node.nodeName)) return node;
+    node = node.parentNode;
+  }
+  return note;
+}
+
+// 選取整行文字並執行指令，再恢復游標
+function applyToCurrentLine(note, cmd, value) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const savedRange = sel.getRangeAt(0).cloneRange();
+  const lineEl = getCurrentLineEl(note);
+  const range = document.createRange();
+  range.selectNodeContents(lineEl);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  document.execCommand(cmd, false, value || null);
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+}
+
+// 文字顏色：整行
+function setNoteColor(btn, color) {
+  // 可能在子選單裡，用 id 找對應的 note
+  const menu = btn.closest('[id^="color-menu-"]');
+  const toolbar = btn.closest('.mini-toolbar');
+  let note = null;
+  if (menu) {
+    const cardId = menu.id.replace('color-menu-', '');
+    note = document.getElementById('note-' + cardId);
+  } else if (toolbar) {
+    note = document.getElementById('note-' + toolbar.id.replace('mtb-', ''));
+  }
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (sel.toString().length > 0) {
+    document.execCommand('foreColor', false, color);
+  } else {
+    applyToCurrentLine(note, 'foreColor', color);
+  }
+}
+
+// 底色筆：整行
+function setNoteBgColor(btn, color) {
+  const menu = btn.closest('[id^="bg-menu-"]');
+  const toolbar = btn.closest('.mini-toolbar');
+  let note = null;
+  if (menu) {
+    const cardId = menu.id.replace('bg-menu-', '');
+    note = document.getElementById('note-' + cardId);
+  } else if (toolbar) {
+    note = document.getElementById('note-' + toolbar.id.replace('mtb-', ''));
+  }
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (sel.toString().length > 0) {
+    document.execCommand('hiliteColor', false, color);
+  } else {
+    applyToCurrentLine(note, 'hiliteColor', color);
+  }
+}
+
+// 粗體：整行
+function applyFormatBefore(cmd) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) { document.execCommand(cmd, false, null); return; }
+  if (sel.toString().length > 0) {
+    document.execCommand(cmd, false, null);
+  } else {
+    const note = document.activeElement;
+    if (!note || !note.classList.contains('note-editable')) return;
+    applyToCurrentLine(note, cmd, null);
+  }
+}
+
+
+// 筆記欄開關
+// toggleNoteEdit 已簡化，筆記欄永遠可編輯，點空白自動存
+function toggleNoteEdit(cardId, col) {
+  const note = document.getElementById('note-' + cardId);
+  if (!note) return;
+  note.focus();
+  showMiniToolbar('mtb-' + cardId);
+}
+
+// 子選單開關
+function toggleSubMenu(menuId, btn) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.style.display === 'flex';
+  document.querySelectorAll('[id^="color-menu-"],[id^="bg-menu-"],[id^="fmt-menu-"]').forEach(m => m.style.display = 'none');
+  if (!isOpen) {
+    menu.style.display = 'flex';
+    window._miniToolbarLocked = true; // 子選單開啟，鎖定不隱藏 toolbar
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        const menuW = menu.offsetWidth || 120;
+        const menuH = menu.offsetHeight || 48;
+        let left = rect.left - menuW - 8;
+        if (left < 8) left = rect.right + 8;
+        let top = rect.top + (rect.height / 2) - (menuH / 2);
+        top = Math.max(8, Math.min(top, window.innerHeight - menuH - 8));
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        menu.style.right = 'auto';
+      });
+    }
+  } else {
+    window._miniToolbarLocked = false;
+  }
+}
+function hideSubMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (menu) menu.style.display = 'none';
+  // 解鎖並把焦點還給 note
+  window._miniToolbarLocked = false;
+  // 找目前展開的 toolbar 對應的 note，還回焦點
+  setTimeout(() => {
+    const activeNote = document.querySelector('.note-editable:focus, .note-editable[data-focused="true"]');
+    if (!activeNote) {
+      // 找最近被操作的 note（toolbar 還是 show 狀態的）
+      const shownTb = document.querySelector('.mini-toolbar.show');
+      if (shownTb) {
+        const tbId = shownTb.id; // mtb-{cardId}
+        const cardId = tbId.replace('mtb-', '');
+        const noteEl = document.getElementById('note-' + cardId);
+        if (noteEl) noteEl.focus();
+      }
+    }
+  }, 50);
+}
+
+// 記憶上次選的顏色
+const lastColors = {}; // cardId -> color
+const lastBgColors = {}; // cardId -> bgColor
+
+function setLastColor(cardId, color) {
+  lastColors[cardId] = color;
+  const btn = document.getElementById('color-btn-' + cardId);
+  if (btn) btn.style.borderBottom = '3px solid ' + color;
+}
+
+function setLastBgColor(cardId, color) {
+  lastBgColors[cardId] = color;
+  const icon = document.getElementById('bg-icon-' + cardId);
+  if (icon) {
+    const rect = icon.querySelector('rect');
+    const poly = icon.querySelector('polygon');
+    if (rect) rect.setAttribute('fill', color);
+    if (poly) poly.setAttribute('fill', color === '#1A1A18' ? 'rgba(255,255,255,0.3)' : color);
+  }
+}
+
+function applyLastColor(cardId) {
+  const color = lastColors[cardId] || '#E24B4A';
+  const note = document.getElementById('note-' + cardId);
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (sel.toString().length > 0) {
+    document.execCommand('foreColor', false, color);
+  } else {
+    applyToCurrentLine(note, 'foreColor', color);
+  }
+}
+
+function applyLastBgColor(cardId) {
+  const color = lastBgColors[cardId] || '#FFFACC';
+  const note = document.getElementById('note-' + cardId);
+  if (!note) return;
+  note.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  if (sel.toString().length > 0) {
+    document.execCommand('hiliteColor', false, color);
+  } else {
+    applyToCurrentLine(note, 'hiliteColor', color);
+  }
+}
+
+function showMiniToolbar(id) {
+  const tb = document.getElementById(id);
+  if (tb) { tb.classList.add('show'); tb.classList.add('active'); tb.classList.remove('hidden'); }
+}
+function hideMiniToolbar(id) {
+  setTimeout(() => {
+    const tb = document.getElementById(id);
+    if (!tb) return;
+    if (window._miniToolbarLocked) return;
+    if (tb.contains(document.activeElement)) return;
+    tb.classList.remove('show');
+    // 不自動移除 active，讓使用者點 ✕ 才關閉
+  }, 300);
+}
+
+// 儲存富文字筆記（保留 HTML）
+async function inlineSaveNoteHTML(cardId, col, html) {
+  if (html === '<br>' || html === '') html = '';
+  // col 防呆：從 state 找卡片在哪個欄位
+  if (!col || col === 'undefined') {
+    const found = getCard(parseInt(cardId));
+    col = found ? found.col : 'lib';
+  }
+  await inlineSave(parseInt(cardId), col, { body: html });
+}
+
+// 編輯待辦項目文字
+async function inlineEditChecklistText(cardId, idx, col, newText) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const checklist = JSON.parse(JSON.stringify(found.card.checklist || []));
+  if (!checklist[idx] || checklist[idx].text === newText) return;
+  checklist[idx].text = newText;
+  await inlineSave(cardId, col, { checklist });
+}
+
+// 子任務選單
+function toggleSubtaskMenu(menuId, e) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.subtask-dropdown.open').forEach(m => m.classList.remove('open'));
+  if (!isOpen) {
+    menu.classList.add('open');
+    const btn = e.target;
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = Math.min(rect.left, window.innerWidth - 170) + 'px';
+  }
+}
+function closeSubtaskMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (menu) menu.classList.remove('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.subtask-dropdown.open').forEach(m => m.classList.remove('open'));
+});
+
+// 子任務升格：把主任務移到今日專注，記住子任務 index
+// 格式：localStorage 'subtaskFocus' = {cardId, idx, title, fromCol}
+async function promoteSubtaskToFocus(cardId, idx, col) {
+  const found = getCard(cardId);
+  if (!found) return;
+  const card = found.card;
+  const item = card.checklist[idx];
+  if (!item) return;
+
+  // 檢查自己的今日專注是否已滿
+  const myFocusCount = state.focus.filter(c => c.createdByUsername === CURRENT_USERNAME || !c.createdByUsername).length;
+  if (myFocusCount >= 1) {
+    toast('❌ 你的今日專注已有 1 張，請先完成或移出');
+    return;
+  }
+
+  // 記住子任務資訊（包含原本在哪個欄位）
+  try {
+    localStorage.setItem('subtaskFocus', JSON.stringify({
+      cardId: cardId,
+      idx: idx,
+      title: item.text,
+      fromCol: col
+    }));
+  } catch(e) {}
+
+  // 把主任務卡片移到今日專注
+  await moveAPI(cardId, 'focus');
+  toast('🎯 專注子任務：' + item.text);
+}
+
+// 取得目前的子任務專注資訊
+function getSubtaskFocus() {
+  try {
+    const data = localStorage.getItem('subtaskFocus');
+    return data ? JSON.parse(data) : null;
+  } catch(e) { return null; }
+}
+
+// 清除子任務專注
+function clearSubtaskFocus() {
+  try { localStorage.removeItem('subtaskFocus'); } catch(e) {}
+}
+
+// 完成子任務：勾選待辦項目，主任務移回原欄位
+async function completeSubtask(cardId) {
+  const sf = getSubtaskFocus();
+  if (!sf || sf.cardId !== cardId) return;
+
+  // 勾選子任務
+  await inlineToggleChecklist(cardId, sf.idx, 'focus');
+
+  // 清除子任務專注記錄
+  clearSubtaskFocus();
+
+  // 把主任務移回原欄位
+  const fromCol = sf.fromCol || 'lib';
+  await moveAPI(cardId, fromCol);
+  toast('✅ 子任務完成，主任務已移回' + {lib:'策略筆記區', week:'本週目標', focus:'今日專注'}[fromCol]);
+}
+
+// 卡片動作選單
+function toggleCardMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  // 關閉所有其他選單
+  document.querySelectorAll('.card-actions-dropdown.open').forEach(m => m.classList.remove('open'));
+  if (!isOpen) menu.classList.add('open');
+}
+function closeCardMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (menu) menu.classList.remove('open');
+}
+// 點擊其他地方關閉選單
+document.addEventListener('click', () => {
+  document.querySelectorAll('.card-actions-dropdown.open').forEach(m => m.classList.remove('open'));
+});
+
+// 四象限優先級選擇
+function selectPriority(value) {
+  const current = document.getElementById('input-priority').value;
+  if (current === value) {
+    document.getElementById('input-priority').value = '';
+    document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    document.getElementById('input-priority').value = value;
+    document.querySelectorAll('.priority-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === value);
+    });
+  }
+}
+
+// 手機版選單
+function toggleMobileMenu() {
+  // 先關閉搜尋下拉
+  const sd = document.getElementById('search-dropdown');
+  if (sd) sd.classList.remove('show');
+  document.getElementById('mobile-dropdown').classList.toggle('open');
+}
+function closeMobileMenu() { document.getElementById('mobile-dropdown').classList.remove('open'); }
+
+</script>
+<div id="bottom-bar" style="position:fixed;bottom:0;left:0;right:0;height:50px;background:white;border-top:2px solid #eee;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;z-index:90;">
+  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
+  <a href="users.php" style="padding:8px 16px;background:#534AB7;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">⚙️ 管理</a>
+  <?php endif; ?>
+  <a href="index.php?action=logout" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
+</div>
+</body>
+</html>
