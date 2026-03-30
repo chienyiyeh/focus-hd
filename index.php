@@ -925,8 +925,23 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
+<!-- 手機版年度計畫面板 -->
+<div id="mobile-goal-panel" style="display:none;padding:16px;padding-bottom:80px;">
+  <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    🏆 戰略目標
+    <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 新增年度目標</button>
+  </div>
+  <div id="mobile-goal-body">
+    <!-- 由 renderGoalTree 同步渲染 -->
+  </div>
+</div>
+
 <!-- 手機版底部 Tab Bar -->
 <div class="mobile-tab-bar">
+  <button class="mobile-tab" data-col="goal" onclick="switchMobileTab('goal')">
+    <div class="mobile-tab-icon">🏆</div>
+    <div class="mobile-tab-label">年度</div>
+  </button>
   <button class="mobile-tab active" data-col="lib" onclick="switchMobileTab('lib')">
     <div class="mobile-tab-icon">📚</div>
     <div class="mobile-tab-label">策略</div>
@@ -943,16 +958,33 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="mobile-tab-icon">✅</div>
     <div class="mobile-tab-label">完成</div>
   </button>
-  <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
-  <a href="users.php" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;" onclick="window.location.href='users.php';return false;">
+  <button onclick="openMobileSettings()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-muted);padding:0 8px;flex:1;border:none;background:none;cursor:pointer;font-family:inherit;">
     <span style="font-size:22px;line-height:1;">⚙️</span>
-    <span style="font-size:11px;font-weight:500;">管理</span>
-  </a>
-  <?php endif; ?>
-  <a href="index.php?action=logout" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#E24B4A;padding:0 8px;flex:1;" onclick="window.location.href='index.php?action=logout';return false;">
-    <span style="font-size:22px;line-height:1;">🚪</span>
-    <span style="font-size:11px;font-weight:500;">登出</span>
-  </a>
+    <span style="font-size:11px;font-weight:500;">設定</span>
+  </button>
+</div>
+
+<!-- 手機版設定底部 Sheet -->
+<div id="mobile-settings-sheet" style="display:none;position:fixed;inset:0;z-index:9999;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);" onclick="closeMobileSettings()"></div>
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 0 32px;">
+    <div style="width:40px;height:4px;background:var(--border-strong);border-radius:2px;margin:0 auto 20px;"></div>
+    <div style="padding:0 16px;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;">設定</div>
+    <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?>
+    <a href="users.php" style="display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;color:var(--text);border-bottom:1px solid var(--border);">
+      <span style="font-size:20px;">👥</span>
+      <span style="font-size:15px;font-weight:500;">使用者管理</span>
+    </a>
+    <?php endif; ?>
+    <button onclick="openProjectSettings();closeMobileSettings();" style="display:flex;align-items:center;gap:14px;padding:14px 20px;width:100%;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text);border-bottom:1px solid var(--border);text-align:left;">
+      <span style="font-size:20px;">🎨</span>
+      <span style="font-size:15px;font-weight:500;">專案管理</span>
+    </button>
+    <a href="index.php?action=logout" style="display:flex;align-items:center;gap:14px;padding:14px 20px;text-decoration:none;color:#991B1B;">
+      <span style="font-size:20px;">🚪</span>
+      <span style="font-size:15px;font-weight:500;">登出</span>
+    </a>
+  </div>
 </div>
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
@@ -2109,25 +2141,133 @@ function calcGoalProgress(goalCard) {
 // 渲染戰略樹
 function renderGoalTree() {
   const container = document.getElementById('goal-panel-body');
-  if (!container) return;
+  const mobileContainer = document.getElementById('mobile-goal-body');
 
   const goalCards = state.goal || [];
   const yearCards = goalCards.filter(c => c.level === 'year');
 
-  if (yearCards.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:24px 16px;color:rgba(255,255,255,0.3);font-size:12px;line-height:1.8;">
-      還沒有年度目標<br>點下方按鈕建立第一個
-    </div>`;
-    return;
+  const emptyHTML = `<div style="text-align:center;padding:24px 16px;color:rgba(255,255,255,0.3);font-size:12px;line-height:1.8;">
+    還沒有年度目標<br>點下方按鈕建立第一個
+  </div>`;
+
+  if (container) {
+    container.innerHTML = '';
+    if (yearCards.length === 0) { container.innerHTML = emptyHTML; }
+    else yearCards.forEach(year => container.appendChild(buildYearCard(year, goalCards)));
   }
 
-  container.innerHTML = '';
-  yearCards.forEach(year => {
-    container.appendChild(buildYearCard(year, goalCards));
-  });
+  // 手機版（用淺色樣式）
+  if (mobileContainer) {
+    mobileContainer.innerHTML = '';
+    if (yearCards.length === 0) {
+      mobileContainer.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:13px;">還沒有年度目標</div>`;
+    } else {
+      yearCards.forEach(year => {
+        mobileContainer.appendChild(buildMobileYearCard(year, goalCards));
+      });
+    }
+  }
 }
 
-// 建立年度卡
+// 手機版年度計畫（淺色主題）
+function buildMobileYearCard(year, allGoalCards) {
+  const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
+  const progress = calcGoalProgress(year);
+  const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
+  const isComplete = progress.total > 0 && progress.done === progress.total;
+
+  const div = document.createElement('div');
+  div.style.cssText = 'background:var(--surface);border:1px solid var(--border-strong);border-radius:12px;margin-bottom:12px;overflow:hidden;';
+
+  div.innerHTML = `
+    <div style="padding:12px 14px;background:linear-gradient(135deg,#534AB7,#7C3AED);cursor:pointer;display:flex;align-items:center;gap:10px;"
+      onclick="this.closest('div').querySelector('.m-year-body').style.display=this.closest('div').querySelector('.m-year-body').style.display==='none'?'block':'none'">
+      <span style="font-size:16px;">📌</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(year.title)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;">${pct}% 完成 · ${progress.done}/${progress.total} 任務</div>
+      </div>
+      <button onclick="openGoalModal('month',${year.id});event.stopPropagation()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0;">＋月</button>
+    </div>
+    <div style="height:4px;background:rgba(0,0,0,0.1);"><div style="height:100%;background:${isComplete?'#22c55e':'#7C3AED'};width:${pct}%;transition:width 0.6s;border-radius:0 2px 2px 0;"></div></div>
+    <div class="m-year-body" style="display:block;padding:8px;">
+      <div id="m-year-children-${year.id}"></div>
+    </div>
+  `;
+
+  // 渲染月度卡
+  const childrenEl = div.querySelector(`#m-year-children-${year.id}`);
+  monthCards.forEach(month => childrenEl.appendChild(buildMobileMonthCard(month, allGoalCards)));
+  if (monthCards.length === 0) {
+    childrenEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;">點上方「＋月」新增月度目標</div>`;
+  }
+
+  return div;
+}
+
+function buildMobileMonthCard(month, allGoalCards) {
+  const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
+  const progress = calcGoalProgress(month);
+  const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
+  const isComplete = progress.total > 0 && progress.done === progress.total;
+
+  const div = document.createElement('div');
+  div.style.cssText = 'background:var(--surface2);border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border);';
+
+  div.innerHTML = `
+    <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;"
+      onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">
+      <span style="font-size:13px;">📅</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${pct}% · ${progress.done}/${progress.total}</div>
+      </div>
+      <button onclick="openGoalModal('week',${month.id});event.stopPropagation()" style="background:var(--accent-lib);background:rgba(83,74,183,0.15);border:1px solid rgba(83,74,183,0.3);color:#534AB7;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;">＋週</button>
+    </div>
+    <div style="height:3px;background:var(--border);"><div style="height:100%;background:${isComplete?'#22c55e':'#6366f1'};width:${pct}%;transition:width 0.6s;"></div></div>
+    <div style="display:block;padding:6px 8px;">
+      <div id="m-month-children-${month.id}"></div>
+    </div>
+  `;
+
+  const childrenEl = div.querySelector(`#m-month-children-${month.id}`);
+  weekCards.forEach(week => childrenEl.appendChild(buildMobileWeekCard(week)));
+  if (weekCards.length === 0) {
+    childrenEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:11px;">點「＋週」新增週目標</div>`;
+  }
+
+  return div;
+}
+
+function buildMobileWeekCard(week) {
+  const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
+  const children = allCards.filter(c => c.parentId === week.id);
+  const doneCount = children.filter(c => c.col === 'done').length;
+  const total = children.length;
+  const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
+  const isComplete = total > 0 && doneCount === total;
+
+  const div = document.createElement('div');
+  div.style.cssText = 'background:var(--surface);border-radius:6px;margin-bottom:4px;padding:8px 10px;border:1px solid var(--border);';
+
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📋 ${escHtml(week.title)}</span>
+      <span style="font-size:11px;color:var(--text-muted);">${doneCount}/${total}</span>
+    </div>
+    <div style="height:2px;background:var(--border);border-radius:1px;margin-bottom:8px;">
+      <div style="height:100%;background:${isComplete?'#22c55e':'#f97316'};width:${pct}%;transition:width 0.6s;border-radius:1px;"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button onclick="spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="padding:4px 10px;background:#534AB720;border:1px solid #534AB740;color:#534AB7;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">＋ 子任務</button>
+      <button onclick="filterByParent(${week.id});switchMobileTab('lib')" style="padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔍 查看</button>
+    </div>
+  `;
+
+  return div;
+}
+
+// 建立年度卡（桌面深色版）
 function buildYearCard(year, allGoalCards) {
   const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
   const progress = calcGoalProgress(year);
@@ -3602,13 +3742,30 @@ function initMobileTabs() {
 }
 
 function setMobileTab(colName) {
-  // 切換分頁的核心函數，不改 localStorage
   document.querySelectorAll('.col').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
-  const col = document.querySelector(`.col[data-col="${colName}"]`);
-  const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
-  if (col) col.classList.add('active');
-  if (tab) tab.classList.add('active');
+
+  if (colName === 'goal') {
+    // 顯示手機版戰略樹面板
+    const goalMobilePanel = document.getElementById('mobile-goal-panel');
+    if (goalMobilePanel) goalMobilePanel.style.display = 'block';
+    const tab = document.querySelector('.mobile-tab[data-col="goal"]');
+    if (tab) tab.classList.add('active');
+  } else {
+    const goalMobilePanel = document.getElementById('mobile-goal-panel');
+    if (goalMobilePanel) goalMobilePanel.style.display = 'none';
+    const col = document.querySelector(`.col[data-col="${colName}"]`);
+    const tab = document.querySelector(`.mobile-tab[data-col="${colName}"]`);
+    if (col) col.classList.add('active');
+    if (tab) tab.classList.add('active');
+  }
+}
+
+function openMobileSettings() {
+  document.getElementById('mobile-settings-sheet').style.display = 'block';
+}
+function closeMobileSettings() {
+  document.getElementById('mobile-settings-sheet').style.display = 'none';
 }
 
 // ==========================================
