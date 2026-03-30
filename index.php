@@ -2359,17 +2359,17 @@ function buildWeekCard(week) {
   div.dataset.weekId = week.id;
 
   div.innerHTML = `
-    <div class="goal-week-header" onclick="filterByParent(${week.id})" title="點擊篩選此週子任務" style="cursor:pointer;">
+    <div class="goal-week-header" onclick="if(!event.target.closest('button'))filterByParent(${week.id})" title="點擊標題篩選此週子任務" style="cursor:pointer;">
       <span class="goal-week-title">📋 ${escHtml(week.title)}</span>
       <span class="goal-week-progress">${doneCount}/${total}</span>
     </div>
     <div class="goal-week-bar">
       <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
-    <div class="goal-week-actions">
-      <button class="goal-action-btn primary" onclick="spawnProjectCard(${week.id}, '${escHtml(week.title)}');event.stopPropagation()">＋ 子任務</button>
-      <button class="goal-action-btn" onclick="editGoalCard(${week.id},event)">✏️ 編輯</button>
-      <button class="goal-action-btn" onclick="deleteGoalCard(${week.id},event)" style="color:#E24B4A;">🗑</button>
+    <div class="goal-week-actions" onclick="event.stopPropagation()">
+      <button class="goal-action-btn primary" onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')">＋ 子任務</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️ 編輯</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;">🗑</button>
     </div>
   `;
 
@@ -2433,10 +2433,12 @@ function openGoalModal(level, parentId, editId = null) {
     if (summaryInput) summaryInput.value = '';
   }
 
-  // 雙重保險：同時用 inline style 和 class
-  overlay.style.display = 'flex';
-  overlay.classList.add('open');
-  setTimeout(() => { if (titleInput) { titleInput.focus(); titleInput.select(); } }, 100);
+  // 延遲顯示：讓當前的 click 事件完全結束後再顯示，防止事件冒泡到 overlay 立刻關閉
+  setTimeout(() => {
+    overlay.style.display = 'flex';
+    overlay.classList.add('open');
+    setTimeout(() => { if (titleInput) { titleInput.focus(); titleInput.select(); } }, 50);
+  }, 10);
 }
 
 function closeGoalModal() {
