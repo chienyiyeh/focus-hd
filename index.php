@@ -1143,7 +1143,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 <!-- 戰略目標 Modal -->
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;" onclick="if(event.target.id==='goal-modal-overlay')closeGoalModal()">
   <div style="background:var(--surface);border-radius:16px;width:90%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden;position:relative;">
     <div id="gm-header" style="padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#534AB7,#7C3AED);">
       <div id="gm-title" style="font-size:16px;font-weight:700;color:#fff;"></div>
@@ -2433,18 +2433,15 @@ function openGoalModal(level, parentId, editId = null) {
     if (summaryInput) summaryInput.value = '';
   }
 
-  // 延遲顯示：讓當前的 click 事件完全結束後再顯示，防止事件冒泡到 overlay 立刻關閉
-  setTimeout(() => {
-    overlay.style.display = 'flex';
-    overlay.classList.add('open');
-    setTimeout(() => { if (titleInput) { titleInput.focus(); titleInput.select(); } }, 50);
-  }, 10);
+  // 直接同步顯示，不用 setTimeout
+  overlay.style.cssText = 'display:flex !important; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:99999; align-items:center; justify-content:center;';
+  if (titleInput) setTimeout(() => { titleInput.focus(); titleInput.select(); }, 50);
 }
 
 function closeGoalModal() {
   const overlay = document.getElementById('goal-modal-overlay');
   if (overlay) {
-    overlay.style.display = 'none';
+    overlay.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:99999; align-items:center; justify-content:center;';
     overlay.classList.remove('open');
   }
   _goalModalState = {};
