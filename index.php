@@ -437,9 +437,9 @@ $username = $_SESSION['username'] ?? 'User';
   /* 迷你富文字工具列 - 直接顯示在 cornell-b 右側，不依賴任何狀態 */
   .mini-toolbar { display: none; gap: 4px; padding: 6px 8px; background: #111110; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; max-width: 100%; }
   .mini-toolbar.show { display: flex; }
-  /* cornell-b 內的工具列永遠顯示 */
-  .cornell-b .mini-toolbar { display: flex !important; }
-  /* 手動關閉後隱藏 */
+  /* cornell-b 工具列：預設隱藏，點筆記區後加 active 才顯示 */
+  .cornell-b .mini-toolbar { display: none; }
+  .cornell-b .mini-toolbar.active { display: flex !important; }
   .cornell-b .mini-toolbar.hidden { display: none !important; }
   /* done 欄卡片預設收合，點標題展開 */
   .col-done .card .cornell-layout,
@@ -987,10 +987,9 @@ $username = $_SESSION['username'] ?? 'User';
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
             <!-- 筆記區 -->
             <div id="input-body-editor" contenteditable="true" style="
-              flex:1;
+              flex:none;
               width:100%;
-              min-height:180px;
-              max-height:320px;
+              height:220px;
               overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
@@ -2494,7 +2493,7 @@ function buildCard(card, col, cardNo) {
       <!-- 筆記欄 -->
       <div style="flex:1;min-width:0;position:relative;padding:4px;">
         <div class="note-editable" id="note-${cardIdStr}" contenteditable="true" placeholder="點此輸入筆記..."
-          onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb)tb.classList.remove('hidden');event.stopPropagation()"
+          onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb){tb.classList.add('active');tb.classList.remove('hidden');}event.stopPropagation()"
           onblur="const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
           ondragstart="event.preventDefault();event.stopPropagation()"
@@ -2540,7 +2539,7 @@ function buildCard(card, col, cardNo) {
           onclick="(function(){const n=document.getElementById('note-${cardIdStr}');if(n){inlineSaveNoteHTML(${cardIdStr},'${col}',n.innerHTML);const b=document.getElementById('save-btn-${cardIdStr}');if(b){b.textContent='✓';setTimeout(()=>{b.textContent='💾';},800);}}})();event.stopPropagation()" id="save-btn-${cardIdStr}">💾</button>
         <div style="width:22px;height:1px;background:rgba(255,255,255,0.3);"></div>
         <button class="mini-tb-btn" style="width:36px;height:36px;font-size:15px;padding:0;color:#aaa;touch-action:manipulation;" title="關閉工具列"
-          onclick="document.getElementById('mtb-${cardIdStr}').classList.add('hidden');event.stopPropagation()">✕</button>
+          onclick="const tb=document.getElementById('mtb-${cardIdStr}');if(tb){tb.classList.remove('active');tb.classList.add('hidden');}event.stopPropagation()">✕</button>
       </div>
     </div>`;
 
@@ -3697,17 +3696,16 @@ function applyLastBgColor(cardId) {
 
 function showMiniToolbar(id) {
   const tb = document.getElementById(id);
-  if (tb) tb.classList.add('show');
+  if (tb) { tb.classList.add('show'); tb.classList.add('active'); tb.classList.remove('hidden'); }
 }
 function hideMiniToolbar(id) {
   setTimeout(() => {
     const tb = document.getElementById(id);
     if (!tb) return;
-    // 若有子選單展開中，不隱藏
     if (window._miniToolbarLocked) return;
-    // 若焦點還在 toolbar 內，不隱藏
     if (tb.contains(document.activeElement)) return;
     tb.classList.remove('show');
+    // 不自動移除 active，讓使用者點 ✕ 才關閉
   }, 300);
 }
 
