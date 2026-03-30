@@ -1142,47 +1142,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<!-- 戰略目標 Modal -->
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;" onclick="if(event.target.id==='goal-modal-overlay')closeGoalModal()">
-  <div style="background:var(--surface);border-radius:16px;width:90%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden;position:relative;">
-    <div id="gm-header" style="padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#534AB7,#7C3AED);">
-      <div id="gm-title" style="font-size:16px;font-weight:700;color:#fff;"></div>
-      <div id="gm-parent-info" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;display:none;"></div>
-    </div>
-    <div style="padding:20px 20px 8px;">
-      <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">標題 *</label>
-        <input id="gm-title-input" type="text" placeholder="輸入目標標題..."
-          style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('gm-confirm').click();}">
-      </div>
-      <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">摘要 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
-        <input id="gm-summary-input" type="text" placeholder="一句話說明這個目標..."
-          style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;">
-      </div>
-      <div id="gm-period-row" style="margin-bottom:14px;">
-        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">年份 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
-        <div style="display:flex;gap:8px;">
-          <input id="gm-year-input" type="number" placeholder="例：2026" min="2020" max="2035"
-            style="flex:1;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;">
-          <select id="gm-month-input"
-            style="flex:1;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);display:none;outline:none;">
-            <option value="">月份（選填）</option>
-            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div style="padding:12px 20px 16px;display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="closeGoalModal()" style="padding:9px 20px;border:1px solid var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text);">取消</button>
-      <button id="gm-confirm" onclick="confirmGoalModal()" style="padding:9px 24px;border:none;border-radius:var(--radius);background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
-    </div>
-  </div>
-</div>
+<!-- 戰略目標 Modal（動態建立，見 openGoalModal JS 函數） -->
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
