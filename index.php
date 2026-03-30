@@ -459,6 +459,34 @@ $username = $_SESSION['username'] ?? 'User';
   .note-editable { width: 100%; min-height: 80px; max-height: 200px; overflow-y: auto; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; touch-action: auto; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
   .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
+  /* 分頁線：編輯器內顯示虛線 */
+  .page-break-divider {
+    display: block;
+    width: 100%;
+    border: none;
+    border-top: 2px dashed #6366f1;
+    margin: 12px 0;
+    position: relative;
+    cursor: default;
+  }
+  .page-break-divider::after {
+    content: '── 分頁 ──';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FFFDF5;
+    padding: 0 8px;
+    font-size: 10px;
+    color: #6366f1;
+    font-weight: 600;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  @media print {
+    .page-break-divider { page-break-after: always; break-after: always; border: none; }
+    .page-break-divider::after { display: none; }
+  }
 
   /* 行內直接編輯 */
   .cornell-note-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); resize: none; outline: none; min-height: 80px; }
@@ -971,6 +999,8 @@ $username = $_SESSION['username'] ?? 'User';
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('italic');event.preventDefault()"><i>I</i></button>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:13px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('insertOrderedList');event.preventDefault()">1.</button>
             <button class="mini-tb-btn" style="width:34px;height:34px;font-size:16px;padding:0;touch-action:manipulation;flex-shrink:0;" onclick="modalExecCmd('insertUnorderedList');event.preventDefault()">•</button>
+            <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 3px;flex-shrink:0;"></div>
+            <button class="mini-tb-btn" style="width:44px;height:34px;font-size:11px;padding:0;touch-action:manipulation;flex-shrink:0;line-height:1.2;letter-spacing:-0.5px;" title="插入分頁線（列印時換頁）" onclick="insertPageBreak();event.preventDefault()">－頁－</button>
           </div>
           <!-- 下半：左欄待辦 + 右欄筆記 -->
           <div style="display:flex; min-height:260px;">
@@ -2600,6 +2630,32 @@ function buildCard(card, col, cardNo) {
   return div;
 }
 
+// 插入分頁線
+function insertPageBreak() {
+  const ed = document.getElementById('input-body-editor');
+  if (!ed) return;
+  ed.focus();
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  // 建立分頁線 hr
+  const hr = document.createElement('hr');
+  hr.className = 'page-break-divider';
+  hr.contentEditable = 'false';
+  range.insertNode(hr);
+  // 在分頁線後插入新段落，讓游標移過去
+  const p = document.createElement('p');
+  p.innerHTML = '<br>';
+  hr.after(p);
+  // 把游標移到新段落
+  const newRange = document.createRange();
+  newRange.setStart(p, 0);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+}
+
 // Modal 編輯器工具列函數
 function modalExecCmd(cmd, val) {
   const ed = document.getElementById('input-body-editor');
@@ -3000,6 +3056,7 @@ function printModalContent() {
         .note-header { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
         .body-content { padding: 4px 0; }
         .page-break { page-break-before: always; break-before: always; padding-top: 16px; }
+        hr.page-break-divider { page-break-after: always; break-after: always; border: none; margin: 0; }
         ul, ol { margin-left: 20px; margin-bottom: 8px; }
         li { margin-bottom: 4px; }
         @media print { body { margin: 10px; } }
