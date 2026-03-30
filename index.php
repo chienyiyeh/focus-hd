@@ -2290,13 +2290,14 @@ function buildYearCard(year, allGoalCards) {
   div.id = 'goal-year-' + year.id;
 
   div.innerHTML = `
-    <div class="goal-year-header" onclick="this.closest('.goal-year-card').classList.toggle('open')">
+    <div class="goal-year-header" onclick="if(!event.target.closest('button'))this.closest('.goal-year-card').classList.toggle('open')">
       <span class="goal-year-chevron">▶</span>
       <span class="goal-year-icon">📌</span>
       <span class="goal-year-title">${escHtml(year.title)}</span>
       <span style="font-size:10px;color:rgba(255,255,255,0.4);flex-shrink:0;margin-right:4px;">${pct}%</span>
-      <button onclick="editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-      <button onclick="deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+      <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
     </div>
     <div class="goal-year-progress-bar">
       <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2306,12 +2307,6 @@ function buildYearCard(year, allGoalCards) {
 
   const childrenEl = div.querySelector('#year-children-' + year.id);
   monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards)));
-
-  const addMonthBtn = document.createElement('button');
-  addMonthBtn.className = 'goal-inline-add';
-  addMonthBtn.textContent = '＋ 新增月度目標';
-  addMonthBtn.onclick = (e) => { e.stopPropagation(); openGoalModal('month', year.id); };
-  childrenEl.appendChild(addMonthBtn);
 
   return div;
 }
@@ -2328,12 +2323,13 @@ function buildMonthCard(month, allGoalCards) {
   div.id = 'goal-month-' + month.id;
 
   div.innerHTML = `
-    <div class="goal-month-header" onclick="this.closest('.goal-month-card').classList.toggle('open')">
+    <div class="goal-month-header" onclick="if(!event.target.closest('button'))this.closest('.goal-month-card').classList.toggle('open')">
       <span class="goal-month-chevron">▶</span>
       <span class="goal-month-title">${escHtml(month.title)}</span>
       <span class="goal-month-badge">${progress.done}/${progress.total}</span>
-      <button onclick="editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
-      <button onclick="deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
+      <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
     </div>
     <div class="goal-month-progress-bar">
       <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
@@ -2342,16 +2338,7 @@ function buildMonthCard(month, allGoalCards) {
   `;
 
   const childrenEl = div.querySelector('#month-children-' + month.id);
-
-  weekCards.forEach(week => {
-    childrenEl.appendChild(buildWeekCard(week));
-  });
-
-  const addWeekBtn = document.createElement('button');
-  addWeekBtn.className = 'goal-inline-add';
-  addWeekBtn.textContent = '＋ 新增週目標';
-  addWeekBtn.onclick = (e) => { e.stopPropagation(); openGoalModal('week', month.id); };
-  childrenEl.appendChild(addWeekBtn);
+  weekCards.forEach(week => childrenEl.appendChild(buildWeekCard(week)));
 
   return div;
 }
