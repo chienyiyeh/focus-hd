@@ -319,9 +319,9 @@ $username = $_SESSION['username'] ?? 'User';
   .clear-done-btn { width: 100%; padding: 10px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 8px; }
 
   /* Modal & Overlay */
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 100; padding: 16px; overflow-y: auto; }
   .overlay.open { display: flex; }
-  .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: calc(100vw - 32px); max-height: none; display: flex; flex-direction: column; margin: auto; }
   .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .modal-title { font-size: 16px; font-weight: 700; }
   .modal-body { padding: 20px; flex: 1; overflow-y: auto; }
@@ -926,7 +926,10 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="modal">
     <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="modal-title" id="modal-title">新增卡片</div>
-      <button class="modal-btn primary" onclick="saveCard()" style="padding:7px 20px;font-size:13px;">儲存</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="printModalContent()" style="padding:7px 14px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);cursor:pointer;color:var(--text);">🖨️ 列印</button>
+        <button class="modal-btn primary" onclick="saveCard()" style="padding:7px 20px;font-size:13px;">儲存</button>
+      </div>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -2887,6 +2890,54 @@ function startTimer(id) { timerRunning = true; document.getElementById(`timer-bt
 function pauseTimer(id) { timerRunning = false; document.getElementById(`timer-btn-${id}`).textContent = '繼續'; clearInterval(focusTimer); }
 function resetTimer(id) { timerRunning = false; timerSeconds = 0; clearInterval(focusTimer); updateTimerDisplay(id); document.getElementById(`timer-btn-${id}`).textContent = '開始專注'; }
 function updateTimerDisplay(id) { const el = document.getElementById(`timer-display-${id}`); if(el) el.textContent = String(Math.floor(timerSeconds/3600)).padStart(2,'0')+':'+String(Math.floor((timerSeconds%3600)/60)).padStart(2,'0')+':'+String(timerSeconds%60).padStart(2,'0'); }
+
+function printModalContent() {
+  const title = document.getElementById('input-title')?.value || '卡片內容';
+  const summary = document.getElementById('input-summary')?.value || '';
+  const nextStep = document.getElementById('input-nextstep')?.value || '';
+  const body = document.getElementById('input-body-editor')?.innerHTML || '';
+
+  // 待辦清單
+  let checklistHTML = '';
+  const items = document.querySelectorAll('#checklist-container .checklist-item');
+  if (items.length > 0) {
+    checklistHTML = '<div style="margin-bottom:16px;"><strong>待辦清單：</strong><ul style="margin:8px 0 0 20px;">';
+    items.forEach(item => {
+      const cb = item.querySelector('input[type="checkbox"]');
+      const ta = item.querySelector('textarea');
+      const text = ta ? ta.value.trim() : '';
+      if (text) {
+        const done = cb && cb.checked;
+        checklistHTML += `<li style="${done ? 'text-decoration:line-through;color:#999;' : ''}">${text}</li>`;
+      }
+    });
+    checklistHTML += '</ul></div>';
+  }
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+      body { font-family: 'Noto Sans TC', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1A2C3A; line-height: 1.8; }
+      h1 { font-size: 22px; margin-bottom: 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
+      .section { margin-bottom: 16px; }
+      .label { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+      .summary { background: #FFFEF0; border-left: 4px solid #E8763E; padding: 8px 12px; border-radius: 4px; font-style: italic; }
+      .nextstep { background: #F0FFF4; border-left: 4px solid #22c55e; padding: 8px 12px; border-radius: 4px; font-weight: 600; }
+      .body-content { background: #FFFDF5; padding: 12px; border-radius: 4px; border: 1px solid #eee; }
+      @media print { body { margin: 20px; } }
+    </style>
+  </head><body>
+    <h1>${title}</h1>
+    ${summary ? `<div class="section"><div class="summary">💡 ${summary}</div></div>` : ''}
+    ${nextStep ? `<div class="section"><div class="label">下一步</div><div class="nextstep">→ ${nextStep}</div></div>` : ''}
+    ${checklistHTML}
+    ${body ? `<div class="section"><div class="label">筆記內容</div><div class="body-content">${body}</div></div>` : ''}
+    <script>window.onload = function(){ window.print(); }<\/script>
+  </body></html>`);
+  printWindow.document.close();
+}
 
 function exportToExcel() {
   let csv = '\uFEFF區域,專案,標題,摘要,下一步,詳細說明,來源連結,完成時間\n';
