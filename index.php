@@ -2385,87 +2385,104 @@ let _goalModalState = {}; // 記錄目前 modal 的狀態
 function openGoalModal(level, parentId, editId = null) {
   const levelNames = { year: '年度目標', month: '月度目標', week: '週目標' };
   const levelIcons = { year: '📌', month: '📅', week: '📋' };
-  const overlay = document.getElementById('goal-modal-overlay');
-  if (!overlay) return;
 
   _goalModalState = { level, parentId, editId };
 
-  // 標題
-  const titleEl = document.getElementById('gm-title');
-  if (titleEl) titleEl.textContent =
-    (editId ? '✏️ 編輯' : '＋ 新增') + ' ' + (levelIcons[level] || '') + ' ' + (levelNames[level] || '目標');
+  // 移除舊的（如果有）
+  const old = document.getElementById('gm-dynamic');
+  if (old) old.remove();
 
-  // 父層資訊
-  const parentInfoEl = document.getElementById('gm-parent-info');
-  if (parentInfoEl) {
-    if (parentId) {
-      const parentCard = state.goal.find(c => c.id === parentId);
-      parentInfoEl.textContent = parentCard ? `隸屬：${parentCard.title}` : '';
-      parentInfoEl.style.display = parentCard ? 'block' : 'none';
-    } else {
-      parentInfoEl.style.display = 'none';
-    }
+  // 取父層名稱
+  let parentInfo = '';
+  if (parentId) {
+    const parentCard = state.goal.find(c => c.id === parentId);
+    if (parentCard) parentInfo = `<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">隸屬：${escHtml(parentCard.title)}</div>`;
   }
 
-  // 期間欄位
-  const periodRow = document.getElementById('gm-period-row');
-  const monthSel  = document.getElementById('gm-month-input');
-  if (periodRow) {
-    if (level === 'year' || level === 'month') {
-      periodRow.style.display = 'block';
-      if (monthSel) monthSel.style.display = level === 'month' ? 'block' : 'none';
-      const yearInp = document.getElementById('gm-year-input');
-      if (yearInp && !yearInp.value) yearInp.value = new Date().getFullYear();
-    } else {
-      periodRow.style.display = 'none';
-    }
-  }
-
-  // 填入資料（新增清空，編輯填入現有）
-  const titleInput = document.getElementById('gm-title-input');
-  const summaryInput = document.getElementById('gm-summary-input');
+  // 取現有資料（編輯模式）
+  let existingTitle = '', existingSummary = '';
   if (editId) {
     const card = state.goal.find(c => c.id === editId);
-    if (titleInput)   titleInput.value   = card?.title   || '';
-    if (summaryInput) summaryInput.value = card?.summary || '';
-  } else {
-    if (titleInput)   titleInput.value   = '';
-    if (summaryInput) summaryInput.value = '';
+    if (card) { existingTitle = card.title || ''; existingSummary = card.summary || ''; }
   }
 
-  // 直接同步顯示，不用 setTimeout
-  overlay.style.cssText = 'display:flex !important; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:99999; align-items:center; justify-content:center;';
-  if (titleInput) setTimeout(() => { titleInput.focus(); titleInput.select(); }, 50);
+  // 年份欄位
+  const showYear = (level === 'year' || level === 'month');
+  const yearField = showYear ? `
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:#ccc;margin-bottom:5px;">年份（選填）</label>
+      <input id="gm-year-input" type="number" value="${new Date().getFullYear()}" min="2020" max="2035"
+        style="width:100%;padding:9px 12px;border:1.5px solid #444;border-radius:8px;font-size:14px;background:#2a2a2a;color:#eee;box-sizing:border-box;outline:none;">
+    </div>` : '';
+
+  // 建立全新 overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'gm-dynamic';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#1e1e1c;border-radius:16px;width:90%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.5);overflow:hidden;" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#534AB7,#7C3AED);">
+        <div style="font-size:16px;font-weight:700;color:#fff;">${editId ? '✏️ 編輯' : '＋ 新增'} ${levelIcons[level]||''} ${levelNames[level]||'目標'}</div>
+        ${parentInfo}
+      </div>
+      <div style="padding:20px 20px 8px;">
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#ccc;margin-bottom:6px;">標題 *</label>
+          <input id="gm-title-input" type="text" value="${escHtml(existingTitle)}" placeholder="輸入目標標題..."
+            style="width:100%;padding:10px 12px;border:1.5px solid #444;border-radius:8px;font-size:14px;background:#2a2a2a;color:#eee;box-sizing:border-box;outline:none;"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('gm-confirm-btn').click();}">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#ccc;margin-bottom:6px;">摘要（選填）</label>
+          <input id="gm-summary-input" type="text" value="${escHtml(existingSummary)}" placeholder="一句話說明這個目標..."
+            style="width:100%;padding:10px 12px;border:1.5px solid #444;border-radius:8px;font-size:13px;background:#2a2a2a;color:#eee;box-sizing:border-box;outline:none;">
+        </div>
+        ${yearField}
+      </div>
+      <div style="padding:12px 20px 18px;display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeGoalModal()" style="padding:9px 20px;border:1px solid #555;border-radius:8px;background:none;cursor:pointer;font-size:13px;font-family:inherit;color:#ccc;">取消</button>
+        <button id="gm-confirm-btn" onclick="confirmGoalModal()" style="padding:9px 24px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeGoalModal(); });
+  document.body.appendChild(overlay);
+
+  // 聚焦
+  setTimeout(() => {
+    const inp = document.getElementById('gm-title-input');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }, 50);
 }
 
 function closeGoalModal() {
-  const overlay = document.getElementById('goal-modal-overlay');
-  if (overlay) {
-    overlay.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:99999; align-items:center; justify-content:center;';
-    overlay.classList.remove('open');
-  }
+  const overlay = document.getElementById('gm-dynamic');
+  if (overlay) overlay.remove();
+  // 同時隱藏舊的 overlay（如果存在）
+  const old = document.getElementById('goal-modal-overlay');
+  if (old) old.style.display = 'none';
   _goalModalState = {};
 }
 
 async function confirmGoalModal() {
-  const title = document.getElementById('gm-title-input').value.trim();
-  if (!title) { document.getElementById('gm-title-input').focus(); return; }
+  const titleInput = document.getElementById('gm-title-input');
+  const title = titleInput ? titleInput.value.trim() : '';
+  if (!title) { if (titleInput) titleInput.focus(); return; }
 
   const { level, parentId, editId } = _goalModalState;
-  const summary = document.getElementById('gm-summary-input').value.trim();
+  const summaryInput = document.getElementById('gm-summary-input');
+  const summary = summaryInput ? summaryInput.value.trim() : '';
 
   const data = {
-    col: 'goal',
-    title,
-    level,
+    col: 'goal', title, level,
     parentId: parentId || null,
     summary: summary || null,
     isPrivate: 0
   };
   if (editId) data.id = editId;
 
-  const btn = document.getElementById('gm-confirm');
-  btn.disabled = true; btn.textContent = '儲存中...';
+  const btn = document.getElementById('gm-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '儲存中...'; }
 
   try {
     const res = await fetch('api/cards.php?action=save', {
@@ -2476,16 +2493,16 @@ async function confirmGoalModal() {
     const d = await res.json();
     if (d.success) {
       const levelNames = { year: '年度目標', month: '月度目標', week: '週目標' };
-      toast(`✅ ${levelNames[level] || '目標'}已${editId ? '更新' : '建立'}`);
+      toast(`✅ ${levelNames[level]||'目標'}已${editId ? '更新' : '建立'}`);
       closeGoalModal();
       await loadCards();
     } else {
       toast('❌ ' + (d.error || '儲存失敗'));
+      if (btn) { btn.disabled = false; btn.textContent = '確認'; }
     }
   } catch(e) {
     toast('❌ 連線錯誤');
-  } finally {
-    btn.disabled = false; btn.textContent = '確認';
+    if (btn) { btn.disabled = false; btn.textContent = '確認'; }
   }
 }
 
