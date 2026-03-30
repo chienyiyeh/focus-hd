@@ -723,52 +723,57 @@ $username = $_SESSION['username'] ?? 'User';
   .goal-add-btn { margin: 8px; padding: 8px; width: calc(100% - 16px); border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0; }
   .goal-add-btn:hover { background: var(--surface2); color: var(--text); border-color: #FFD700; }
 
-  /* 年度卡 */
-  .goal-year-card { background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; border: 1px solid rgba(255,215,0,0.3); }
-  .goal-year-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; user-select: none; }
-  .goal-year-header:hover { background: rgba(255,255,255,0.05); }
-  .goal-year-chevron { font-size: 10px; color: rgba(255,255,255,0.5); transition: transform 0.2s; flex-shrink: 0; }
+  /* 年度卡 - 最大最醒目，金色邊框 */
+  .goal-year-card { background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; border: 2px solid rgba(255,215,0,0.5); box-shadow: 0 2px 8px rgba(255,215,0,0.1); }
+  .goal-year-header { display: flex; align-items: center; gap: 8px; padding: 11px 12px; cursor: pointer; user-select: none; background: rgba(255,215,0,0.05); }
+  .goal-year-header:hover { background: rgba(255,215,0,0.1); }
+  .goal-year-chevron { font-size: 11px; color: #FFD700; transition: transform 0.2s; flex-shrink: 0; }
   .goal-year-card.open .goal-year-chevron { transform: rotate(90deg); }
-  .goal-year-title { font-size: 13px; font-weight: 700; color: #FFD700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .goal-year-progress-bar { height: 3px; background: rgba(255,255,255,0.1); margin: 0 12px 10px; border-radius: 2px; overflow: hidden; }
-  .goal-year-progress-fill { height: 100%; background: #FFD700; border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .goal-year-title { font-size: 14px; font-weight: 800; color: #FFD700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.3px; }
+  .goal-year-progress-bar { height: 4px; background: rgba(255,215,0,0.15); margin: 0 12px 10px; border-radius: 2px; overflow: hidden; }
+  .goal-year-progress-fill { height: 100%; background: linear-gradient(90deg,#FFD700,#FFA500); border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-year-progress-fill.complete { background: #22c55e; }
   .goal-year-children { padding: 0 8px 8px; display: none; }
   .goal-year-card.open .goal-year-children { display: block; }
 
-  /* 月度卡 */
-  .goal-month-card { background: rgba(255,255,255,0.05); border-radius: calc(var(--radius) - 2px); margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+  /* 月度卡 - 中等，紫色邊框，縮排 */
+  .goal-month-card { background: rgba(99,102,241,0.06); border-radius: calc(var(--radius) - 1px); margin-bottom: 6px; border: 1px solid rgba(99,102,241,0.3); overflow: hidden; }
   .goal-month-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; user-select: none; }
-  .goal-month-header:hover { background: rgba(255,255,255,0.05); }
-  .goal-month-chevron { font-size: 9px; color: rgba(255,255,255,0.4); transition: transform 0.2s; flex-shrink: 0; }
+  .goal-month-header:hover { background: rgba(99,102,241,0.08); }
+  .goal-month-chevron { font-size: 9px; color: #a5b4fc; transition: transform 0.2s; flex-shrink: 0; }
   .goal-month-card.open .goal-month-chevron { transform: rotate(90deg); }
-  .goal-month-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .goal-month-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: rgba(99,102,241,0.3); color: #a5b4fc; flex-shrink: 0; }
-  .goal-month-progress-bar { height: 3px; background: rgba(255,255,255,0.08); margin: 0 10px 8px; border-radius: 2px; overflow: hidden; }
+  .goal-month-title { font-size: 12px; font-weight: 700; color: #c4b5fd; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .goal-month-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: rgba(99,102,241,0.25); color: #a5b4fc; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.4); }
+  .goal-month-progress-bar { height: 3px; background: rgba(99,102,241,0.15); margin: 0 10px 8px; border-radius: 2px; overflow: hidden; }
   .goal-month-progress-fill { height: 100%; background: #6366f1; border-radius: 2px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-month-progress-fill.complete { background: #22c55e; }
-  .goal-month-children { padding: 0 8px 6px; display: none; }
+  .goal-month-children { padding: 0 6px 6px 10px; display: none; }
   .goal-month-card.open .goal-month-children { display: block; }
 
-  /* 週卡 */
-  .goal-week-card { background: rgba(255,255,255,0.03); border-radius: calc(var(--radius) - 3px); margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06); padding: 6px 10px; }
-  .goal-week-card.goal-active-filter { border-color: #6366f1; background: rgba(99,102,241,0.08); }
+  /* 週卡 - 最小，橘色細線，更深縮排 */
+  .goal-week-card { background: rgba(249,115,22,0.04); border-radius: 6px; margin-bottom: 4px; border-left: 3px solid #f97316; border-top: 1px solid rgba(249,115,22,0.15); border-right: 1px solid rgba(249,115,22,0.15); border-bottom: 1px solid rgba(249,115,22,0.15); padding: 6px 8px; }
+  .goal-week-card.goal-active-filter { border-left-color: #22c55e; background: rgba(34,197,94,0.06); border-top-color: rgba(34,197,94,0.2); border-right-color: rgba(34,197,94,0.2); border-bottom-color: rgba(34,197,94,0.2); }
   .goal-week-header { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
-  .goal-week-title { font-size: 11px; color: rgba(255,255,255,0.7); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .goal-week-progress { font-size: 10px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
-  .goal-week-bar { height: 2px; background: rgba(255,255,255,0.06); margin-top: 5px; border-radius: 1px; overflow: hidden; }
+  .goal-week-title { font-size: 11px; color: rgba(255,255,255,0.75); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .goal-week-progress { font-size: 10px; color: #f97316; flex-shrink: 0; font-weight: 600; }
+  .goal-week-bar { height: 2px; background: rgba(249,115,22,0.15); margin-top: 4px; border-radius: 1px; overflow: hidden; }
   .goal-week-bar-fill { height: 100%; background: #f97316; border-radius: 1px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
   .goal-week-bar-fill.complete { background: #22c55e; }
-  .goal-week-actions { display: flex; gap: 4px; margin-top: 6px; }
-  .goal-action-btn { font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
-  .goal-action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); }
-  .goal-action-btn.primary { background: rgba(99,102,241,0.3); border-color: rgba(99,102,241,0.5); color: #a5b4fc; }
-  .goal-action-btn.primary:hover { background: rgba(99,102,241,0.5); color: #fff; }
-  .goal-inline-add { width: 100%; padding: 5px 8px; border: 1px dashed rgba(255,255,255,0.15); background: none; border-radius: 4px; font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s; margin-top: 4px; }
-  .goal-inline-add:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+  .goal-week-actions { display: flex; gap: 4px; margin-top: 5px; }
+  .goal-action-btn { font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.55); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+  .goal-action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .goal-action-btn.primary { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.4); color: #fb923c; }
+  .goal-action-btn.primary:hover { background: rgba(249,115,22,0.35); color: #fff; }
+  .goal-inline-add { width: 100%; padding: 5px 8px; border: 1px dashed rgba(255,255,255,0.12); background: none; border-radius: 4px; font-size: 11px; color: rgba(255,255,255,0.3); cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s; margin-top: 4px; }
+  .goal-inline-add:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); }
+
+  /* 篩選提示列 */
+  #goal-filter-bar { display:none; position:sticky; top:0; z-index:50; background:#22c55e; color:#fff; padding:6px 12px; font-size:12px; font-weight:600; align-items:center; gap:8px; }
+  #goal-filter-bar.show { display:flex; }
+  #goal-filter-bar button { background:rgba(255,255,255,0.25); border:none; color:#fff; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px; font-family:inherit; }
 
   /* 子任務標籤（右側看板卡片） */
-  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   @media (max-width: 768px) { .goal-panel { display: none; } }
 </style>
@@ -869,6 +874,13 @@ $username = $_SESSION['username'] ?? 'User';
     <button class="goal-add-btn" onclick="openGoalModal('year', null)">＋ 新增年度目標</button>
   </div>
 
+  <!-- 篩選提示列 + 看板 -->
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:0;">
+    <div id="goal-filter-bar">
+      <span id="goal-filter-label">🔍 篩選中</span>
+      <button onclick="filterByParent(null)">✕ 清除篩選</button>
+    </div>
+
   <div class="board-wrap">
     <div class="col col-lib" data-col="lib">
       <div class="col-accent"></div>
@@ -923,7 +935,8 @@ $username = $_SESSION['username'] ?? 'User';
       <div style="padding: 0 16px 16px; display:none;" id="clear-done-btn"><button class="clear-done-btn" onclick="clearDone()">清空完成區</button></div>
     </div>
   </div>
-</div>
+  </div><!-- end board+filter wrapper -->
+</div><!-- end main-wrap -->
 
 <!-- 手機版年度計畫面板 -->
 <div id="mobile-goal-panel" style="display:none;padding:16px;padding-bottom:80px;">
@@ -2500,13 +2513,26 @@ function spawnProjectCard(weekId, weekTitle) {
 
 // 點擊週卡「查看」，高亮右側看板的子任務
 function filterByParent(parentId) {
-  goalFilterParentId = goalFilterParentId === parentId ? null : parentId;
+  goalFilterParentId = (parentId && goalFilterParentId !== parentId) ? parentId : null;
   render();
-  // 更新週卡視覺
+
+  // 更新週卡高亮
   document.querySelectorAll('.goal-week-card').forEach(el => {
-    el.classList.toggle('goal-active-filter', el.dataset.weekId == parentId && goalFilterParentId !== null);
+    el.classList.toggle('goal-active-filter', el.dataset.weekId == goalFilterParentId);
   });
-  toast(goalFilterParentId ? '🔍 篩選中：只顯示此週目標的子任務' : '已取消篩選');
+
+  // 更新篩選提示列
+  const bar = document.getElementById('goal-filter-bar');
+  const label = document.getElementById('goal-filter-label');
+  if (goalFilterParentId) {
+    const weekCard = state.goal.find(c => c.id === goalFilterParentId);
+    const weekTitle = weekCard ? weekCard.title : '週目標';
+    if (label) label.textContent = `🔍 篩選：${weekTitle} 的子任務`;
+    if (bar) bar.classList.add('show');
+    toast('🔍 已篩選：只顯示此週目標的子任務');
+  } else {
+    if (bar) bar.classList.remove('show');
+  }
 }
 
 // 編輯目標卡
