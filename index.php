@@ -1143,7 +1143,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 <!-- 戰略目標 Modal -->
-<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;flex-direction:column;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="if(event.target===this)closeGoalModal()">
   <div style="background:var(--surface);border-radius:16px;padding:0;width:90%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.3);overflow:hidden;">
     <!-- Header -->
     <div id="gm-header" style="padding:18px 20px 16px;border-bottom:1px solid var(--border);">
