@@ -971,11 +971,17 @@ $username = $_SESSION['username'] ?? 'User';
           </div>
           <!-- 下半：左欄待辦 + 右欄筆記 -->
           <div style="display:flex; min-height:260px;">
-            <!-- 左欄：待辦清單 -->
-            <div style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto;">
-              <div style="font-size:11px; font-weight:700; color:#E8763E; margin-bottom:8px; letter-spacing:0.5px;">✓ 待辦清單</div>
-              <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:6px; flex:1;"></div>
-              <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+            <!-- 左欄：待辦清單（可收折） -->
+            <div id="modal-checklist-col" style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto; transition:width 0.2s;">
+              <div style="font-size:11px; font-weight:700; color:#E8763E; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; user-select:none; margin-bottom:4px;"
+                onclick="toggleModalChecklist()">
+                <span>✓ 待辦清單</span>
+                <span id="modal-checklist-chevron" style="font-size:10px; transition:transform 0.2s;">▲</span>
+              </div>
+              <div id="modal-checklist-body" style="display:flex; flex-direction:column; gap:0;">
+                <div class="checklist-container" id="checklist-container" style="display:flex; flex-direction:column; gap:6px; flex:1; margin-top:4px;"></div>
+                <button type="button" class="add-checklist-item-btn" style="margin-top:8px;" onclick="addChecklistItem(); event.stopPropagation();">+ 新增待辦項目</button>
+              </div>
             </div>
           <!-- 右欄：詳細筆記 -->
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
@@ -2720,8 +2726,9 @@ function openModal(col) {
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = '';
   document.getElementById('input-title').value = ''; document.getElementById('input-project').value = ''; document.getElementById('input-source').value = ''; document.getElementById('input-summary').value = ''; document.getElementById('input-nextstep').value = ''; document.getElementById('input-body').value = ''; const bodyEditorClr = document.getElementById('input-body-editor'); if(bodyEditorClr) bodyEditorClr.innerHTML = '';
   
-  // 清空待办清单
+  // 清空待辦清單並收起
   document.getElementById('checklist-container').innerHTML = '';
+  toggleModalChecklist(false);
   // 清空優先級
   document.getElementById('input-priority').value = '';
   document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
@@ -2742,8 +2749,9 @@ function editCard(id, col) {
     document.getElementById('privacy-shared').checked = true;
   }
   
-  // 加载待办清单
+  // 加載待辦清單，有資料時展開，無資料時收起
   renderChecklistEdit(card.checklist);
+  toggleModalChecklist(card.checklist && card.checklist.length > 0);
   // 載入優先級
   document.getElementById('input-priority').value = card.priority || '';
   document.querySelectorAll('.priority-btn').forEach(b => {
@@ -2902,6 +2910,19 @@ function downloadFile(content, filename, mime) { const b = new Blob([content], {
 // ==========================================
 
 // 添加待办项到编辑界面
+// Modal 內待辦清單收折
+function toggleModalChecklist(forceOpen) {
+  const body = document.getElementById('modal-checklist-body');
+  const chevron = document.getElementById('modal-checklist-chevron');
+  const col = document.getElementById('modal-checklist-col');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
+  body.style.display = shouldOpen ? 'flex' : 'none';
+  if (chevron) chevron.style.transform = shouldOpen ? '' : 'rotate(180deg)';
+  if (col) col.style.width = shouldOpen ? '40%' : '28px';
+}
+
 function addChecklistItem(text = '', checked = false) {
   const container = document.getElementById('checklist-container');
   const id = 'checklist-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
