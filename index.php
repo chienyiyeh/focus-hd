@@ -752,6 +752,7 @@ $username = $_SESSION['username'] ?? 'User';
 
   /* 週卡 */
   .goal-week-card { background: rgba(255,255,255,0.03); border-radius: calc(var(--radius) - 3px); margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06); padding: 6px 10px; }
+  .goal-week-card.goal-active-filter { border-color: #6366f1; background: rgba(99,102,241,0.08); }
   .goal-week-header { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
   .goal-week-title { font-size: 11px; color: rgba(255,255,255,0.7); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .goal-week-progress { font-size: 10px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
@@ -1108,6 +1109,47 @@ $username = $_SESSION['username'] ?? 'User';
 </div>
 
 
+
+<!-- 戰略目標 Modal -->
+<div id="goal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:16px;padding:0;width:90%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.3);overflow:hidden;">
+    <!-- Header -->
+    <div id="gm-header" style="padding:18px 20px 16px;border-bottom:1px solid var(--border);">
+      <div id="gm-title" style="font-size:16px;font-weight:700;color:var(--text);"></div>
+      <div id="gm-parent-info" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none;"></div>
+    </div>
+    <!-- Body -->
+    <div style="padding:20px;">
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">標題 *</label>
+        <input id="gm-title-input" type="text" placeholder="輸入目標標題..." style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('gm-confirm').click()">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">摘要 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
+        <input id="gm-summary-input" type="text" placeholder="一句話說明這個目標..." style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);box-sizing:border-box;">
+      </div>
+      <!-- 年份/月份選擇（年度目標和月目標才顯示） -->
+      <div id="gm-period-row" style="display:none;margin-bottom:14px;gap:10px;display:none;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">期間 <span style="font-weight:400;color:var(--text-muted);">(選填)</span></label>
+        <div style="display:flex;gap:8px;">
+          <input id="gm-year-input" type="number" placeholder="年份 2026" min="2020" max="2035" style="flex:1;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);">
+          <select id="gm-month-input" style="flex:1;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);display:none;">
+            <option value="">月份（選填）</option>
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--surface2);">
+      <button onclick="closeGoalModal()" style="padding:8px 18px;border:1px solid var(--border-strong);border-radius:var(--radius);background:none;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text);">取消</button>
+      <button id="gm-confirm" onclick="confirmGoalModal()" style="padding:8px 20px;border:none;border-radius:var(--radius);background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">確認</button>
+    </div>
+  </div>
+</div>
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
@@ -2172,13 +2214,15 @@ function buildWeekCard(week) {
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
+  const isFiltered = goalFilterParentId === week.id;
 
   const div = document.createElement('div');
-  div.className = 'goal-week-card';
+  div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '');
   div.id = 'goal-week-' + week.id;
+  div.dataset.weekId = week.id;
 
   div.innerHTML = `
-    <div class="goal-week-header">
+    <div class="goal-week-header" onclick="filterByParent(${week.id})" title="點擊篩選此週子任務" style="cursor:pointer;">
       <span class="goal-week-title">📋 ${escHtml(week.title)}</span>
       <span class="goal-week-progress">${doneCount}/${total}</span>
     </div>
@@ -2186,9 +2230,9 @@ function buildWeekCard(week) {
       <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
     <div class="goal-week-actions">
-      <button class="goal-action-btn primary" onclick="spawnProjectCard(${week.id}, '${escHtml(week.title)}')">＋ 新增子任務</button>
-      <button class="goal-action-btn" onclick="filterByParent(${week.id})">🔍 查看</button>
-      <button class="goal-action-btn" onclick="editGoalCard(${week.id})">✏️</button>
+      <button class="goal-action-btn primary" onclick="spawnProjectCard(${week.id}, '${escHtml(week.title)}');event.stopPropagation()">＋ 子任務</button>
+      <button class="goal-action-btn" onclick="editGoalCard(${week.id},event)">✏️ 編輯</button>
+      <button class="goal-action-btn" onclick="deleteGoalCard(${week.id},event)" style="color:#E24B4A;">🗑</button>
     </div>
   `;
 
@@ -2196,52 +2240,87 @@ function buildWeekCard(week) {
 }
 
 // 開啟新增/編輯目標 Modal
+// ==========================================
+// 戰略目標 Modal（正式版）
+// ==========================================
+let _goalModalState = {}; // 記錄目前 modal 的狀態
+
 function openGoalModal(level, parentId, editId = null) {
   const levelNames = { year: '年度目標', month: '月度目標', week: '週目標' };
-  const title = editId ? `編輯${levelNames[level] || '目標'}` : `新增${levelNames[level] || '目標'}`;
+  const levelIcons = { year: '📌', month: '📅', week: '📋' };
+  const overlay = document.getElementById('goal-modal-overlay');
+  if (!overlay) return;
 
-  // 用 prompt 簡單實作（第二批改成正式 Modal）
-  const inputTitle = prompt(title + '\n\n請輸入標題：');
-  if (!inputTitle || !inputTitle.trim()) return;
+  _goalModalState = { level, parentId, editId };
+
+  // 設定標題
+  document.getElementById('gm-title').textContent =
+    (editId ? '編輯' : '新增') + (levelIcons[level] || '') + ' ' + (levelNames[level] || '目標');
+
+  // 父層資訊
+  const parentInfoEl = document.getElementById('gm-parent-info');
+  if (parentId) {
+    const parentCard = state.goal.find(c => c.id === parentId);
+    if (parentCard) {
+      parentInfoEl.textContent = `隸屬：${parentCard.title}`;
+      parentInfoEl.style.display = 'block';
+    }
+  } else {
+    parentInfoEl.style.display = 'none';
+  }
+
+  // 期間欄位
+  const periodRow = document.getElementById('gm-period-row');
+  const monthSel = document.getElementById('gm-month-input');
+  if (level === 'year' || level === 'month') {
+    periodRow.style.display = 'block';
+    monthSel.style.display = level === 'month' ? 'block' : 'none';
+    document.getElementById('gm-year-input').value = new Date().getFullYear();
+  } else {
+    periodRow.style.display = 'none';
+  }
+
+  // 編輯模式：填入現有資料
+  if (editId) {
+    const card = state.goal.find(c => c.id === editId);
+    if (card) {
+      document.getElementById('gm-title-input').value = card.title || '';
+      document.getElementById('gm-summary-input').value = card.summary || '';
+    }
+  } else {
+    document.getElementById('gm-title-input').value = '';
+    document.getElementById('gm-summary-input').value = '';
+  }
+
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('gm-title-input').focus(), 60);
+}
+
+function closeGoalModal() {
+  const overlay = document.getElementById('goal-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+  _goalModalState = {};
+}
+
+async function confirmGoalModal() {
+  const title = document.getElementById('gm-title-input').value.trim();
+  if (!title) { document.getElementById('gm-title-input').focus(); return; }
+
+  const { level, parentId, editId } = _goalModalState;
+  const summary = document.getElementById('gm-summary-input').value.trim();
 
   const data = {
     col: 'goal',
-    title: inputTitle.trim(),
-    level: level,
+    title,
+    level,
     parentId: parentId || null,
+    summary: summary || null,
     isPrivate: 0
   };
   if (editId) data.id = editId;
 
-  fetch('api/cards.php?action=save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      toast(`✅ ${levelNames[level] || '目標'}已建立`);
-      loadCards();
-    } else {
-      toast('❌ ' + (d.error || '建立失敗'));
-    }
-  })
-  .catch(() => toast('❌ 連線錯誤'));
-}
-
-// 從週卡發射子任務到策略筆記區
-async function spawnProjectCard(weekId, weekTitle) {
-  const inputTitle = prompt(`新增子任務到「${weekTitle}」\n\n請輸入子任務標題：`);
-  if (!inputTitle || !inputTitle.trim()) return;
-
-  const data = {
-    col: 'lib',
-    title: inputTitle.trim(),
-    level: 'project',
-    parentId: weekId,
-    isPrivate: 0
-  };
+  const btn = document.getElementById('gm-confirm');
+  btn.disabled = true; btn.textContent = '儲存中...';
 
   try {
     const res = await fetch('api/cards.php?action=save', {
@@ -2251,32 +2330,81 @@ async function spawnProjectCard(weekId, weekTitle) {
     });
     const d = await res.json();
     if (d.success) {
-      toast('🚀 子任務已發射到策略筆記區！');
+      const levelNames = { year: '年度目標', month: '月度目標', week: '週目標' };
+      toast(`✅ ${levelNames[level] || '目標'}已${editId ? '更新' : '建立'}`);
+      closeGoalModal();
       await loadCards();
-      // 切換到策略欄
-      if (window.innerWidth <= 768) setMobileTab('lib');
     } else {
-      toast('❌ ' + (d.error || '建立失敗'));
+      toast('❌ ' + (d.error || '儲存失敗'));
     }
-  } catch(e) { toast('❌ 連線錯誤'); }
+  } catch(e) {
+    toast('❌ 連線錯誤');
+  } finally {
+    btn.disabled = false; btn.textContent = '確認';
+  }
+}
+
+// 從週卡發射子任務到策略筆記區（用正式 Modal）
+function spawnProjectCard(weekId, weekTitle) {
+  // 重用主卡片 Modal，設定好 col=lib, level=project, parentId=weekId
+  document.getElementById('input-col').value = 'lib';
+  document.getElementById('input-edit-id').value = '';
+  document.getElementById('input-title').value = '';
+  document.getElementById('input-project').value = '';
+  document.getElementById('input-source').value = '';
+  document.getElementById('input-summary').value = '';
+  document.getElementById('input-nextstep').value = '';
+  document.getElementById('input-body').value = '';
+  const bodyEditor = document.getElementById('input-body-editor');
+  if (bodyEditor) bodyEditor.innerHTML = '';
+  document.getElementById('checklist-container').innerHTML = '';
+  toggleModalChecklist(false);
+  document.getElementById('input-priority').value = '';
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  initSwatches('', '');
+
+  // 設定 modal 標題
+  document.getElementById('modal-title').textContent = `🚀 新增子任務 → ${weekTitle}`;
+
+  // 儲存週ID供儲存時使用
+  window._spawnParentId = weekId;
+  window._spawnLevel = 'project';
+
+  const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
+  const bb = document.getElementById('bottom-bar'); if (bb) bb.style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
 // 點擊週卡「查看」，高亮右側看板的子任務
 function filterByParent(parentId) {
   goalFilterParentId = goalFilterParentId === parentId ? null : parentId;
-  render(); // 重新渲染右側看板（buildCard 會用這個值加高亮）
-  if (goalFilterParentId) {
-    toast('🔍 已篩選：只顯示此週目標的子任務');
-  } else {
-    toast('已取消篩選');
-  }
+  render();
+  // 更新週卡視覺
+  document.querySelectorAll('.goal-week-card').forEach(el => {
+    el.classList.toggle('goal-active-filter', el.dataset.weekId == parentId && goalFilterParentId !== null);
+  });
+  toast(goalFilterParentId ? '🔍 篩選中：只顯示此週目標的子任務' : '已取消篩選');
 }
 
 // 編輯目標卡
-function editGoalCard(id) {
+function editGoalCard(id, e) {
+  if (e) e.stopPropagation();
   const card = state.goal.find(c => c.id === id);
   if (!card) return;
   openGoalModal(card.level, card.parentId, id);
+}
+
+// 刪除目標卡
+async function deleteGoalCard(id, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('確定刪除這個目標嗎？子目標不會一起刪除。')) return;
+  try {
+    const res = await fetch(`api/cards.php?action=delete&id=${id}`);
+    const d = await res.json();
+    if (d.success) { toast('🗑 已刪除'); await loadCards(); }
+    else toast('❌ ' + (d.error || '刪除失敗'));
+  } catch(e) { toast('❌ 連線錯誤'); }
 }
 
 function render() {
@@ -2845,6 +2973,13 @@ async function saveCard() {
   }
   const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist, completedAt: completedAt };
   if (eid) data.id = eid;
+  // 子任務發射：帶入 parentId 和 level
+  if (window._spawnParentId) {
+    data.parentId = window._spawnParentId;
+    data.level = window._spawnLevel || 'project';
+    window._spawnParentId = null;
+    window._spawnLevel = null;
+  }
   const btn = document.querySelector('.modal-btn.primary'); btn.disabled = true; btn.textContent = '儲存中...';
   await saveCardToAPI(data);
   btn.disabled = false; btn.textContent = '儲存';
