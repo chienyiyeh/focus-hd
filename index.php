@@ -454,7 +454,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
   .mini-tb-color { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; padding: 0; background: #E24B4A; }
-  .note-editable { width: 100%; min-height: 80px; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; }
+  .note-editable { width: 100%; min-height: 80px; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; touch-action: auto; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
   .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
 
@@ -2102,9 +2102,8 @@ function buildCard(card, col, cardNo) {
           onfocus="const tb=document.getElementById('mtb-${cardIdStr}');if(tb)tb.classList.remove('hidden');event.stopPropagation()"
           onblur="const _el=this;setTimeout(()=>inlineSaveNoteHTML(${cardIdStr},'${col}',_el.innerHTML),200);event.stopPropagation()"
           onclick="event.stopPropagation()"
-          onmousedown="event.stopPropagation()"
           ondragstart="event.preventDefault();event.stopPropagation()"
-          style="cursor:text;min-height:60px;user-select:text;-webkit-user-select:text;"
+          style="cursor:text;min-height:60px;"
         >${noteHTML}</div>
       </div>
       <!-- 工具列 -->
@@ -2193,6 +2192,12 @@ function buildCard(card, col, cardNo) {
     else { div.draggable = true; }
   });
   div.addEventListener('mouseup', () => { div.draggable = true; });
+  // 手機長按筆記區時，停止卡片拖曳讓系統選字
+  div.addEventListener('touchstart', (e) => {
+    const noteEl = e.target.closest('.note-editable, [contenteditable]');
+    if (noteEl) { div.draggable = false; }
+  }, { passive: true });
+  div.addEventListener('touchend', () => { div.draggable = true; });
   div.addEventListener('dragstart', handleDragStart); div.addEventListener('dragend', handleDragEnd);
   return div;
 }
