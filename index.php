@@ -974,8 +974,8 @@ $username = $_SESSION['username'] ?? 'User';
           </div>
           <!-- 下半：左欄待辦 + 右欄筆記 -->
           <div style="display:flex; min-height:260px;">
-            <!-- 左欄：待辦清單（可收折） -->
-            <div id="modal-checklist-col" style="width:40%; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto; transition:width 0.2s;">
+            <!-- 左欄：待辦清單（可收折，自適應寬度） -->
+            <div id="modal-checklist-col" style="width:fit-content; min-width:36px; max-width:260px; border-right:3px solid #E8763E; background:#F8F6F0; padding:10px; display:flex; flex-direction:column; gap:0; max-height:400px; overflow-y:auto; transition:width 0.2s; flex-shrink:0;">
               <div style="font-size:11px; font-weight:700; color:#E8763E; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; user-select:none; margin-bottom:4px;"
                 onclick="toggleModalChecklist()">
                 <span>✓ 待辦清單</span>
@@ -2898,45 +2898,97 @@ function printModalContent() {
   const body = document.getElementById('input-body-editor')?.innerHTML || '';
 
   // 待辦清單
-  let checklistHTML = '';
   const items = document.querySelectorAll('#checklist-container .checklist-item');
-  if (items.length > 0) {
-    checklistHTML = '<div style="margin-bottom:16px;"><strong>待辦清單：</strong><ul style="margin:8px 0 0 20px;">';
-    items.forEach(item => {
-      const cb = item.querySelector('input[type="checkbox"]');
-      const ta = item.querySelector('textarea');
-      const text = ta ? ta.value.trim() : '';
-      if (text) {
-        const done = cb && cb.checked;
-        checklistHTML += `<li style="${done ? 'text-decoration:line-through;color:#999;' : ''}">${text}</li>`;
-      }
-    });
-    checklistHTML += '</ul></div>';
-  }
+  const hasChecklist = items.length > 0;
+  const hasBody = body && body.replace(/<[^>]+>/g,'').trim();
 
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <title>${title}</title>
-    <style>
-      body { font-family: 'Noto Sans TC', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1A2C3A; line-height: 1.8; }
-      h1 { font-size: 22px; margin-bottom: 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
-      .section { margin-bottom: 16px; }
-      .label { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-      .summary { background: #FFFEF0; border-left: 4px solid #E8763E; padding: 8px 12px; border-radius: 4px; font-style: italic; }
-      .nextstep { background: #F0FFF4; border-left: 4px solid #22c55e; padding: 8px 12px; border-radius: 4px; font-weight: 600; }
-      .body-content { background: #FFFDF5; padding: 12px; border-radius: 4px; border: 1px solid #eee; }
-      @media print { body { margin: 20px; } }
-    </style>
-  </head><body>
-    <h1>${title}</h1>
-    ${summary ? `<div class="section"><div class="summary">💡 ${summary}</div></div>` : ''}
-    ${nextStep ? `<div class="section"><div class="label">下一步</div><div class="nextstep">→ ${nextStep}</div></div>` : ''}
-    ${checklistHTML}
-    ${body ? `<div class="section"><div class="label">筆記內容</div><div class="body-content">${body}</div></div>` : ''}
-    <script>window.onload = function(){ window.print(); }<\/script>
-  </body></html>`);
-  printWindow.document.close();
+  // 建立選項對話框
+  const dlg = document.createElement('div');
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  dlg.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;min-width:280px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px;">🖨️ 選擇列印內容</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-title" checked style="width:16px;height:16px;"> 標題
+        </label>
+        ${summary ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-summary" checked style="width:16px;height:16px;"> 摘要
+        </label>` : ''}
+        ${nextStep ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-nextstep" checked style="width:16px;height:16px;"> 下一步
+        </label>` : ''}
+        ${hasChecklist ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-checklist" checked style="width:16px;height:16px;"> 待辦清單
+        </label>` : ''}
+        ${hasBody ? `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="print-body" checked style="width:16px;height:16px;"> 筆記內容
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;margin-left:24px;color:#666;">
+          <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新頁開始（第2份）
+        </label>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="print-cancel" style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
+        <button id="print-confirm" style="padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-size:14px;font-weight:600;">列印</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dlg);
+
+  document.getElementById('print-cancel').onclick = () => document.body.removeChild(dlg);
+
+  document.getElementById('print-confirm').onclick = () => {
+    const printTitle   = document.getElementById('print-title')?.checked;
+    const printSummary = document.getElementById('print-summary')?.checked;
+    const printNext    = document.getElementById('print-nextstep')?.checked;
+    const printCl      = document.getElementById('print-checklist')?.checked;
+    const printBody    = document.getElementById('print-body')?.checked;
+
+    let checklistHTML = '';
+    if (printCl && hasChecklist) {
+      checklistHTML = '<div style="margin-bottom:16px;border:1px solid #eee;border-radius:8px;padding:12px;"><strong>待辦清單：</strong><ul style="margin:8px 0 0 20px;">';
+      items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        const ta = item.querySelector('textarea');
+        const text = ta ? ta.value.trim() : '';
+        if (text) {
+          const done = cb && cb.checked;
+          checklistHTML += `<li style="${done ? 'text-decoration:line-through;color:#999;' : ''}">${text}</li>`;
+        }
+      });
+      checklistHTML += '</ul></div>';
+    }
+
+    const printNewPage = document.getElementById('print-body-newpage')?.checked;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html><html><head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1A2C3A; line-height: 1.8; }
+        h1 { font-size: 22px; margin-bottom: 8px; border-bottom: 2px solid #E8763E; padding-bottom: 8px; }
+        h2 { font-size: 16px; font-weight: 700; color: #534AB7; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px; margin-bottom: 12px; }
+        .section { margin-bottom: 14px; }
+        .label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .summary { background: #FFFEF0; border-left: 4px solid #E8763E; padding: 8px 12px; border-radius: 4px; font-style: italic; }
+        .nextstep { background: #F0FFF4; border-left: 4px solid #22c55e; padding: 8px 12px; border-radius: 4px; font-weight: 600; }
+        .body-content { padding: 12px 0; }
+        .page-break { page-break-before: always; break-before: always; padding-top: 20px; }
+        @media print { body { margin: 10px; } }
+      </style>
+    </head><body>
+      ${printTitle ? `<h1>${title}</h1>` : ''}
+      ${printSummary && summary ? `<div class="section"><div class="summary">💡 ${summary}</div></div>` : ''}
+      ${printNext && nextStep ? `<div class="section"><div class="label">下一步</div><div class="nextstep">→ ${nextStep}</div></div>` : ''}
+      ${checklistHTML}
+      ${printBody && hasBody ? `<div class="${printNewPage ? 'page-break' : 'section'}"><h2>📝 ${title} — 筆記</h2><div class="body-content">${body}</div></div>` : ''}
+      <script>window.onload = function(){ window.print(); }<\/script>
+    </body></html>`);
+    printWindow.document.close();
+    document.body.removeChild(dlg);
+  };
 }
 
 function exportToExcel() {
@@ -2971,7 +3023,11 @@ function toggleModalChecklist(forceOpen) {
   const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
   body.style.display = shouldOpen ? 'flex' : 'none';
   if (chevron) chevron.style.transform = shouldOpen ? '' : 'rotate(180deg)';
-  if (col) col.style.width = shouldOpen ? '40%' : '28px';
+  if (col) {
+    col.style.width = shouldOpen ? 'fit-content' : '36px';
+    col.style.minWidth = shouldOpen ? '140px' : '36px';
+    col.style.maxWidth = shouldOpen ? '260px' : '36px';
+  }
 }
 
 function addChecklistItem(text = '', checked = false) {
