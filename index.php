@@ -463,29 +463,34 @@ $username = $_SESSION['username'] ?? 'User';
   .page-break-divider {
     display: block;
     width: 100%;
+    height: 24px;
     border: none;
     border-top: 2px dashed #6366f1;
-    margin: 12px 0;
+    margin: 16px 0;
     position: relative;
     cursor: default;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
   }
-  .page-break-divider::after {
-    content: '── 分頁 ──';
+  .page-break-divider::before {
+    content: '── 分頁線（列印時換頁）──';
     position: absolute;
-    top: -10px;
+    top: -9px;
     left: 50%;
     transform: translateX(-50%);
     background: #FFFDF5;
-    padding: 0 8px;
+    padding: 0 10px;
     font-size: 10px;
     color: #6366f1;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     white-space: nowrap;
+    pointer-events: none;
   }
   @media print {
-    .page-break-divider { page-break-after: always; break-after: always; border: none; }
-    .page-break-divider::after { display: none; }
+    .page-break-divider { page-break-after: always; break-after: always; border: none; height: 0; margin: 0; }
+    .page-break-divider::before { display: none; }
   }
 
   /* 行內直接編輯 */
@@ -1023,8 +1028,8 @@ $username = $_SESSION['username'] ?? 'User';
             <div id="input-body-editor" contenteditable="true" style="
               flex:1;
               width:100%;
-              min-height:400px;
-              max-height:70vh;
+              min-height:600px;
+              max-height:80vh;
               overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
