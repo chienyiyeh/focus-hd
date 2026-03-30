@@ -196,9 +196,9 @@ $username = $_SESSION['username'] ?? 'User';
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; margin-top: 22px; cursor: move; transition: all 0.15s; position: relative; overflow: visible; }
   .card.is-project { background: #FFFDF8 !important; border: 1px solid #D4B896; margin-top: 22px !important; overflow: visible !important; }
   .card.is-project .card-top { background: #E8C98A; margin: -12px -12px 10px -12px; padding: 8px 12px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; position: relative; }
-  /* 資料夾標籤：左上角小標籤，只有文字寬度 */
+  /* 資料夾標籤：顯示最頂層目標名稱（透過 CSS 變數動態設定）*/
   .card.is-project .card-top::before {
-    content: "專案筆記";
+    content: var(--card-tag-label, "專案筆記");
     display: inline-block;
     width: auto;
     background: #C8922A;
@@ -211,6 +211,10 @@ $username = $_SESSION['username'] ?? 'User';
     position: absolute;
     top: -20px;
     left: 12px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .card.is-project .card-top .card-title { color: #4A3520 !important; }
   .card.is-project .card-top .drag-handle { color: rgba(74,53,32,0.4) !important; }
@@ -2738,12 +2742,36 @@ function renderFilterTags() {
 
 function buildCard(card, col, cardNo) {
   const div = document.createElement('div');
-  const isProjectCard = card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0;
+  // 有 parentId = 從目標發射的子任務（專案筆記）
+  const isProjectCard = !!(card.parentId) || (card.checklist && Array.isArray(card.checklist) && card.checklist.length > 0);
   // goalFilterParentId 高亮篩選
   const isFiltered = goalFilterParentId !== null && card.parentId !== goalFilterParentId;
   div.className = 'card' + (isProjectCard ? ' is-project' : '') + (isFiltered ? ' goal-dimmed' : '');
   div.id = 'card-' + card.id; div.draggable = true; div.dataset.cardId = card.id; div.dataset.col = col;
   if (card.bgcolor) div.style.background = card.bgcolor; if (card.textcolor) div.style.color = card.textcolor;
+
+  // 動態設定卡片標籤文字（覆蓋 CSS ::before）
+  if (isProjectCard) {
+    let tagLabel = '筆記';
+    if (card.parentId) {
+      // 追溯到最頂層
+      let topCard = null;
+      let currentId = card.parentId;
+      let safety = 0;
+      while (currentId && safety < 5) {
+        const found = state.goal.find(c => c.id === currentId);
+        if (!found) break;
+        topCard = found;
+        currentId = found.parentId;
+        safety++;
+      }
+      if (topCard) {
+        tagLabel = topCard.title.length > 12 ? topCard.title.slice(0,12)+'…' : topCard.title;
+      }
+    }
+    // 用 CSS 變數傳遞標籤文字
+    div.style.setProperty('--card-tag-label', `"${tagLabel.replace(/"/g, '\\"')}"`);
+  }
 
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
