@@ -1,6 +1,6 @@
 <?php
 /**
- * 卡片 API - v3-20260328 (已修正戰略目標儲存)
+ * 卡片 API - v3-20260328
  */
 
 require_once 'config.php';
@@ -32,9 +32,6 @@ function ensureColumns($db) {
     if (!in_array('is_private', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 0");
     if (!in_array('created_by', $cols))     $db->exec("ALTER TABLE cards ADD COLUMN created_by INT DEFAULT NULL");
     if (!in_array('postponed_count', $cols))$db->exec("ALTER TABLE cards ADD COLUMN postponed_count INT DEFAULT 0");
-    // 新增戰略樹所需欄位
-    if (!in_array('level', $cols))          $db->exec("ALTER TABLE cards ADD COLUMN level VARCHAR(20) DEFAULT 'general'");
-    if (!in_array('parent_id', $cols))      $db->exec("ALTER TABLE cards ADD COLUMN parent_id INT DEFAULT NULL");
 }
 
 // ============================================
@@ -49,7 +46,6 @@ function handleList($userId) {
             SELECT c.id, c.col, c.title, c.project, c.priority, c.source_link,
                    c.summary, c.next_step, c.body, c.checklist, c.bgcolor,
                    c.textcolor, c.is_private, c.created_by, c.completed_at,
-                   c.level, c.parent_id,
                    c.created_at, c.updated_at,
                    u.username as created_by_username
             FROM cards c
@@ -60,14 +56,12 @@ function handleList($userId) {
         $stmt->execute([$userId]);
         $cards = $stmt->fetchAll();
 
-        // 加入 goal 陣列
-        $result = ['lib' => [], 'week' => [], 'focus' => [], 'done' => [], 'goal' => []];
+        $result = ['lib' => [], 'week' => [], 'focus' => [], 'done' => []];
         foreach ($cards as $card) {
             $col = $card['col'];
             if (!isset($result[$col])) continue;
             $result[$col][] = [
                 'id'                => (int)$card['id'],
-                'col'               => $card['col'],
                 'title'             => $card['title'],
                 'project'           => $card['project'],
                 'priority'          => $card['priority'],
@@ -81,8 +75,6 @@ function handleList($userId) {
                 'isPrivate'         => (bool)$card['is_private'],
                 'createdBy'         => $card['created_by'],
                 'createdByUsername' => $card['created_by_username'],
-                'level'             => $card['level'],
-                'parentId'          => $card['parent_id'] ? (int)$card['parent_id'] : null,
                 'completedAt'       => $card['completed_at'],
                 'createdAt'         => $card['created_at'],
                 'updatedAt'         => $card['updated_at'],
@@ -99,7 +91,7 @@ function handleList($userId) {
 // ============================================
 function cleanHTML($html) {
     if (empty($html)) return null;
-    $allowed = '<p><br><strong><em><u><s><ol><ul><li><h1><h2><h3><span><a><img><font><div>';
+    $allowed = '<p><br><strong><em><u><s><ol><ul><li><h1><h2><h3><span><a><img><font>';
     $cleaned = strip_tags($html, $allowed);
     $cleaned = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $cleaned);
     $cleaned = preg_replace('/on\w+="[^"]*"/i', '', $cleaned);
@@ -108,6 +100,8 @@ function cleanHTML($html) {
 
 // ============================================
 // 新增/更新卡片
+// 規則：自己的卡片 + 共用卡片 都能編輯
+//       管理員可以編輯任何卡片
 // ============================================
 function handleSave($userId, $isAdmin) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
@@ -128,34 +122,29 @@ function handleSave($userId, $isAdmin) {
     $isPrivate  = isset($input['isPrivate']) ? (int)$input['isPrivate'] : 0;
     $checklist  = !empty($input['checklist']) ? json_encode($input['checklist'], JSON_UNESCAPED_UNICODE) : null;
     $completedAt = $input['completedAt'] ?? null;
-    
-    // 戰略樹參數
-    $level      = cleanInput($input['level'] ?? 'general');
-    $parentId   = isset($input['parentId']) ? (int)$input['parentId'] : null;
 
     if (empty($title)) errorResponse('標題不能為空');
-    // 加入 goal 許可
-    if (!in_array($col, ['lib', 'week', 'focus', 'done', 'goal'])) errorResponse('無效的欄位');
+    if (!in_array($col, ['lib', 'week', 'focus', 'done'])) errorResponse('無效的欄位');
 
     try {
         $db = getDB();
         ensureColumns($db);
 
         if ($id) {
+            // 管理員：可編輯任何卡片
+            // 一般用戶：可編輯自己的卡片 或 共用卡片(is_private=0)
             if ($isAdmin) {
                 $stmt = $db->prepare("
                     UPDATE cards SET
                         col=?, title=?, project=?, priority=?, source_link=?,
                         summary=?, next_step=?, body=?, checklist=?,
-                        bgcolor=?, textcolor=?, is_private=?, completed_at=?,
-                        level=?, parent_id=?
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
                     WHERE id=?
                 ");
                 $stmt->execute([
                     $col, $title, $project, $priority, $sourceLink,
                     $summary, $nextStep, $body, $checklist,
                     $bgcolor, $textcolor, $isPrivate, $completedAt,
-                    $level, $parentId,
                     $id
                 ]);
             } else {
@@ -163,15 +152,13 @@ function handleSave($userId, $isAdmin) {
                     UPDATE cards SET
                         col=?, title=?, project=?, priority=?, source_link=?,
                         summary=?, next_step=?, body=?, checklist=?,
-                        bgcolor=?, textcolor=?, is_private=?, completed_at=?,
-                        level=?, parent_id=?
+                        bgcolor=?, textcolor=?, is_private=?, completed_at=?
                     WHERE id=? AND (user_id=? OR is_private=0)
                 ");
                 $stmt->execute([
                     $col, $title, $project, $priority, $sourceLink,
                     $summary, $nextStep, $body, $checklist,
                     $bgcolor, $textcolor, $isPrivate, $completedAt,
-                    $level, $parentId,
                     $id, $userId
                 ]);
             }
@@ -179,6 +166,8 @@ function handleSave($userId, $isAdmin) {
             if ($stmt->rowCount() > 0) {
                 successResponse(['id' => $id], '卡片更新成功');
             } else {
+                // rowCount=0 可能是資料完全相同（未實際更新），不代表卡片不存在
+                // 再查一次確認 ID 是否存在
                 $check = $db->prepare("SELECT id FROM cards WHERE id=?");
                 $check->execute([$id]);
                 if ($check->fetch()) {
@@ -192,15 +181,13 @@ function handleSave($userId, $isAdmin) {
                 INSERT INTO cards
                     (user_id, col, title, project, priority, source_link,
                      summary, next_step, body, checklist,
-                     bgcolor, textcolor, is_private, created_by, completed_at,
-                     level, parent_id)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                     bgcolor, textcolor, is_private, created_by, completed_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ");
             $stmt->execute([
                 $userId, $col, $title, $project, $priority, $sourceLink,
                 $summary, $nextStep, $body, $checklist,
-                $bgcolor, $textcolor, $isPrivate, $userId, $completedAt,
-                $level, $parentId
+                $bgcolor, $textcolor, $isPrivate, $userId, $completedAt
             ]);
             successResponse(['id' => $db->lastInsertId()], '卡片新增成功');
         }
@@ -211,6 +198,7 @@ function handleSave($userId, $isAdmin) {
 
 // ============================================
 // 刪除卡片
+// 管理員可刪任何卡片，一般用戶只能刪自己的
 // ============================================
 function handleDelete($userId, $isAdmin) {
     $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
@@ -233,6 +221,9 @@ function handleDelete($userId, $isAdmin) {
 
 // ============================================
 // 移動卡片
+// 自己的卡片可移到任何地方
+// 別人的卡片只能退回策略庫
+// 今日專注和本週目標各自有個人額度
 // ============================================
 function handleMove($userId) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') errorResponse('僅支援 POST 請求');
@@ -252,16 +243,19 @@ function handleMove($userId) {
 
         $isOwner = ((int)$card['user_id'] === (int)$userId);
 
+        // 不是自己的卡片只能退回策略庫
         if (!$isOwner && in_array($newCol, ['focus', 'week', 'done'])) {
             errorResponse('只能將別人的卡片退回策略庫');
         }
 
+        // 今日專注：每人各 1 張
         if ($newCol === 'focus' && $card['col'] !== 'focus') {
             $chk = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='focus' AND user_id=?");
             $chk->execute([$userId]);
             if ((int)$chk->fetchColumn() >= 1) errorResponse('你的今日專注已有 1 張，請先完成或移出');
         }
 
+        // 本週目標：每人最多 3 張
         if ($newCol === 'week' && $card['col'] !== 'week') {
             $chk = $db->prepare("SELECT COUNT(*) FROM cards WHERE col='week' AND user_id=?");
             $chk->execute([$userId]);
