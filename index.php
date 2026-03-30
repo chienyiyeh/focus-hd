@@ -987,9 +987,10 @@ $username = $_SESSION['username'] ?? 'User';
           <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
             <!-- 筆記區 -->
             <div id="input-body-editor" contenteditable="true" style="
-              flex:none;
+              flex:1;
               width:100%;
-              height:220px;
+              min-height:180px;
+              max-height:320px;
               overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
