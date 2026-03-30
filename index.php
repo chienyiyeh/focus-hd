@@ -871,7 +871,11 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="goal-panel-body" id="goal-panel-body">
       <!-- 動態渲染 -->
     </div>
-    <button class="goal-add-btn" onclick="openGoalModal('year', null)">＋ 新增年度目標</button>
+    <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;">
+      <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(255,215,0,0.4);background:rgba(255,215,0,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#FFD700;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
+      <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(99,102,241,0.4);background:rgba(99,102,241,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#a5b4fc;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
+      <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(249,115,22,0.4);background:rgba(249,115,22,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#fb923c;cursor:pointer;font-family:inherit;">📋 ＋週</button>
+    </div>
   </div>
 
   <!-- 篩選提示列 + 看板 -->
@@ -2128,27 +2132,35 @@ function renderGoalTree() {
   const mobileContainer = document.getElementById('mobile-goal-body');
 
   const goalCards = state.goal || [];
-  const yearCards = goalCards.filter(c => c.level === 'year');
+  const yearCards  = goalCards.filter(c => c.level === 'year');
+  // 獨立月度：沒有父層或父層不在 goal 裡
+  const looseMonths = goalCards.filter(c => c.level === 'month' && !goalCards.find(p => p.id === c.parentId));
+  // 獨立週目標：沒有父層月度
+  const looseWeeks  = goalCards.filter(c => c.level === 'week'  && !goalCards.find(p => p.id === c.parentId));
 
-  const emptyHTML = `<div style="text-align:center;padding:24px 16px;color:rgba(255,255,255,0.3);font-size:12px;line-height:1.8;">
-    還沒有年度目標<br>點下方按鈕建立第一個
-  </div>`;
+  const isEmpty = yearCards.length === 0 && looseMonths.length === 0 && looseWeeks.length === 0;
 
   if (container) {
     container.innerHTML = '';
-    if (yearCards.length === 0) { container.innerHTML = emptyHTML; }
-    else yearCards.forEach(year => container.appendChild(buildYearCard(year, goalCards)));
+    if (isEmpty) {
+      container.innerHTML = `<div style="text-align:center;padding:24px 16px;color:rgba(255,255,255,0.3);font-size:12px;line-height:1.8;">
+        還沒有目標<br>點下方按鈕建立第一個
+      </div>`;
+    } else {
+      yearCards.forEach(year => container.appendChild(buildYearCard(year, goalCards)));
+      looseMonths.forEach(month => container.appendChild(buildMonthCard(month, goalCards)));
+      looseWeeks.forEach(week => container.appendChild(buildWeekCard(week)));
+    }
   }
 
-  // 手機版（用淺色樣式）
   if (mobileContainer) {
     mobileContainer.innerHTML = '';
-    if (yearCards.length === 0) {
-      mobileContainer.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:13px;">還沒有年度目標</div>`;
+    if (isEmpty) {
+      mobileContainer.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:13px;">還沒有目標</div>`;
     } else {
-      yearCards.forEach(year => {
-        mobileContainer.appendChild(buildMobileYearCard(year, goalCards));
-      });
+      yearCards.forEach(year => mobileContainer.appendChild(buildMobileYearCard(year, goalCards)));
+      looseMonths.forEach(month => mobileContainer.appendChild(buildMobileMonthCard(month, goalCards)));
+      looseWeeks.forEach(week => mobileContainer.appendChild(buildMobileWeekCard(week)));
     }
   }
 }
@@ -2354,6 +2366,53 @@ function buildWeekCard(week) {
 // 戰略目標 Modal（正式版）
 // ==========================================
 let _goalModalState = {}; // 記錄目前 modal 的狀態
+
+// 選層級後新增目標
+function openGoalLevelPicker() {
+  // 移除舊的
+  const old = document.getElementById('goal-level-picker');
+  if (old) { old.remove(); return; }
+
+  const picker = document.createElement('div');
+  picker.id = 'goal-level-picker';
+  picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;';
+  picker.innerHTML = `
+    <div style="background:#1e1e1c;border-radius:16px;padding:24px;width:88%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;">＋ 新增目標</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:18px;">選擇目標層級：</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="document.getElementById('goal-level-picker').remove();openGoalModal('year',null)"
+          style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;width:100%;">
+          <span style="font-size:20px;">📌</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#FFD700;">年度目標</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">長期願景，1年以上</div>
+          </div>
+        </button>
+        <button onclick="document.getElementById('goal-level-picker').remove();openGoalModal('month',null)"
+          style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.4);border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;width:100%;">
+          <span style="font-size:20px;">📅</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#c4b5fd;">月度目標</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">中期專案，1個月左右</div>
+          </div>
+        </button>
+        <button onclick="document.getElementById('goal-level-picker').remove();openGoalModal('week',null)"
+          style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.4);border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;width:100%;">
+          <span style="font-size:20px;">📋</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#fb923c;">週目標</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">短期衝刺，這週要完成</div>
+          </div>
+        </button>
+      </div>
+      <button onclick="document.getElementById('goal-level-picker').remove()"
+        style="width:100%;margin-top:14px;padding:10px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:none;cursor:pointer;font-size:13px;font-family:inherit;color:rgba(255,255,255,0.5);">取消</button>
+    </div>
+  `;
+  picker.addEventListener('click', (e) => { if (e.target === picker) picker.remove(); });
+  document.body.appendChild(picker);
+}
 
 function openGoalModal(level, parentId, editId = null) {
   const levelNames = { year: '年度目標', month: '月度目標', week: '週目標' };
