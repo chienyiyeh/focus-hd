@@ -955,8 +955,9 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="modal-title" id="modal-title">新增卡片</div>
       <div style="display:flex;gap:8px;align-items:center;">
+        <button id="modal-back-btn" onclick="closeModal()" style="display:none;padding:7px 14px;font-size:13px;border:1px solid var(--accent-week);border-radius:var(--radius);background:none;cursor:pointer;color:var(--accent-week);font-weight:600;">← 返回外部</button>
         <button onclick="printModalContent()" style="padding:7px 14px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);cursor:pointer;color:var(--text);">🖨️ 列印</button>
-        <button class="modal-btn primary" onclick="saveCard()" style="padding:7px 20px;font-size:13px;">儲存</button>
+        <button class="modal-btn primary" onclick="saveCardNoClose()" style="padding:7px 20px;font-size:13px;">儲存</button>
       </div>
     </div>
     <div class="modal-body">
@@ -1022,8 +1023,8 @@ $username = $_SESSION['username'] ?? 'User';
             <div id="input-body-editor" contenteditable="true" style="
               flex:1;
               width:100%;
-              min-height:180px;
-              max-height:320px;
+              min-height:400px;
+              max-height:70vh;
               overflow-y:auto;
               border:none;
               padding:10px 10px 10px 14px;
@@ -1934,7 +1935,10 @@ async function saveCardToAPI(cardData) {
           if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       }
-      closeModal();
+      // 不自動關閉 modal，顯示「返回外部」按鈕
+      const backBtn = document.getElementById('modal-back-btn');
+      if (backBtn) backBtn.style.display = 'inline-flex';
+      toast('✅ 已儲存');
     } else toast('❌ ' + (data.error || '儲存失敗'));
   } catch (err) { toast('❌ 連線錯誤，儲存失敗'); }
 }
@@ -2793,6 +2797,7 @@ function openModal(col) {
   document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
   
   initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
+  const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
@@ -2801,23 +2806,21 @@ function editCard(id, col) {
   document.getElementById('input-col').value = col; document.getElementById('input-edit-id').value = id;
   document.getElementById('input-title').value = card.title; document.getElementById('input-project').value = card.project || ''; setTimeout(renderProjectSelect, 10); document.getElementById('input-source').value = card.sourceLink || ''; document.getElementById('input-summary').value = card.summary || ''; document.getElementById('input-nextstep').value = card.nextStep || ''; document.getElementById('input-body').value = card.body || ''; const bodyEditor = document.getElementById('input-body-editor'); if(bodyEditor) bodyEditor.innerHTML = card.body || '';
   
-  // 设置隐私选项
   if (card.isPrivate) {
     document.getElementById('privacy-private').checked = true;
   } else {
     document.getElementById('privacy-shared').checked = true;
   }
   
-  // 加載待辦清單，有資料時展開，無資料時收起
   renderChecklistEdit(card.checklist);
   toggleModalChecklist(card.checklist && card.checklist.length > 0);
-  // 載入優先級
   document.getElementById('input-priority').value = card.priority || '';
   document.querySelectorAll('.priority-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.value === card.priority);
   });
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
+  const backBtn2 = document.getElementById('modal-back-btn'); if (backBtn2) backBtn2.style.display = 'none';
   document.getElementById('overlay').classList.add('open'); setTimeout(() => document.getElementById('input-title').focus(), 60);
 }
 
@@ -2827,7 +2830,6 @@ async function saveCard() {
   const checklist = getChecklistData();
   const priority = document.getElementById('input-priority').value || null;
   const eid = document.getElementById('input-edit-id').value;
-  // 編輯時保留原本的 completedAt，不傳 null 清空完成時間
   let completedAt = null;
   if (eid) {
     const found = getCard(parseInt(eid));
@@ -2840,7 +2842,15 @@ async function saveCard() {
   btn.disabled = false; btn.textContent = '儲存';
 }
 
-function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+// 儲存後不關閉（同 saveCard，但不會觸發 closeModal）
+const saveCardNoClose = saveCard;
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  // 重置返回按鈕
+  const backBtn = document.getElementById('modal-back-btn');
+  if (backBtn) backBtn.style.display = 'none';
+}
 function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
 document.addEventListener('keydown', e => { 
   if (e.key === 'Escape' && !document.getElementById('fullscreen-editor').classList.contains('open') && !document.getElementById('project-settings-overlay').classList.contains('open')) closeModal(); 
