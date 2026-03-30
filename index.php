@@ -456,7 +456,7 @@ $username = $_SESSION['username'] ?? 'User';
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
   .mini-tb-color { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; padding: 0; background: #E24B4A; }
-  .note-editable { width: 100%; min-height: 80px; max-height: 200px; overflow-y: auto; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; touch-action: auto; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  .note-editable { width: 100%; min-height: 120px; max-height: 400px; overflow-y: auto; border: none; background: transparent; font-family: inherit; font-size: 12px; line-height: 1.6; color: var(--text); outline: none; touch-action: auto; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
   .note-editable:focus { background: #FAFFF8; border-radius: 4px; padding: 4px; }
   .note-editable:empty:before { content: attr(placeholder); color: var(--text-muted); font-style: italic; pointer-events: none; }
   /* 分頁線：編輯器內顯示虛線 */
@@ -2984,13 +2984,13 @@ function printModalContent() {
           </label>
           <div style="margin-left:24px;margin-top:8px;display:flex;flex-direction:column;gap:7px;">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
-              <input type="checkbox" id="print-body-header" checked style="width:14px;height:14px;"> 顯示「📝 標題 — 筆記」標頭
+              <input type="checkbox" id="print-body-header" checked style="width:14px;height:14px;"> 在筆記前加標題列（📝 ${title} — 筆記）
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
-              <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新頁開始
+              <input type="checkbox" id="print-body-newpage" checked style="width:14px;height:14px;"> 筆記從新的一頁開始印（不接在待辦後面）
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#555;">
-              <input type="checkbox" id="print-h-break" checked style="width:14px;height:14px;"> 每個 H1/H2 標題自動換頁
+              <input type="checkbox" id="print-h-break" style="width:14px;height:14px;"> 遇到大標題（H1/H2）自動換頁
             </label>
           </div>
         </div>` : ''}
