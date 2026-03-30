@@ -463,33 +463,31 @@ $username = $_SESSION['username'] ?? 'User';
   .page-break-divider {
     display: block;
     width: 100%;
-    height: 24px;
-    border: none;
-    border-top: 2px dashed #6366f1;
-    margin: 16px 0;
-    position: relative;
-    cursor: default;
-    background: transparent;
-    outline: none;
-    box-shadow: none;
-  }
-  .page-break-divider::before {
-    content: '── 分頁線（列印時換頁）──';
-    position: absolute;
-    top: -9px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #FFFDF5;
-    padding: 0 10px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
     font-size: 10px;
-    color: #6366f1;
     font-weight: 600;
+    color: #6366f1;
     letter-spacing: 0.5px;
-    white-space: nowrap;
+    background: transparent;
+    border-top: 2px dashed #6366f1;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 12px 0;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
     pointer-events: none;
   }
+  .page-break-divider::before {
+    content: '── 列印時換頁 ──';
+  }
   @media print {
-    .page-break-divider { page-break-after: always; break-after: always; border: none; height: 0; margin: 0; }
+    .page-break-divider { page-break-after: always; break-after: always; border: none; height: 0; margin: 0; visibility: hidden; }
     .page-break-divider::before { display: none; }
   }
 
@@ -2648,15 +2646,19 @@ function insertPageBreak() {
   if (!sel || !sel.rangeCount) return;
   const range = sel.getRangeAt(0);
   range.deleteContents();
-  // 建立分頁線 hr
-  const hr = document.createElement('hr');
-  hr.className = 'page-break-divider';
-  hr.contentEditable = 'false';
-  range.insertNode(hr);
-  // 在分頁線後插入新段落，讓游標移過去
+
+  // 用 div 取代 hr，避免瀏覽器預設綠色 focus 框
+  const divider = document.createElement('div');
+  divider.className = 'page-break-divider';
+  divider.contentEditable = 'false';
+  divider.setAttribute('data-page-break', '1');
+  range.insertNode(divider);
+
+  // 在分頁線後插入新段落
   const p = document.createElement('p');
   p.innerHTML = '<br>';
-  hr.after(p);
+  divider.after(p);
+
   // 把游標移到新段落
   const newRange = document.createRange();
   newRange.setStart(p, 0);
@@ -3071,7 +3073,7 @@ function printModalContent() {
         .note-header { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
         .body-content { padding: 4px 0; }
         .page-break { page-break-before: always; break-before: always; padding-top: 16px; }
-        hr.page-break-divider { page-break-after: always; break-after: always; border: none; margin: 0; }
+        div.page-break-divider { page-break-after: always; break-after: always; border: none; margin: 0; height: 0; visibility: hidden; }
         ul, ol { margin-left: 20px; margin-bottom: 8px; }
         li { margin-bottom: 4px; }
         @media print { body { margin: 10px; } }
