@@ -690,7 +690,9 @@ $username = $_SESSION['username'] ?? 'User';
      戰略樹（左側收折面板）
   ========================================== */
   .goal-panel {
-    width: 280px;
+    width: 40vw;
+    max-width: 560px;
+    min-width: 260px;
     flex-shrink: 0;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -2196,8 +2198,9 @@ function buildMobileYearCard(year, allGoalCards) {
   `;
 
   // 渲染月度卡
+  const monthWeight = monthCards.length > 0 ? Math.round(100 / monthCards.length) : 0;
   const childrenEl = div.querySelector(`#m-year-children-${year.id}`);
-  monthCards.forEach(month => childrenEl.appendChild(buildMobileMonthCard(month, allGoalCards)));
+  monthCards.forEach(month => childrenEl.appendChild(buildMobileMonthCard(month, allGoalCards, monthWeight)));
   if (monthCards.length === 0) {
     childrenEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;">點上方「＋月」新增月度目標</div>`;
   }
@@ -2205,65 +2208,105 @@ function buildMobileYearCard(year, allGoalCards) {
   return div;
 }
 
-function buildMobileMonthCard(month, allGoalCards) {
+function buildMobileMonthCard(month, allGoalCards, parentWeight) {
   const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const weekCount = weekCards.length;
+  const weekWeight = weekCount > 0 ? Math.round(100 / weekCount) : 0;
 
   const div = document.createElement('div');
-  div.style.cssText = 'background:var(--surface2);border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border);';
+  div.style.cssText = 'margin-bottom:4px;';
 
-  div.innerHTML = `
-    <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;"
-      onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">
-      <span style="font-size:13px;">📅</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${pct}% · ${progress.done}/${progress.total}</div>
-      </div>
-      <button onclick="openGoalModal('week',${month.id});event.stopPropagation()" style="background:var(--accent-lib);background:rgba(83,74,183,0.15);border:1px solid rgba(83,74,183,0.3);color:#534AB7;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;">＋週</button>
-    </div>
-    <div style="height:3px;background:var(--border);"><div style="height:100%;background:${isComplete?'#22c55e':'#6366f1'};width:${pct}%;transition:width 0.6s;"></div></div>
-    <div style="display:block;padding:6px 8px;">
-      <div id="m-month-children-${month.id}"></div>
-    </div>
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;background:${isComplete?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.06)'};border:1px solid ${isComplete?'rgba(34,197,94,0.3)':'rgba(99,102,241,0.2)'};cursor:pointer;user-select:none;`;
+  header.innerHTML = `
+    <span style="font-size:10px;color:#4338CA;flex-shrink:0;" id="m-month-chev-${month.id}">▼</span>
+    <span style="font-size:13px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
+    <span style="font-size:13px;font-weight:600;color:${isComplete?'#16803C':'#3730A3'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</span>
+    <span style="font-size:11px;color:#4338CA;">${pct}%</span>
+    <button onclick="openGoalModal('week',${month.id});event.stopPropagation()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:#3730A3;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋週</button>
   `;
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(99,102,241,0.1);margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#16803C':'#6366f1'};transition:width 0.6s;"></div>`;
 
-  const childrenEl = div.querySelector(`#m-month-children-${month.id}`);
-  weekCards.forEach(week => childrenEl.appendChild(buildMobileWeekCard(week)));
-  if (weekCards.length === 0) {
-    childrenEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:11px;">點「＋週」新增週目標</div>`;
+  const body = document.createElement('div');
+  body.id = `m-month-children-${month.id}`;
+  body.style.cssText = 'padding-left:12px;border-left:2px solid rgba(99,102,241,0.2);margin-left:10px;margin-top:2px;';
+
+  let open = true;
+  header.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    body.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('m-month-chev-' + month.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+  });
+
+  weekCards.forEach(week => body.appendChild(buildMobileWeekCard(week, weekWeight)));  if (weekCards.length === 0) {
+    body.innerHTML = `<div style="padding:6px 4px;color:var(--text-muted);font-size:11px;">點「＋週」新增週目標</div>`;
   }
 
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(body);
   return div;
 }
 
-function buildMobileWeekCard(week) {
+function buildMobileWeekCard(week, weekWeight) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
-  const doneCount = children.filter(c => c.col === 'done').length;
+  const doneCount = children.filter(c => c.col === 'done' || !!c.completedAt).length;
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
 
   const div = document.createElement('div');
-  div.style.cssText = 'background:var(--surface);border-radius:6px;margin-bottom:4px;padding:8px 10px;border:1px solid var(--border);';
+  div.style.cssText = 'margin-bottom:3px;';
 
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📋 ${escHtml(week.title)}</span>
-      <span style="font-size:11px;color:var(--text-muted);">${doneCount}/${total}</span>
-    </div>
-    <div style="height:2px;background:var(--border);border-radius:1px;margin-bottom:8px;">
-      <div style="height:100%;background:${isComplete?'#22c55e':'#f97316'};width:${pct}%;transition:width 0.6s;border-radius:1px;"></div>
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button onclick="spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="padding:4px 10px;background:#534AB720;border:1px solid #534AB740;color:#534AB7;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">＋ 子任務</button>
-      <button onclick="filterByParent(${week.id});switchMobileTab('lib')" style="padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔍 查看</button>
-    </div>
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:5px;background:${isComplete?'rgba(22,128,60,0.06)':'rgba(249,115,22,0.05)'};border-left:3px solid ${isComplete?'#16803C':'#C2560A'};border-top:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};border-right:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};border-bottom:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};cursor:pointer;user-select:none;`;
+  header.innerHTML = `
+    <span style="font-size:9px;color:#C2560A;flex-shrink:0;" id="m-week-chev-${week.id}">${total>0?'▼':'─'}</span>
+    <span style="font-size:12px;flex-shrink:0;">${isComplete?'✅':'📋'}</span>
+    <span style="font-size:12px;font-weight:600;color:${isComplete?'#16803C':'var(--text)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(week.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#C2560A'};flex-shrink:0;">${doneCount}/${total}</span>
+    ${weekWeight?`<span style="font-size:10px;color:#7A4F00;flex-shrink:0;">月+${weekWeight}%</span>`:''}
+    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(194,86,10,0.1);border:none;color:#C2560A;border-radius:3px;padding:2px 6px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋</button>
+    <button onclick="filterByParent(${week.id});switchMobileTab('lib');event.stopPropagation()" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:2px 5px;font-size:11px;cursor:pointer;flex-shrink:0;">🔍</button>
   `;
 
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(249,115,22,0.1);margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#16803C':'#f97316'};transition:width 0.6s;"></div>`;
+
+  const taskList = document.createElement('div');
+  taskList.style.cssText = 'padding-left:8px;border-left:2px solid rgba(249,115,22,0.12);margin-left:10px;margin-top:2px;';
+  if (children.length > 0) {
+    children.forEach(c => {
+      const isDone = c.col === 'done' || !!c.completedAt;
+      const row = document.createElement('div');
+      row.style.cssText = `display:flex;align-items:center;gap:5px;padding:3px 4px;font-size:11px;color:${isDone?'#16803C':'var(--text-secondary)'};${isDone?'text-decoration:line-through;opacity:0.65;':''}`;
+      row.innerHTML = `<span style="flex-shrink:0;">${isDone?'✅':'⬜'}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(c.title)}</span>`;
+      taskList.appendChild(row);
+    });
+  }
+
+  let open = true;
+  header.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    if (total === 0) return;
+    open = !open;
+    taskList.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('m-week-chev-' + week.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+  });
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  if (children.length > 0) div.appendChild(taskList);
   return div;
 }
 
@@ -2290,13 +2333,13 @@ function buildYearCard(year, allGoalCards) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
-    <span id="year-chevron-${year.id}" style="font-size:10px;color:#FFD700;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span id="year-chevron-${year.id}" style="font-size:10px;color:#B8860B;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:12px;flex-shrink:0;">${isComplete?'🏆':'📌'}</span>
-    <span style="font-size:12px;font-weight:700;color:${isComplete?'#22c55e':'#FFD700'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(year.title)}">${escHtml(year.title)}</span>
-    <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(255,215,0,0.7)'};flex-shrink:0;font-weight:700;">${pct}%</span>
-    <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.4);border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-    <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
-    <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
+    <span style="font-size:12px;font-weight:700;color:${isComplete?'#16803C':'#92700A'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(year.title)}">${escHtml(year.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#92700A'};flex-shrink:0;font-weight:700;">${pct}%</span>
+    <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(0,0,0,0.06);border:none;color:var(--text-secondary);border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.1);border:none;color:#C0392B;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(180,140,0,0.12);border:none;color:#92700A;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;font-weight:700;">＋月</button>
   `;
 
   // 進度條
@@ -2306,10 +2349,10 @@ function buildYearCard(year, allGoalCards) {
 
   // 摘要列
   const meta = document.createElement('div');
-  meta.style.cssText = 'font-size:10px;color:rgba(255,215,0,0.45);padding:3px 8px 5px;display:flex;gap:8px;';
+  meta.style.cssText = 'font-size:10px;color:#7A6000;padding:3px 8px 5px;display:flex;gap:8px;';
   meta.innerHTML = monthCount > 0
-    ? `<span>共 ${monthCount} 個月度</span><span style="opacity:0.5">·</span><span>每月完成貢獻 <b style="color:#FFD700">${monthWeight}%</b> 年度進度</span>`
-    : `<span style="color:rgba(255,255,255,0.2);">尚未新增月度目標</span>`;
+    ? `<span>共 ${monthCount} 個月度</span><span style="opacity:0.5">·</span><span>每月完成貢獻 <b style="color:#92700A">${monthWeight}%</b> 年度進度</span>`
+    : `<span style="color:var(--text-muted);">尚未新增月度目標</span>`;
 
   // 子層容器
   const children = document.createElement('div');
@@ -2352,19 +2395,19 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
   header.style.cssText = `
     display:flex;align-items:center;gap:5px;
     padding:5px 8px;border-radius:6px;
-    background:rgba(99,102,241,${isComplete?'0.18':'0.08'});
-    border:1px solid rgba(99,102,241,${isComplete?'0.5':'0.2'});
+    background:${isComplete?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.06)'};
+    border:1px solid ${isComplete?'rgba(34,197,94,0.35)':'rgba(99,102,241,0.25)'};
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
-    <span id="month-chevron-${month.id}" style="font-size:10px;color:#a5b4fc;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span id="month-chevron-${month.id}" style="font-size:10px;color:#4338CA;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
-    <span style="font-size:11px;font-weight:700;color:${isComplete?'#22c55e':'#a5b4fc'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(month.title)}">${escHtml(month.title)}</span>
-    <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(99,102,241,0.8)'};flex-shrink:0;">${progress.done}/${progress.total}</span>
-    ${parentWeight ? `<span style="font-size:10px;color:rgba(255,215,0,0.6);flex-shrink:0;margin-left:2px;">年+${parentWeight}%</span>` : ''}
-    <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-    <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.12);border:none;color:#E24B4A;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
-    <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
+    <span style="font-size:11px;font-weight:700;color:${isComplete?'#16803C':'#3730A3'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(month.title)}">${escHtml(month.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#4338CA'};flex-shrink:0;">${progress.done}/${progress.total}</span>
+    ${parentWeight ? `<span style="font-size:10px;color:#92700A;flex-shrink:0;margin-left:2px;font-weight:600;">年+${parentWeight}%</span>` : ''}
+    <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.08);border:none;color:#C0392B;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.12);border:none;color:#3730A3;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;font-weight:700;">＋週</button>
   `;
 
   // 月度進度條
@@ -2414,24 +2457,24 @@ function buildWeekCard(week, weekWeight, monthWeight) {
   header.style.cssText = `
     display:flex;align-items:center;gap:5px;
     padding:4px 8px;border-radius:5px;
-    background:${isFiltered ? 'rgba(34,197,94,0.1)' : isComplete ? 'rgba(34,197,94,0.07)' : 'rgba(249,115,22,0.06)'};
-    border-left:3px solid ${isFiltered ? '#22c55e' : isComplete ? '#22c55e' : '#f97316'};
-    border-top:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
-    border-right:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
-    border-bottom:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
+    background:${isFiltered ? 'rgba(22,128,60,0.08)' : isComplete ? 'rgba(22,128,60,0.06)' : 'rgba(249,115,22,0.06)'};
+    border-left:3px solid ${isFiltered ? '#16803C' : isComplete ? '#16803C' : '#C2560A'};
+    border-top:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
+    border-right:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
+    border-bottom:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
-    <span id="week-chevron-${week.id}" style="font-size:9px;color:#f97316;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
+    <span id="week-chevron-${week.id}" style="font-size:9px;color:#C2560A;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete ? '✅' : '📋'}</span>
-    <span style="font-size:11px;font-weight:600;color:${isComplete ? '#22c55e' : 'rgba(255,255,255,0.8)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(week.title)}">${escHtml(week.title)}</span>
-    <span style="font-size:10px;color:${isComplete ? '#22c55e' : '#f97316'};flex-shrink:0;">${doneCount}/${total}</span>
-    ${weekWeight ? `<span style="font-size:10px;color:rgba(249,115,22,0.6);flex-shrink:0;margin-left:2px;">月+${weekWeight}%</span>` : ''}
-    ${yearContrib ? `<span style="font-size:10px;color:rgba(255,215,0,0.5);flex-shrink:0;">年+${yearContrib}%</span>` : ''}
-    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(249,115,22,0.2);border:none;color:#fb923c;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋</button>
-    <button onclick="event.stopPropagation();filterByParent(${week.id})" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🔍</button>
-    <button onclick="event.stopPropagation();editGoalCard(${week.id},event)" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-    <button onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="background:rgba(226,75,74,0.12);border:none;color:#E24B4A;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <span style="font-size:11px;font-weight:600;color:${isComplete ? '#16803C' : 'var(--text)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(week.title)}">${escHtml(week.title)}</span>
+    <span style="font-size:10px;color:${isComplete ? '#16803C' : '#C2560A'};flex-shrink:0;font-weight:600;">${doneCount}/${total}</span>
+    ${weekWeight ? `<span style="font-size:10px;color:#7A4F00;flex-shrink:0;margin-left:2px;">月+${weekWeight}%</span>` : ''}
+    ${yearContrib ? `<span style="font-size:10px;color:#92700A;flex-shrink:0;">年+${yearContrib}%</span>` : ''}
+    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(194,86,10,0.12);border:none;color:#C2560A;border-radius:3px;padding:1px 5px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋</button>
+    <button onclick="event.stopPropagation();filterByParent(${week.id})" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🔍</button>
+    <button onclick="event.stopPropagation();editGoalCard(${week.id},event)" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="background:rgba(226,75,74,0.08);border:none;color:#C0392B;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
   `;
 
   // 週進度條
@@ -2451,7 +2494,7 @@ function buildWeekCard(week, weekWeight, monthWeight) {
       row.style.cssText = `
         display:flex;align-items:center;gap:6px;
         padding:3px 6px;font-size:10px;
-        color:${isDone ? 'rgba(34,197,94,0.7)' : 'rgba(255,255,255,0.6)'};
+        color:${isDone ? '#16803C' : 'var(--text-secondary)'};
         border-radius:3px;cursor:pointer;
         ${isDone ? 'text-decoration:line-through;opacity:0.65;' : ''}
       `;
@@ -3150,7 +3193,11 @@ function buildCard(card, col, cardNo) {
   // 摘要永遠顯示在卡片上（康乃爾外面）
   const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  const _cardOpenKey = 'card_open_' + card.id;
+  const _cardInitOpen = localStorage.getItem(_cardOpenKey) === '1';
+  if (_cardInitOpen) div.classList.add('open');
+
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this);event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
