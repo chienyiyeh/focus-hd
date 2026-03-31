@@ -981,9 +981,13 @@ $username = $_SESSION['username'] ?? 'User';
 
 <!-- 手機版年度計畫面板 -->
 <div id="mobile-goal-panel" style="display:none;padding:16px;padding-bottom:80px;">
-  <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-    🏆 戰略目標
-    <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 新增年度目標</button>
+  <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    🌳 焦點目標樹
+    <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 年度</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <button onclick="document.getElementById('goal-import-file').click()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+    <button onclick="exportGoalTree()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
   </div>
   <div id="mobile-goal-body">
     <!-- 由 renderGoalTree 同步渲染 -->
