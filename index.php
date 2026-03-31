@@ -2280,13 +2280,14 @@ function buildYearCard(year, allGoalCards) {
   div.innerHTML = `
     <div class="goal-year-header" onclick="if(!event.target.closest('button'))this.closest('.goal-year-card').classList.toggle('open')">
       <span class="goal-year-chevron">▶</span>
-      <span class="goal-year-icon">📌</span>
-      <span class="goal-year-title">${escHtml(year.title)}</span>
-      <span style="font-size:10px;color:rgba(255,255,255,0.4);flex-shrink:0;margin-right:4px;">${pct}%</span>
-      <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
-      <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
+      <span class="goal-year-icon">${isComplete?'🏆':'📌'}</span>
+      <span class="goal-year-title" style="${isComplete?'color:#22c55e;':''}">${escHtml(year.title)}</span>
+      <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(255,255,255,0.4)'};flex-shrink:0;margin-right:2px;font-weight:${isComplete?'700':'400'};">${pct}%</span>
+      <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+      <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪除</button>
+      <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
     </div>
+    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:4px 12px;display:flex;align-items:center;gap:4px;">🎉 年度目標全部完成！可以結案了</div>` : ''}
     <div class="goal-year-progress-bar">
       <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
@@ -2313,12 +2314,13 @@ function buildMonthCard(month, allGoalCards) {
   div.innerHTML = `
     <div class="goal-month-header" onclick="if(!event.target.closest('button'))this.closest('.goal-month-card').classList.toggle('open')">
       <span class="goal-month-chevron">▶</span>
-      <span class="goal-month-title">${escHtml(month.title)}</span>
-      <span class="goal-month-badge">${progress.done}/${progress.total}</span>
+      <span class="goal-month-title" style="${isComplete?'color:#22c55e;':''}">${isComplete?'✅':'📅'} ${escHtml(month.title)}</span>
+      <span class="goal-month-badge" style="${isComplete?'background:rgba(34,197,94,0.2);color:#22c55e;border-color:rgba(34,197,94,0.4);':''}">${progress.done}/${progress.total}</span>
       <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+      <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪</button>
       <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
     </div>
+    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:3px 10px;display:flex;align-items:center;gap:4px;">🎉 月度目標全部完成！</div>` : ''}
     <div class="goal-month-progress-bar">
       <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
@@ -2335,29 +2337,38 @@ function buildMonthCard(month, allGoalCards) {
 function buildWeekCard(week) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
-  const doneCount = children.filter(c => c.col === 'done').length;
+  // 第5點：修正完成判斷，col=done 或有 completedAt 都算完成
+  const doneCount = children.filter(c => c.col === 'done' || !!c.completedAt).length;
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
   const isFiltered = goalFilterParentId === week.id;
 
   const div = document.createElement('div');
-  div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '');
+  div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '') + (isComplete ? ' goal-week-complete' : '');
   div.id = 'goal-week-' + week.id;
   div.dataset.weekId = week.id;
 
+  // 第6點：全部完成時顯示紅色完成提示
+  const completeAlert = (isComplete && total > 0) ? `
+    <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:5px;display:flex;align-items:center;gap:4px;">
+      🎉 全部完成！可以結案了
+    </div>` : '';
+
   div.innerHTML = `
+    ${completeAlert}
     <div class="goal-week-header" onclick="if(!event.target.closest('button'))filterByParent(${week.id})" title="點擊標題篩選此週子任務" style="cursor:pointer;">
-      <span class="goal-week-title">📋 ${escHtml(week.title)}</span>
-      <span class="goal-week-progress">${doneCount}/${total}</span>
+      <span class="goal-week-title" style="${isComplete?'color:#22c55e;font-weight:700;':''}">${isComplete?'✅':'📋'} ${escHtml(week.title)}</span>
+      <span class="goal-week-progress" style="${isComplete?'color:#22c55e;':''}">${doneCount}/${total}</span>
     </div>
-    <div class="goal-week-bar">
+    <div class="goal-week-bar" style="margin-top:5px;">
       <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;text-align:right;">${pct}%</div>
     <div class="goal-week-actions" onclick="event.stopPropagation()">
       <button class="goal-action-btn primary" onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')">＋ 子任務</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️ 編輯</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;">🗑</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;border-color:rgba(226,75,74,0.3);">🗑 刪除</button>
     </div>
   `;
 
@@ -2636,8 +2647,12 @@ function render() {
     let visibleCards = state[col].filter(shouldShowCard);
 
     if (col === 'lib') {
-      // 排序：有 parentId 的子任務排最前，再按重要緊急排
+      // 排序：篩選中的子任務最前，然後有 parentId 的，再按重要緊急排
       const sortCards = arr => [...arr].sort((a, b) => {
+        // 篩選中的週目標子任務排第一
+        const aFiltered = (goalFilterParentId && a.parentId === goalFilterParentId) ? 0 : 1;
+        const bFiltered = (goalFilterParentId && b.parentId === goalFilterParentId) ? 0 : 1;
+        if (aFiltered !== bFiltered) return aFiltered - bFiltered;
         const aIsProject = a.parentId ? 0 : 1;
         const bIsProject = b.parentId ? 0 : 1;
         if (aIsProject !== bIsProject) return aIsProject - bIsProject;
