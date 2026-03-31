@@ -897,7 +897,7 @@ $username = $_SESSION['username'] ?? 'User';
       <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(194,86,10,0.5);background:rgba(249,115,22,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#C2560A;cursor:pointer;font-family:inherit;">📋 ＋週</button>
     </div>
     <div style="margin:0 8px 10px;display:flex;gap:6px;">
-      <button onclick="document.getElementById('goal-import-file').click()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+      <button onclick="openGoalImportModal()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
       <button onclick="exportGoalTree()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
     </div>
   </div>
@@ -985,7 +985,7 @@ $username = $_SESSION['username'] ?? 'User';
     <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 年度</button>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:12px;">
-    <button onclick="document.getElementById('goal-import-file').click()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+    <button onclick="openGoalImportModal()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
     <button onclick="exportGoalTree()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
   </div>
   <div id="mobile-goal-body">
@@ -2792,6 +2792,7 @@ function handleGoalImportFile(input) {
 
 function openGoalImportModal() {
   const overlay = document.getElementById('goal-import-overlay');
+  if (!overlay) { alert('找不到匯入 Modal，請重新整理頁面'); return; }
   overlay.style.display = 'flex';
   resetGoalImport();
 }
