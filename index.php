@@ -1225,9 +1225,25 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
         <div id="gim-paste-area">
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">把 JSON 內容貼到下方（手機長按貼上）：</div>
+
+          <!-- 網址輸入（手機複製連結後貼這裡） -->
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:600;color:#534AB7;margin-bottom:4px;">📎 或貼上 JSON 檔案的網址：</div>
+            <div style="display:flex;gap:6px;">
+              <input id="goal-import-url" type="url" placeholder="https://... 貼上連結"
+                style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface2);color:var(--text);outline:none;min-width:0;"
+                oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'">
+              <button onclick="fetchImportUrl()"
+                style="padding:8px 12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
+                抓取
+              </button>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">或直接貼上 JSON 文字：</div>
           <textarea id="goal-import-textarea"
             placeholder='{"years":[{"title":"年度目標","months":[...]}]}'
-            style="width:100%;height:160px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
+            style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
             oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'"></textarea>
           <button onclick="parseImportTextarea()"
             style="margin-top:10px;width:100%;padding:11px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
@@ -2756,16 +2772,20 @@ function handleGoalImportFile(input) {
 
   const reader = new FileReader();
   reader.onload = (e) => {
+    // 先開 Modal、重置畫面
+    openGoalImportModal();
     try {
       const data = JSON.parse(e.target.result);
       _importData = null;
+      // 解析成功後直接隱藏輸入區、顯示預覽
+      const inputArea = document.getElementById('goal-import-input-area');
+      if (inputArea) inputArea.style.display = 'none';
       showGoalImportPreview(data);
     } catch(err) {
       showGoalImportError('JSON 格式錯誤，請確認檔案內容：' + err.message);
     }
   };
   reader.readAsText(file);
-  openGoalImportModal();
 }
 
 function openGoalImportModal() {
@@ -2816,6 +2836,32 @@ function parseImportTextarea() {
     showGoalImportPreview(data);
   } catch(err) {
     showGoalImportError('JSON 格式錯誤：' + err.message);
+  }
+}
+
+async function fetchImportUrl() {
+  const urlInput = document.getElementById('goal-import-url');
+  const url = urlInput ? urlInput.value.trim() : '';
+  if (!url) { showGoalImportError('請先貼上 JSON 檔案的網址'); return; }
+
+  // 直接用 fetch 抓（同網域或 CORS 允許的連結）
+  const errEl = document.getElementById('goal-import-error');
+  errEl.style.display = 'none';
+  urlInput.disabled = true;
+
+  try {
+    // 先嘗試直接 fetch
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    urlInput.disabled = false;
+    document.getElementById('goal-import-input-area').style.display = 'none';
+    showGoalImportPreview(data);
+  } catch(err) {
+    urlInput.disabled = false;
+    // 如果直接抓失敗（CORS），把內容填到 textarea 讓使用者手動貼
+    showGoalImportError('無法直接抓取該網址（可能是權限問題）。請改用「複製原始內容」再貼到下方文字框。');
   }
 }
 
