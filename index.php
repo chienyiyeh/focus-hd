@@ -2097,36 +2097,35 @@ function initGoalPanelState() {
   } catch(e) {}
 }
 
-// 計算進度（遞迴）
+// 計算進度（每層只算直接子項）
+// 年度：看月度完成數/月度總數
+// 月度：看週完成數/週總數
+// 週：看右側子任務完成數/總數
 function calcGoalProgress(goalCard) {
-  // 直接子任務（右側看板的 project 卡）
-  const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
-  const directChildren = allCards.filter(c => c.parentId === goalCard.id);
-  // 也算左側 goal 欄的子卡
   const goalChildren = state.goal.filter(c => c.parentId === goalCard.id);
+  const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
+  const directTasks = allCards.filter(c => c.parentId === goalCard.id);
 
-  if (directChildren.length === 0 && goalChildren.length === 0) return { done: 0, total: 0 };
+  // 有左側子目標（月度、週）→ 以子目標完成率計算
+  if (goalChildren.length > 0) {
+    let done = 0;
+    const total = goalChildren.length;
+    goalChildren.forEach(child => {
+      const childP = calcGoalProgress(child);
+      // 子目標「完成」的定義：childP.total > 0 且 childP.done === childP.total
+      if (childP.total > 0 && childP.done === childP.total) done++;
+      // 或者子目標沒有任何子項但有被標記完成（暫不支援，保留擴充）
+    });
+    return { done, total };
+  }
 
-  let done = 0, total = 0;
+  // 沒有左側子目標 → 看右側子任務
+  if (directTasks.length > 0) {
+    const done = directTasks.filter(c => c.col === 'done' || !!c.completedAt).length;
+    return { done, total: directTasks.length };
+  }
 
-  // 右側子任務
-  directChildren.forEach(c => {
-    total++;
-    if (c.col === 'done' || (c.completedAt)) done++;
-  });
-
-  // 左側子目標（週卡）遞迴計算
-  goalChildren.forEach(child => {
-    const childProgress = calcGoalProgress(child);
-    total += childProgress.total;
-    done += childProgress.done;
-    // 週卡本身算完成：子任務全完成
-    if (childProgress.total > 0 && childProgress.done === childProgress.total) {
-      // 已算入遞迴，不重複
-    }
-  });
-
-  return { done, total };
+  return { done: 0, total: 0 };
 }
 
 // 渲染戰略樹
@@ -2771,26 +2770,35 @@ function buildCard(card, col, cardNo) {
     let tagColor = '#FFF8EE';
 
     if (card.parentId) {
-      // 追溯到直接父層和最頂層
-      let directParent = null;
-      let topCard = null;
+      // 追溯完整祖先鏈
+      const ancestors = [];
       let currentId = card.parentId;
       let safety = 0;
       while (currentId && safety < 5) {
         const found = state.goal.find(c => c.id === currentId);
         if (!found) break;
-        if (!directParent) directParent = found;
-        topCard = found;
+        ancestors.unshift(found); // 最高層放前面
         currentId = found.parentId;
         safety++;
       }
-      if (directParent) {
-        const levelPrefix = { year: '📌年', month: '📅月', week: '📋週' };
+      if (ancestors.length > 0) {
+        const levelIcons = { year: '📌', month: '📅', week: '📋' };
         const levelBg    = { year: '#92750A', month: '#4338ca', week: '#c2410c' };
-        const prefix = levelPrefix[directParent.level] || '';
-        const name = directParent.title.length > 10 ? directParent.title.slice(0,10)+'…' : directParent.title;
-        tagLabel = `${prefix} ${name}`;
-        tagBg = levelBg[directParent.level] || '#C8922A';
+        // 顯示路徑：最多兩層，太長就縮略
+        const topCard = ancestors[0];
+        const directParent = ancestors[ancestors.length - 1];
+        if (ancestors.length === 1) {
+          // 只有一層父
+          const icon = levelIcons[directParent.level] || '';
+          const name = directParent.title.length > 10 ? directParent.title.slice(0,10)+'…' : directParent.title;
+          tagLabel = `${icon} ${name}`;
+        } else {
+          // 多層：顯示「頂層名 › 直接父名」
+          const topName = topCard.title.length > 6 ? topCard.title.slice(0,6)+'…' : topCard.title;
+          const parentName = directParent.title.length > 6 ? directParent.title.slice(0,6)+'…' : directParent.title;
+          tagLabel = `${levelIcons[topCard.level]||''} ${topName} › ${levelIcons[directParent.level]||''} ${parentName}`;
+        }
+        tagBg = levelBg[topCard.level] || '#C8922A';
         tagColor = '#fff';
       }
     }
