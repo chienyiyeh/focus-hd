@@ -317,6 +317,15 @@ $username = $_SESSION['username'] ?? 'User';
   .act-btn.postpone { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); }
   .act-btn.del { color: #E24B4A; }
 
+  .col-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+  .col-collapsible.collapsed { max-height: 0 !important; }
+  .col-resize-handle {
+    text-align: center; font-size: 14px; color: var(--text-muted);
+    padding: 4px 0; cursor: ns-resize; user-select: none;
+    border-top: 1px dashed var(--border); letter-spacing: 4px;
+    flex-shrink: 0;
+  }
+  .col-resize-handle:hover { background: var(--surface2); color: var(--text-secondary); }
   .add-card-btn { width: 100%; padding: 12px; border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 4px; }
   .add-card-btn:hover { background: var(--surface2); color: var(--text-secondary); border-color: var(--text-secondary); }
   .clear-done-btn { width: 100%; padding: 10px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 8px; }
@@ -690,7 +699,7 @@ $username = $_SESSION['username'] ?? 'User';
      戰略樹（左側收折面板）
   ========================================== */
   .goal-panel {
-    width: 40vw;
+    width: 560px;
     max-width: 560px;
     min-width: 260px;
     flex-shrink: 0;
@@ -704,9 +713,26 @@ $username = $_SESSION['username'] ?? 'User';
     top: 16px;
     max-height: calc(100vh - 100px);
     overflow: hidden;
-    transition: width 0.25s ease;
+    transition: width 0.25s ease, max-width 0.25s ease;
   }
-  .goal-panel.collapsed { width: 44px; }
+  .goal-panel.size-lg { width: 560px; max-width: 560px; }
+  .goal-panel.size-md { width: 320px; max-width: 320px; }
+  .goal-panel.size-sm { width: 44px; max-width: 44px; }
+  .goal-panel.size-xs { width: 44px; max-width: 44px; }
+  .goal-panel.size-sm .goal-panel-body,
+  .goal-panel.size-sm #goal-add-btns,
+  .goal-panel.size-sm .goal-panel-title,
+  .goal-panel.size-xs .goal-panel-body,
+  .goal-panel.size-xs #goal-add-btns,
+  .goal-panel.size-xs .goal-panel-title { display: none; }
+  .goal-panel.size-sm #gp-btn-sm,
+  .goal-panel.size-sm #gp-btn-md,
+  .goal-panel.size-sm #gp-btn-lg,
+  .goal-panel.size-xs #gp-btn-sm,
+  .goal-panel.size-xs #gp-btn-md,
+  .goal-panel.size-xs #gp-btn-lg { display: none; }
+  .goal-panel.size-sm .goal-panel-toggle,
+  .goal-panel.size-xs .goal-panel-toggle { transform: rotate(180deg); }
   .goal-panel-header {
     display: flex;
     align-items: center;
@@ -871,12 +897,17 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="goal-panel" id="goal-panel">
     <div class="goal-panel-header">
       <span class="goal-panel-title">🌳 焦點目標樹</span>
-      <button class="goal-panel-toggle" onclick="toggleGoalPanel()" title="收折/展開">◀</button>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <button onclick="setGoalPanelSize('sm')" id="gp-btn-sm" title="全收折" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">小</button>
+        <button onclick="setGoalPanelSize('md')" id="gp-btn-md" title="中等寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">中</button>
+        <button onclick="setGoalPanelSize('lg')" id="gp-btn-lg" title="完整寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">大</button>
+        <button class="goal-panel-toggle" onclick="setGoalPanelSize('xs')" title="收折面板">◀</button>
+      </div>
     </div>
     <div class="goal-panel-body" id="goal-panel-body">
       <!-- 動態渲染 -->
     </div>
-    <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;">
+    <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;" id="goal-add-btns">
       <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(255,215,0,0.4);background:rgba(255,215,0,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#FFD700;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
       <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(99,102,241,0.4);background:rgba(99,102,241,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#a5b4fc;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
       <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(249,115,22,0.4);background:rgba(249,115,22,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#fb923c;cursor:pointer;font-family:inherit;">📋 ＋週</button>
@@ -893,29 +924,41 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="board-wrap">
     <div class="col col-lib" data-col="lib">
       <div class="col-accent"></div>
-      <div class="col-header">
+      <div class="col-header" style="cursor:pointer;" onclick="toggleColSection('lib')">
         <div class="col-title-row">
           <div class="col-title">📚 策略筆記區</div>
-          <div class="badge badge-lib" id="badge-lib">0 則</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="badge badge-lib" id="badge-lib">0 則</div>
+            <span id="col-chev-lib" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▲</span>
+          </div>
         </div>
         <div class="col-sub">長期儲存 • 無限制</div>
       </div>
-      <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
-      <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib')">+ 新增筆記</button></div>
-      <div class="cards-area" id="cards-lib"></div>
+      <div id="col-body-lib" class="col-collapsible">
+        <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
+        <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib');event.stopPropagation()">+ 新增筆記</button></div>
+        <div class="cards-area" id="cards-lib" style="overflow-y:auto;"></div>
+        <div class="col-resize-handle" onmousedown="startColResize(event,'lib')" title="拖曳調整高度">⋯</div>
+      </div>
     </div>
 
     <div class="col col-week" data-col="week">
       <div class="col-accent"></div>
-      <div class="col-header">
+      <div class="col-header" style="cursor:pointer;" onclick="toggleColSection('week')">
         <div class="col-title-row">
           <div class="col-title">📅 本週目標</div>
-          <div class="badge badge-week" id="badge-week">0 / 3</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="badge badge-week" id="badge-week">0 / 3</div>
+            <span id="col-chev-week" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▲</span>
+          </div>
         </div>
         <div class="col-sub">這週最重要的事</div>
       </div>
-      <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week')">+ 新增目標</button></div>
-      <div class="cards-area" id="cards-week"></div>
+      <div id="col-body-week" class="col-collapsible">
+        <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week');event.stopPropagation()">+ 新增目標</button></div>
+        <div class="cards-area" id="cards-week" style="overflow-y:auto;"></div>
+        <div class="col-resize-handle" onmousedown="startColResize(event,'week')" title="拖曳調整高度">⋯</div>
+      </div>
     </div>
 
     <div class="col col-focus" data-col="focus">
@@ -1544,6 +1587,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderProjectSelect();
   injectProjectStyles();
   initGoalPanelState(); // 戰略樹收折狀態
+  initColSections();    // 策略筆記/本週欄收折狀態
   // 手機版：載入前先設定預設分頁（今日專注）
   if (window.innerWidth <= 768) {
     setMobileTab('focus');
@@ -2081,24 +2125,108 @@ function stripHtml(html) {
 let goalPanelCollapsed = false;
 let goalFilterParentId = null; // 點擊月/週目標時高亮右側子任務
 
-// 收折/展開戰略樹
-function toggleGoalPanel() {
-  goalPanelCollapsed = !goalPanelCollapsed;
-  const panel = document.getElementById('goal-panel');
-  if (panel) panel.classList.toggle('collapsed', goalPanelCollapsed);
-  try { localStorage.setItem('goalPanelCollapsed', goalPanelCollapsed ? '1' : '0'); } catch(e) {}
+// 欄位收折（策略筆記＋本週目標）
+function toggleColSection(col) {
+  const body = document.getElementById('col-body-' + col);
+  const chev = document.getElementById('col-chev-' + col);
+  if (!body) return;
+  const isCollapsed = body.classList.contains('collapsed');
+  if (isCollapsed) {
+    // 展開：恢復記憶高度
+    body.classList.remove('collapsed');
+    const savedH = localStorage.getItem('colHeight_' + col);
+    const area = document.getElementById('cards-' + col);
+    if (area && savedH) area.style.maxHeight = savedH + 'px';
+    if (chev) chev.style.transform = '';
+    try { localStorage.setItem('colOpen_' + col, '1'); } catch(e) {}
+  } else {
+    // 收折
+    body.classList.add('collapsed');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    try { localStorage.setItem('colOpen_' + col, '0'); } catch(e) {}
+  }
 }
 
-// 初始化收折狀態
+// 拖曳調整欄位高度
+function startColResize(e, col) {
+  e.preventDefault(); e.stopPropagation();
+  const area = document.getElementById('cards-' + col);
+  if (!area) return;
+  const startY = e.clientY;
+  const startH = area.offsetHeight;
+  function onMove(ev) {
+    const newH = Math.max(80, startH + ev.clientY - startY);
+    area.style.maxHeight = newH + 'px';
+    try { localStorage.setItem('colHeight_' + col, newH); } catch(e) {}
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// 初始化欄位收折狀態（預設收起，打開後記住）
+function initColSections() {
+  ['lib', 'week'].forEach(col => {
+    const body = document.getElementById('col-body-' + col);
+    const chev = document.getElementById('col-chev-' + col);
+    const area = document.getElementById('cards-' + col);
+    if (!body) return;
+    const isOpen = localStorage.getItem('colOpen_' + col) === '1';
+    const savedH = localStorage.getItem('colHeight_' + col);
+    if (!isOpen) {
+      body.classList.add('collapsed');
+      if (chev) chev.style.transform = 'rotate(180deg)';
+    } else {
+      if (area && savedH) area.style.maxHeight = savedH + 'px';
+    }
+  });
+}
+
+// 三段式收折：xs(收折) → sm(收折顯示) → md(中) → lg(大)
+// 桌面預設 sm
+function setGoalPanelSize(size) {
+  const panel = document.getElementById('goal-panel');
+  if (!panel) return;
+  panel.classList.remove('size-xs','size-sm','size-md','size-lg','collapsed');
+  panel.classList.add('size-' + size);
+  // 更新按鈕高亮
+  ['sm','md','lg'].forEach(s => {
+    const btn = document.getElementById('gp-btn-' + s);
+    if (btn) {
+      btn.style.background = (s === size) ? 'rgba(255,255,255,0.25)' : 'none';
+      btn.style.color = (s === size) ? '#fff' : 'rgba(255,255,255,0.6)';
+    }
+  });
+  try { localStorage.setItem('goalPanelSize', size); } catch(e) {}
+}
+
+// 點 ◀ 按鈕：在收折(sm)和上次開啟尺寸之間切換
+function toggleGoalPanel() {
+  const panel = document.getElementById('goal-panel');
+  if (!panel) return;
+  const isCollapsed = panel.classList.contains('size-sm') || panel.classList.contains('size-xs');
+  if (isCollapsed) {
+    const lastSize = localStorage.getItem('goalPanelLastOpen') || 'lg';
+    setGoalPanelSize(lastSize);
+  } else {
+    // 記住當前開啟尺寸
+    const cur = panel.classList.contains('size-md') ? 'md' : 'lg';
+    try { localStorage.setItem('goalPanelLastOpen', cur); } catch(e) {}
+    setGoalPanelSize('sm');
+  }
+}
+
+// 初始化收折狀態（桌面預設 sm）
 function initGoalPanelState() {
   try {
-    const saved = localStorage.getItem('goalPanelCollapsed');
-    if (saved === '1') {
-      goalPanelCollapsed = true;
-      const panel = document.getElementById('goal-panel');
-      if (panel) panel.classList.add('collapsed');
-    }
-  } catch(e) {}
+    const saved = localStorage.getItem('goalPanelSize') || 'sm';
+    setGoalPanelSize(saved);
+  } catch(e) {
+    setGoalPanelSize('sm');
+  }
 }
 
 // 計算進度（每層只算直接子項）
@@ -2328,11 +2456,12 @@ function buildYearCard(year, allGoalCards) {
   header.style.cssText = `
     display:flex;align-items:center;gap:6px;
     padding:6px 8px;border-radius:8px;
-    background:rgba(255,215,0,0.1);
-    border:1px solid rgba(255,215,0,${isComplete?'0.6':'0.25'});
+    background:rgba(255,215,0,0.08);
+    border:1px solid rgba(180,140,0,${isComplete?'0.5':'0.2'});
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#92700A;color:#FFF8DC;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">年</span>
     <span id="year-chevron-${year.id}" style="font-size:10px;color:#B8860B;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:12px;flex-shrink:0;">${isComplete?'🏆':'📌'}</span>
     <span style="font-size:12px;font-weight:700;color:${isComplete?'#16803C':'#92700A'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(year.title)}">${escHtml(year.title)}</span>
@@ -2400,6 +2529,7 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#3730A3;color:#EEF2FF;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">月</span>
     <span id="month-chevron-${month.id}" style="font-size:10px;color:#4338CA;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
     <span style="font-size:11px;font-weight:700;color:${isComplete?'#16803C':'#3730A3'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(month.title)}">${escHtml(month.title)}</span>
@@ -2465,6 +2595,7 @@ function buildWeekCard(week, weekWeight, monthWeight) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#C2560A;color:#FFF7ED;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">週</span>
     <span id="week-chevron-${week.id}" style="font-size:9px;color:#C2560A;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete ? '✅' : '📋'}</span>
     <span style="font-size:11px;font-weight:600;color:${isComplete ? '#16803C' : 'var(--text)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(week.title)}">${escHtml(week.title)}</span>
