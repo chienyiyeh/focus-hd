@@ -900,7 +900,6 @@ $username = $_SESSION['username'] ?? 'User';
       <button onclick="document.getElementById('goal-import-file').click()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
       <button onclick="exportGoalTree()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
     </div>
-    <input type="file" id="goal-import-file" accept=".json" style="display:none;" onchange="handleGoalImportFile(this)">
   </div>
 
   <!-- 篩選提示列 + 看板 -->
@@ -1289,8 +1288,6 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 </div>
 
-<!-- 匯出目標樹用的隱藏下載連結 -->
-<a id="goal-export-link" style="display:none;"></a>
 
 
 <!-- 專案設定 Modal -->
@@ -5264,5 +5261,10 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
   <?php endif; ?>
   <a href="index.php?action=logout" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
 </div>
+
+<!-- 匯入/匯出全域元素，放 body 底部確保不被隱藏容器影響 -->
+<input type="file" id="goal-import-file" accept=".json" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;" onchange="handleGoalImportFile(this)">
+<a id="goal-export-link" style="display:none;"></a>
+
 </body>
 </html>
