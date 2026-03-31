@@ -1148,6 +1148,8 @@ $username = $_SESSION['username'] ?? 'User';
       <input type="hidden" id="input-edit-id">
       <input type="hidden" id="input-bgcolor">
       <input type="hidden" id="input-textcolor">
+      <input type="hidden" id="input-parent-id">
+      <input type="hidden" id="input-level" value="general">
     </div>
     <div class="modal-footer" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <button id="modal-back-btn" onclick="closeModal()" style="display:none;padding:8px 16px;font-size:13px;border:1px solid var(--accent-week);border-radius:var(--radius);background:none;cursor:pointer;color:var(--accent-week);font-weight:600;">← 返回外部</button>
@@ -2573,9 +2575,9 @@ function spawnProjectCard(weekId, weekTitle) {
   // 設定 modal 標題
   document.getElementById('modal-title').textContent = `🚀 新增子任務 → ${weekTitle}`;
 
-  // 儲存週ID供儲存時使用
-  window._spawnParentId = weekId;
-  window._spawnLevel = 'project';
+  // 儲存週ID供儲存時使用（存到 hidden input，不用全域變數，避免儲存後清掉）
+  document.getElementById('input-parent-id').value = weekId;
+  document.getElementById('input-level').value = 'project';
 
   const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
   const bb = document.getElementById('bottom-bar'); if (bb) bb.style.display = 'none';
@@ -3227,6 +3229,9 @@ function openModal(col) {
   // 清空優先級
   document.getElementById('input-priority').value = '';
   document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  // 清空父子關係（一般新增卡片，不是從戰略樹發射的）
+  document.getElementById('input-parent-id').value = '';
+  document.getElementById('input-level').value = 'general';
   
   initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
@@ -3251,6 +3256,9 @@ function editCard(id, col) {
   document.querySelectorAll('.priority-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.value === card.priority);
   });
+  // 帶入卡片原本的父子關係（編輯時保留）
+  document.getElementById('input-parent-id').value = card.parentId || '';
+  document.getElementById('input-level').value = card.level || 'general';
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
   const backBtn2 = document.getElementById('modal-back-btn'); if (backBtn2) backBtn2.style.display = 'none';
@@ -3271,8 +3279,15 @@ async function saveCard() {
   }
   const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist, completedAt: completedAt };
   if (eid) data.id = eid;
-  // 子任務發射：帶入 parentId 和 level
-  if (window._spawnParentId) {
+  // 子任務發射：從 hidden input 讀取 parentId 和 level（不用全域變數，避免儲存後清掉）
+  const spawnParentId = document.getElementById('input-parent-id').value;
+  const spawnLevel = document.getElementById('input-level').value;
+  if (spawnParentId) {
+    data.parentId = parseInt(spawnParentId);
+    data.level = spawnLevel || 'project';
+  }
+  // 相容舊的全域變數（保留向後相容）
+  if (!spawnParentId && window._spawnParentId) {
     data.parentId = window._spawnParentId;
     data.level = window._spawnLevel || 'project';
     window._spawnParentId = null;
