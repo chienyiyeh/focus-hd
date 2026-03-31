@@ -868,7 +868,7 @@ $username = $_SESSION['username'] ?? 'User';
   <!-- 戰略樹面板（左側收折） -->
   <div class="goal-panel" id="goal-panel">
     <div class="goal-panel-header">
-      <span class="goal-panel-title">🏆 戰略目標</span>
+      <span class="goal-panel-title">🌳 焦點目標樹</span>
       <button class="goal-panel-toggle" onclick="toggleGoalPanel()" title="收折/展開">◀</button>
     </div>
     <div class="goal-panel-body" id="goal-panel-body">
@@ -2267,49 +2267,75 @@ function buildMobileWeekCard(week) {
   return div;
 }
 
-// 建立年度卡（桌面深色版）
+// 建立年度卡（縮排清單樹）
 function buildYearCard(year, allGoalCards) {
   const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
   const progress = calcGoalProgress(year);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
   const monthCount = monthCards.length;
-  // 每個月度對年度的貢獻占比
   const monthWeight = monthCount > 0 ? Math.round(100 / monthCount) : 0;
 
   const div = document.createElement('div');
-  div.className = 'goal-year-card open';
   div.id = 'goal-year-' + year.id;
+  div.style.cssText = 'margin-bottom:8px;';
 
-  div.innerHTML = `
-    <div class="goal-year-header" onclick="if(!event.target.closest('button'))this.closest('.goal-year-card').classList.toggle('open')">
-      <span class="goal-year-chevron">▶</span>
-      <span class="goal-year-icon">${isComplete?'🏆':'📌'}</span>
-      <span class="goal-year-title" style="${isComplete?'color:#22c55e;':''}">${escHtml(year.title)}</span>
-      <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(255,255,255,0.4)'};flex-shrink:0;margin-right:2px;font-weight:${isComplete?'700':'400'};">${pct}%</span>
-      <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪除</button>
-      <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
-    </div>
-    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:4px 12px;display:flex;align-items:center;gap:4px;">🎉 年度目標全部完成！可以結案了</div>` : ''}
-    <div class="goal-year-progress-bar">
-      <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    ${monthCount > 0 ? `<div style="padding:4px 12px 6px;font-size:10px;color:rgba(255,215,0,0.55);display:flex;align-items:center;gap:6px;">
-      <span>共 ${monthCount} 個月度目標</span>
-      <span style="opacity:0.5;">·</span>
-      <span>每個完成貢獻 <b style="color:#FFD700;">${monthWeight}%</b> 年度進度</span>
-    </div>` : `<div style="padding:4px 12px 6px;font-size:10px;color:rgba(255,255,255,0.25);">尚未新增月度目標</div>`}
-    <div class="goal-year-children" id="year-children-${year.id}"></div>
+  // 年度列
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:6px;
+    padding:6px 8px;border-radius:8px;
+    background:rgba(255,215,0,0.1);
+    border:1px solid rgba(255,215,0,${isComplete?'0.6':'0.25'});
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span id="year-chevron-${year.id}" style="font-size:10px;color:#FFD700;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span style="font-size:12px;flex-shrink:0;">${isComplete?'🏆':'📌'}</span>
+    <span style="font-size:12px;font-weight:700;color:${isComplete?'#22c55e':'#FFD700'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(year.title)}">${escHtml(year.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(255,215,0,0.7)'};flex-shrink:0;font-weight:700;">${pct}%</span>
+    <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.4);border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
   `;
 
-  const childrenEl = div.querySelector('#year-children-' + year.id);
-  monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
+  // 進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:3px;background:rgba(255,215,0,0.1);border-radius:0 0 4px 4px;overflow:hidden;margin:0 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#22c55e':'#FFD700'};transition:width 0.6s;"></div>`;
 
+  // 摘要列
+  const meta = document.createElement('div');
+  meta.style.cssText = 'font-size:10px;color:rgba(255,215,0,0.45);padding:3px 8px 5px;display:flex;gap:8px;';
+  meta.innerHTML = monthCount > 0
+    ? `<span>共 ${monthCount} 個月度</span><span style="opacity:0.5">·</span><span>每月完成貢獻 <b style="color:#FFD700">${monthWeight}%</b> 年度進度</span>`
+    : `<span style="color:rgba(255,255,255,0.2);">尚未新增月度目標</span>`;
+
+  // 子層容器
+  const children = document.createElement('div');
+  children.id = 'year-children-' + year.id;
+  children.style.cssText = 'padding-left:14px;border-left:2px solid rgba(255,215,0,0.2);margin-left:10px;margin-top:2px;';
+
+  // 收折切換
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    children.style.display = open ? 'block' : 'none';
+    meta.style.display = open ? 'flex' : 'none';
+    document.getElementById('year-chevron-' + year.id).style.transform = open ? '' : 'rotate(-90deg)';
+  });
+
+  monthCards.forEach(month => children.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(meta);
+  div.appendChild(children);
   return div;
 }
 
-// 建立月度卡
+// 建立月度卡（縮排清單樹）
 function buildMonthCard(month, allGoalCards, parentWeight) {
   const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
@@ -2317,40 +2343,57 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
   const isComplete = progress.total > 0 && progress.done === progress.total;
   const weekCount = weekCards.length;
   const weekWeight = weekCount > 0 ? Math.round(100 / weekCount) : 0;
-  // 這個月度對年度貢獻的實際%（parentWeight × 自己完成率）
-  const yearContrib = parentWeight ? Math.round(parentWeight * pct / 100) : null;
 
   const div = document.createElement('div');
-  div.className = 'goal-month-card open';
   div.id = 'goal-month-' + month.id;
+  div.style.cssText = 'margin-bottom:4px;margin-top:4px;';
 
-  div.innerHTML = `
-    <div class="goal-month-header" onclick="if(!event.target.closest('button'))this.closest('.goal-month-card').classList.toggle('open')">
-      <span class="goal-month-chevron">▶</span>
-      <span class="goal-month-title" style="${isComplete?'color:#22c55e;':''}">${isComplete?'✅':'📅'} ${escHtml(month.title)}</span>
-      <span class="goal-month-badge" style="${isComplete?'background:rgba(34,197,94,0.2);color:#22c55e;border-color:rgba(34,197,94,0.4);':''}">${progress.done}/${progress.total}</span>
-      <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪</button>
-      <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
-    </div>
-    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:3px 10px;display:flex;align-items:center;gap:4px;">🎉 月度目標全部完成！</div>` : ''}
-    <div class="goal-month-progress-bar">
-      <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    <div style="padding:3px 10px 5px;display:flex;align-items:center;justify-content:space-between;font-size:10px;">
-      ${parentWeight ? `<span style="color:rgba(99,102,241,0.7);">完成本月 → 年度 <b style="color:#a5b4fc;">+${parentWeight}%</b>${yearContrib > 0 ? `（已貢獻 ${yearContrib}%）` : ''}</span>` : '<span></span>'}
-      ${weekCount > 0 ? `<span style="color:rgba(255,255,255,0.3);">共 ${weekCount} 週，各佔 ${weekWeight}%</span>` : `<span style="color:rgba(255,255,255,0.2);">尚未新增週目標</span>`}
-    </div>
-    <div class="goal-month-children" id="month-children-${month.id}"></div>
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:5px;
+    padding:5px 8px;border-radius:6px;
+    background:rgba(99,102,241,${isComplete?'0.18':'0.08'});
+    border:1px solid rgba(99,102,241,${isComplete?'0.5':'0.2'});
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span id="month-chevron-${month.id}" style="font-size:10px;color:#a5b4fc;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span style="font-size:11px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
+    <span style="font-size:11px;font-weight:700;color:${isComplete?'#22c55e':'#a5b4fc'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(month.title)}">${escHtml(month.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(99,102,241,0.8)'};flex-shrink:0;">${progress.done}/${progress.total}</span>
+    ${parentWeight ? `<span style="font-size:10px;color:rgba(255,215,0,0.6);flex-shrink:0;margin-left:2px;">年+${parentWeight}%</span>` : ''}
+    <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.12);border:none;color:#E24B4A;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
   `;
 
-  const childrenEl = div.querySelector('#month-children-' + month.id);
-  weekCards.forEach(week => childrenEl.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
+  // 月度進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(99,102,241,0.1);border-radius:1px;overflow:hidden;margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#22c55e':'#818cf8'};transition:width 0.6s;"></div>`;
 
+  // 週的子層
+  const children = document.createElement('div');
+  children.id = 'month-children-' + month.id;
+  children.style.cssText = 'padding-left:12px;border-left:2px solid rgba(99,102,241,0.2);margin-left:10px;margin-top:2px;';
+
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    children.style.display = open ? 'block' : 'none';
+    document.getElementById('month-chevron-' + month.id).style.transform = open ? '' : 'rotate(-90deg)';
+  });
+
+  weekCards.forEach(week => children.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(children);
   return div;
 }
 
-// 建立週卡
+// 建立週卡（縮排清單樹）
 function buildWeekCard(week, weekWeight, monthWeight) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
@@ -2359,64 +2402,83 @@ function buildWeekCard(week, weekWeight, monthWeight) {
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
   const isFiltered = goalFilterParentId === week.id;
-
-  // 此週完成後對月度的貢獻 / 對年度的貢獻（兩層換算）
-  const monthContrib = weekWeight || null;
   const yearContrib = (weekWeight && monthWeight) ? Math.round(weekWeight * monthWeight / 100) : null;
 
   const div = document.createElement('div');
-  div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '') + (isComplete ? ' goal-week-complete' : '');
   div.id = 'goal-week-' + week.id;
   div.dataset.weekId = week.id;
+  div.style.cssText = 'margin-bottom:3px;margin-top:3px;';
 
-  const completeAlert = (isComplete && total > 0) ? `
-    <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:5px;display:flex;align-items:center;gap:4px;">
-      🎉 全部完成！可以結案了
-    </div>` : '';
-
-  // 子任務預覽（最多顯示3條，其餘摺疊）
-  let taskPreviewHTML = '';
-  if (children.length > 0) {
-    const preview = children.slice(0, 4);
-    taskPreviewHTML = `<div style="margin-top:5px;display:flex;flex-direction:column;gap:2px;">`;
-    preview.forEach(c => {
-      const isDone = c.col === 'done' || !!c.completedAt;
-      taskPreviewHTML += `<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:${isDone?'#22c55e':'rgba(255,255,255,0.55)'};padding:1px 0;cursor:pointer;" onclick="filterByParent(${week.id});event.stopPropagation()">
-        <span style="flex-shrink:0;">${isDone?'✅':'⬜'}</span>
-        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isDone?'text-decoration:line-through;opacity:0.6;':''}">${escHtml(c.title)}</span>
-      </div>`;
-    });
-    if (children.length > 4) {
-      taskPreviewHTML += `<div style="font-size:10px;color:rgba(255,255,255,0.3);padding:1px 0;">... 還有 ${children.length - 4} 項</div>`;
-    }
-    taskPreviewHTML += `</div>`;
-  }
-
-  div.innerHTML = `
-    ${completeAlert}
-    <div class="goal-week-header" onclick="if(!event.target.closest('button'))filterByParent(${week.id})" title="點擊標題篩選此週子任務" style="cursor:pointer;">
-      <span class="goal-week-title" style="${isComplete?'color:#22c55e;font-weight:700;':''}">${isComplete?'✅':'📋'} ${escHtml(week.title)}</span>
-      <span class="goal-week-progress" style="${isComplete?'color:#22c55e;':''}">${doneCount}/${total}</span>
-    </div>
-    <div class="goal-week-bar" style="margin-top:5px;">
-      <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;">
-      <div style="font-size:10px;color:rgba(255,255,255,0.25);">
-        ${monthContrib ? `完成 → 月 <b style="color:#f97316;">+${monthContrib}%</b>` : ''}
-        ${yearContrib ? ` / 年 <b style="color:#FFD700;">+${yearContrib}%</b>` : ''}
-      </div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.35);">${pct}%</div>
-    </div>
-    ${taskPreviewHTML}
-    <div class="goal-week-actions" onclick="event.stopPropagation()" style="margin-top:6px;">
-      <button class="goal-action-btn primary" onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')">＋ 子任務</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();filterByParent(${week.id})">🔍 查看</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;border-color:rgba(226,75,74,0.3);">🗑</button>
-    </div>
+  // 週標題列
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:5px;
+    padding:4px 8px;border-radius:5px;
+    background:${isFiltered ? 'rgba(34,197,94,0.1)' : isComplete ? 'rgba(34,197,94,0.07)' : 'rgba(249,115,22,0.06)'};
+    border-left:3px solid ${isFiltered ? '#22c55e' : isComplete ? '#22c55e' : '#f97316'};
+    border-top:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
+    border-right:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
+    border-bottom:1px solid ${isFiltered ? 'rgba(34,197,94,0.25)' : 'rgba(249,115,22,0.12)'};
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span id="week-chevron-${week.id}" style="font-size:9px;color:#f97316;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
+    <span style="font-size:11px;flex-shrink:0;">${isComplete ? '✅' : '📋'}</span>
+    <span style="font-size:11px;font-weight:600;color:${isComplete ? '#22c55e' : 'rgba(255,255,255,0.8)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(week.title)}">${escHtml(week.title)}</span>
+    <span style="font-size:10px;color:${isComplete ? '#22c55e' : '#f97316'};flex-shrink:0;">${doneCount}/${total}</span>
+    ${weekWeight ? `<span style="font-size:10px;color:rgba(249,115,22,0.6);flex-shrink:0;margin-left:2px;">月+${weekWeight}%</span>` : ''}
+    ${yearContrib ? `<span style="font-size:10px;color:rgba(255,215,0,0.5);flex-shrink:0;">年+${yearContrib}%</span>` : ''}
+    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(249,115,22,0.2);border:none;color:#fb923c;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋</button>
+    <button onclick="event.stopPropagation();filterByParent(${week.id})" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🔍</button>
+    <button onclick="event.stopPropagation();editGoalCard(${week.id},event)" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="background:rgba(226,75,74,0.12);border:none;color:#E24B4A;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
   `;
 
+  // 週進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(249,115,22,0.1);border-radius:1px;overflow:hidden;margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete ? '#22c55e' : '#f97316'};transition:width 0.6s;"></div>`;
+
+  // 子任務列表
+  const taskList = document.createElement('div');
+  taskList.id = 'week-tasks-' + week.id;
+  taskList.style.cssText = 'padding-left:10px;border-left:2px solid rgba(249,115,22,0.15);margin-left:10px;margin-top:2px;';
+
+  if (children.length > 0) {
+    children.forEach(c => {
+      const isDone = c.col === 'done' || !!c.completedAt;
+      const row = document.createElement('div');
+      row.style.cssText = `
+        display:flex;align-items:center;gap:6px;
+        padding:3px 6px;font-size:10px;
+        color:${isDone ? 'rgba(34,197,94,0.7)' : 'rgba(255,255,255,0.6)'};
+        border-radius:3px;cursor:pointer;
+        ${isDone ? 'text-decoration:line-through;opacity:0.65;' : ''}
+      `;
+      row.innerHTML = `
+        <span style="flex-shrink:0;font-size:11px;">${isDone ? '✅' : '⬜'}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(c.title)}</span>
+      `;
+      row.onclick = () => filterByParent(week.id);
+      taskList.appendChild(row);
+    });
+  }
+
+  // 收折切換
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    if (total === 0) return;
+    open = !open;
+    taskList.style.display = open ? 'block' : 'none';
+    bar.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('week-chevron-' + week.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+  });
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  if (children.length > 0) div.appendChild(taskList);
   return div;
 }
 
