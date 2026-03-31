@@ -896,6 +896,11 @@ $username = $_SESSION['username'] ?? 'User';
       <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(99,102,241,0.5);background:rgba(99,102,241,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#3730A3;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
       <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(194,86,10,0.5);background:rgba(249,115,22,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#C2560A;cursor:pointer;font-family:inherit;">📋 ＋週</button>
     </div>
+    <div style="margin:0 8px 10px;display:flex;gap:6px;">
+      <button onclick="document.getElementById('goal-import-file').click()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+      <button onclick="exportGoalTree()" style="flex:1;padding:6px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:11px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
+    </div>
+    <input type="file" id="goal-import-file" accept=".json" style="display:none;" onchange="handleGoalImportFile(this)">
   </div>
 
   <!-- 篩選提示列 + 看板 -->
@@ -1193,7 +1198,48 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<!-- 戰略目標 Modal（動態建立，見 openGoalModal JS 函數） -->
+<!-- 匯入目標樹 Modal -->
+<div id="goal-import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;">📥 匯入目標樹</div>
+      <button onclick="closeGoalImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+      <!-- 預覽區 -->
+      <div id="goal-import-preview" style="display:none;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">📋 預覽匯入內容：</div>
+        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:300px;overflow-y:auto;line-height:1.8;"></div>
+        <!-- 同名警告 -->
+        <div id="goal-import-conflict" style="display:none;margin-top:12px;padding:10px 14px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;font-size:12px;color:#92400E;">
+          <div style="font-weight:700;margin-bottom:4px;">⚠️ 發現同名目標</div>
+          <div id="goal-import-conflict-list" style="line-height:1.8;"></div>
+          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名的會新增為獨立項目，不會覆蓋）</div>
+        </div>
+        <div id="goal-import-summary" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
+      </div>
+      <!-- 錯誤訊息 -->
+      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;"></div>
+      <!-- 進度 -->
+      <div id="goal-import-progress" style="display:none;margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">匯入中...</div>
+        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div id="goal-import-bar" style="height:100%;background:#534AB7;width:0%;transition:width 0.3s;"></div>
+        </div>
+        <div id="goal-import-status" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+      <!-- 完成 -->
+      <div id="goal-import-done" style="display:none;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
+      <button onclick="closeGoalImport()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
+      <button id="goal-import-confirm-btn" onclick="confirmGoalImport()" style="display:none;padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;">確認匯入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 匯出目標樹用的隱藏下載連結 -->
+<a id="goal-export-link" style="display:none;"></a>
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
@@ -2658,6 +2704,262 @@ function buildWeekCard(week, weekWeight, monthWeight) {
   div.appendChild(bar);
   if (children.length > 0) div.appendChild(taskList);
   return div;
+}
+
+// ==========================================
+// 目標樹 匯入 / 匯出
+// ==========================================
+
+let _importData = null; // 暫存解析後的匯入資料
+
+// 讀取 JSON 檔案
+function handleGoalImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // 允許重複選同一檔案
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      _importData = null;
+      showGoalImportPreview(data);
+    } catch(err) {
+      showGoalImportError('JSON 格式錯誤，請確認檔案內容：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  openGoalImportModal();
+}
+
+function openGoalImportModal() {
+  const overlay = document.getElementById('goal-import-overlay');
+  overlay.style.display = 'flex';
+  // 重置
+  ['goal-import-preview','goal-import-error','goal-import-progress','goal-import-done','goal-import-conflict'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const btn = document.getElementById('goal-import-confirm-btn');
+  if (btn) btn.style.display = 'none';
+}
+
+function closeGoalImport() {
+  document.getElementById('goal-import-overlay').style.display = 'none';
+  _importData = null;
+}
+
+// 解析並預覽匯入資料
+function showGoalImportPreview(raw) {
+  // 支援兩種格式：
+  // 格式A：{ years: [...] }
+  // 格式B：直接一個 { title, summary, months: [...] }
+  let years = [];
+  if (Array.isArray(raw.years)) {
+    years = raw.years;
+  } else if (raw.title && Array.isArray(raw.months)) {
+    years = [raw];
+  } else if (Array.isArray(raw)) {
+    years = raw;
+  } else {
+    showGoalImportError('找不到有效的目標資料，請確認 JSON 格式是否正確。');
+    return;
+  }
+
+  if (years.length === 0) {
+    showGoalImportError('JSON 內沒有任何目標資料。');
+    return;
+  }
+
+  // 統計
+  let totalMonths = 0, totalWeeks = 0;
+  let conflicts = [];
+  const existingTitles = (state.goal || []).map(c => c.title.trim().toLowerCase());
+
+  let previewHTML = '';
+  years.forEach(year => {
+    const yConflict = existingTitles.includes((year.title||'').trim().toLowerCase());
+    if (yConflict) conflicts.push({ level: '年度', title: year.title });
+    previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <span style="font-size:9px;font-weight:700;background:#92700A;color:#FFF8DC;border-radius:3px;padding:1px 5px;">年</span>
+      <span style="font-weight:700;color:#7A5C00;">${escHtml(year.title||'')}</span>
+      ${yConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+    </div>`;
+
+    (year.months || []).forEach(month => {
+      totalMonths++;
+      const mConflict = existingTitles.includes((month.title||'').trim().toLowerCase());
+      if (mConflict) conflicts.push({ level: '月度', title: month.title });
+      previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;padding-left:16px;">
+        <span style="font-size:9px;font-weight:700;background:#3730A3;color:#EEF2FF;border-radius:3px;padding:1px 5px;">月</span>
+        <span style="color:#3730A3;">${escHtml(month.title||'')}</span>
+        ${mConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+      </div>`;
+
+      (month.weeks || []).forEach(week => {
+        totalWeeks++;
+        const wConflict = existingTitles.includes((week.title||'').trim().toLowerCase());
+        if (wConflict) conflicts.push({ level: '週', title: week.title });
+        previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;padding-left:32px;">
+          <span style="font-size:9px;font-weight:700;background:#C2560A;color:#FFF7ED;border-radius:3px;padding:1px 5px;">週</span>
+          <span style="color:#C2560A;">${escHtml(week.title||'')}</span>
+          ${wConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+        </div>`;
+      });
+    });
+  });
+
+  _importData = years;
+
+  // 顯示預覽
+  document.getElementById('goal-import-preview').style.display = 'block';
+  document.getElementById('goal-import-preview-body').innerHTML = previewHTML;
+  document.getElementById('goal-import-summary').textContent =
+    `共 ${years.length} 個年度目標、${totalMonths} 個月度、${totalWeeks} 個週目標`;
+
+  // 衝突警告
+  if (conflicts.length > 0) {
+    document.getElementById('goal-import-conflict').style.display = 'block';
+    document.getElementById('goal-import-conflict-list').innerHTML =
+      conflicts.map(c => `• ${c.level}：${escHtml(c.title)}`).join('<br>');
+  } else {
+    document.getElementById('goal-import-conflict').style.display = 'none';
+  }
+
+  document.getElementById('goal-import-confirm-btn').style.display = 'inline-block';
+}
+
+function showGoalImportError(msg) {
+  document.getElementById('goal-import-error').style.display = 'block';
+  document.getElementById('goal-import-error').textContent = '❌ ' + msg;
+  openGoalImportModal();
+}
+
+// 執行匯入
+async function confirmGoalImport() {
+  if (!_importData) return;
+  const years = _importData;
+
+  document.getElementById('goal-import-confirm-btn').style.display = 'none';
+  document.getElementById('goal-import-preview').style.display = 'none';
+  document.getElementById('goal-import-progress').style.display = 'block';
+
+  // 計算總步驟
+  let totalSteps = 0;
+  years.forEach(y => {
+    totalSteps++;
+    (y.months||[]).forEach(m => {
+      totalSteps++;
+      totalSteps += (m.weeks||[]).length;
+    });
+  });
+  let doneSteps = 0;
+
+  function updateProgress(msg) {
+    doneSteps++;
+    const pct = Math.round(doneSteps / totalSteps * 100);
+    document.getElementById('goal-import-bar').style.width = pct + '%';
+    document.getElementById('goal-import-status').textContent = msg;
+  }
+
+  async function saveGoal(data) {
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || '儲存失敗');
+    return json.id;
+  }
+
+  try {
+    for (const year of years) {
+      const yearId = await saveGoal({
+        col: 'goal', level: 'year',
+        title: year.title,
+        summary: year.summary || null,
+        isPrivate: 0
+      });
+      updateProgress(`年度：${year.title}`);
+
+      for (const month of (year.months || [])) {
+        const monthId = await saveGoal({
+          col: 'goal', level: 'month',
+          title: month.title,
+          summary: month.summary || null,
+          parentId: yearId, isPrivate: 0
+        });
+        updateProgress(`月度：${month.title}`);
+
+        for (const week of (month.weeks || [])) {
+          await saveGoal({
+            col: 'goal', level: 'week',
+            title: week.title,
+            summary: week.summary || null,
+            parentId: monthId, isPrivate: 0
+          });
+          updateProgress(`週：${week.title}`);
+        }
+      }
+    }
+
+    document.getElementById('goal-import-progress').style.display = 'none';
+    document.getElementById('goal-import-done').style.display = 'block';
+    document.getElementById('goal-import-done').textContent =
+      `✅ 匯入完成！共建立 ${years.length} 年度、${years.reduce((a,y)=>a+(y.months||[]).length,0)} 月度、${years.reduce((a,y)=>(y.months||[]).reduce((b,m)=>b+(m.weeks||[]).length,a),0)} 週目標`;
+
+    await loadCards();
+    _importData = null;
+
+  } catch (err) {
+    document.getElementById('goal-import-progress').style.display = 'none';
+    showGoalImportError('匯入過程發生錯誤：' + err.message);
+  }
+}
+
+// 匯出目前目標樹為 JSON
+function exportGoalTree() {
+  const goalCards = state.goal || [];
+  const years = goalCards.filter(c => c.level === 'year').map(year => ({
+    title: year.title,
+    summary: year.summary || '',
+    months: goalCards.filter(m => m.parentId === year.id && m.level === 'month').map(month => ({
+      title: month.title,
+      summary: month.summary || '',
+      weeks: goalCards.filter(w => w.parentId === month.id && w.level === 'week').map(week => ({
+        title: week.title,
+        summary: week.summary || ''
+      }))
+    }))
+  }));
+
+  // 加上獨立月度（沒有父層年度的）
+  const looseMonths = goalCards.filter(m => m.level === 'month' && !goalCards.find(y => y.id === m.parentId));
+  if (looseMonths.length > 0) {
+    years.push({
+      title: '（未分類月度目標）',
+      summary: '',
+      months: looseMonths.map(month => ({
+        title: month.title,
+        summary: month.summary || '',
+        weeks: goalCards.filter(w => w.parentId === month.id && w.level === 'week').map(week => ({
+          title: week.title,
+          summary: week.summary || ''
+        }))
+      }))
+    });
+  }
+
+  const json = JSON.stringify({ years }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.getElementById('goal-export-link');
+  a.href = url;
+  a.download = `目標樹_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ 目標樹已匯出');
 }
 
 // 開啟新增/編輯目標 Modal
