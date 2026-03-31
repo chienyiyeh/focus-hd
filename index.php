@@ -696,8 +696,9 @@ $username = $_SESSION['username'] ?? 'User';
     width: 24px; display: none; flex-direction: column; align-items: center; cursor: pointer; z-index: 10;
   }
   .goal-panel-tab-inner {
-    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
-    background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%);
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    background: linear-gradient(180deg, #1A1A18 0%, #2d2d2a 100%);
     color: #FFD700; font-size: 11px; font-weight: 700; padding: 12px 5px;
     border-radius: 0 var(--radius) var(--radius) 0;
     border: 1px solid rgba(255,215,0,0.3); border-left: none;
