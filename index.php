@@ -2373,7 +2373,7 @@ function buildMobileMonthCard(month, allGoalCards, parentWeight) {
     open = !open;
     body.style.display = open ? 'block' : 'none';
     const chev = document.getElementById('m-month-chev-' + month.id);
-    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
   });
 
   weekCards.forEach(week => body.appendChild(buildMobileWeekCard(week, weekWeight)));  if (weekCards.length === 0) {
@@ -2432,7 +2432,7 @@ function buildMobileWeekCard(week, weekWeight) {
     open = !open;
     taskList.style.display = open ? 'block' : 'none';
     const chev = document.getElementById('m-week-chev-' + week.id);
-    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
   });
 
   div.appendChild(header);
@@ -2498,7 +2498,7 @@ function buildYearCard(year, allGoalCards) {
     open = !open;
     children.style.display = open ? 'block' : 'none';
     meta.style.display = open ? 'flex' : 'none';
-    document.getElementById('year-chevron-' + year.id).style.transform = open ? '' : 'rotate(-90deg)';
+    document.getElementById('year-chevron-' + year.id).style.transform = open ? '' : 'rotate(90deg)';
   });
 
   monthCards.forEach(month => children.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
@@ -2558,7 +2558,7 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
     if (e.target.closest('button')) return;
     open = !open;
     children.style.display = open ? 'block' : 'none';
-    document.getElementById('month-chevron-' + month.id).style.transform = open ? '' : 'rotate(-90deg)';
+    document.getElementById('month-chevron-' + month.id).style.transform = open ? '' : 'rotate(90deg)';
   });
 
   weekCards.forEach(week => children.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
@@ -2650,7 +2650,7 @@ function buildWeekCard(week, weekWeight, monthWeight) {
     taskList.style.display = open ? 'block' : 'none';
     bar.style.display = open ? 'block' : 'none';
     const chev = document.getElementById('week-chevron-' + week.id);
-    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
   });
 
   div.appendChild(header);
