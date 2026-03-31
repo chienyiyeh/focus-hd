@@ -1210,21 +1210,53 @@ $username = $_SESSION['username'] ?? 'User';
       <button onclick="closeGoalImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
     </div>
     <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+
+      <!-- 輸入區 -->
+      <div id="goal-import-input-area">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="gim-tab-paste" onclick="switchImportTab('paste')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #534AB7;background:#534AB7;color:#fff;">
+            📋 貼上 JSON
+          </button>
+          <button id="gim-tab-file" onclick="switchImportTab('file')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-secondary);">
+            📂 選取檔案
+          </button>
+        </div>
+        <div id="gim-paste-area">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">把 JSON 內容貼到下方（手機長按貼上）：</div>
+          <textarea id="goal-import-textarea"
+            placeholder='{"years":[{"title":"年度目標","months":[...]}]}'
+            style="width:100%;height:160px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
+            oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'"></textarea>
+          <button onclick="parseImportTextarea()"
+            style="margin-top:10px;width:100%;padding:11px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+            🔍 解析並預覽
+          </button>
+        </div>
+        <div id="gim-file-area" style="display:none;">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">選取 .json 檔案（建議桌面使用）：</div>
+          <button onclick="document.getElementById('goal-import-file').click()"
+            style="width:100%;padding:14px;border:2px dashed var(--border);border-radius:8px;background:var(--surface2);color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:inherit;">
+            📂 點此選取 JSON 檔案
+          </button>
+        </div>
+      </div>
+
       <!-- 預覽區 -->
       <div id="goal-import-preview" style="display:none;">
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">📋 預覽匯入內容：</div>
-        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:300px;overflow-y:auto;line-height:1.8;"></div>
-        <!-- 同名警告 -->
+        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:260px;overflow-y:auto;line-height:1.8;"></div>
         <div id="goal-import-conflict" style="display:none;margin-top:12px;padding:10px 14px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;font-size:12px;color:#92400E;">
           <div style="font-weight:700;margin-bottom:4px;">⚠️ 發現同名目標</div>
           <div id="goal-import-conflict-list" style="line-height:1.8;"></div>
-          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名的會新增為獨立項目，不會覆蓋）</div>
+          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名會新增為獨立項目，不會覆蓋）</div>
         </div>
         <div id="goal-import-summary" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
+        <button onclick="resetGoalImport()" style="margin-top:8px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">← 重新輸入</button>
       </div>
-      <!-- 錯誤訊息 -->
-      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;"></div>
-      <!-- 進度 -->
+
+      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;margin-top:8px;"></div>
       <div id="goal-import-progress" style="display:none;margin-top:12px;">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">匯入中...</div>
         <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
@@ -1232,8 +1264,7 @@ $username = $_SESSION['username'] ?? 'User';
         </div>
         <div id="goal-import-status" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
       </div>
-      <!-- 完成 -->
-      <div id="goal-import-done" style="display:none;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
+      <div id="goal-import-done" style="display:none;margin-top:12px;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
     </div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
       <button onclick="closeGoalImport()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
@@ -1244,6 +1275,7 @@ $username = $_SESSION['username'] ?? 'User';
 
 <!-- 匯出目標樹用的隱藏下載連結 -->
 <a id="goal-export-link" style="display:none;"></a>
+
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
@@ -2739,13 +2771,52 @@ function handleGoalImportFile(input) {
 function openGoalImportModal() {
   const overlay = document.getElementById('goal-import-overlay');
   overlay.style.display = 'flex';
-  // 重置
+  resetGoalImport();
+}
+
+function resetGoalImport() {
   ['goal-import-preview','goal-import-error','goal-import-progress','goal-import-done','goal-import-conflict'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
   });
   const btn = document.getElementById('goal-import-confirm-btn');
   if (btn) btn.style.display = 'none';
+  const inputArea = document.getElementById('goal-import-input-area');
+  if (inputArea) inputArea.style.display = 'block';
+  const ta = document.getElementById('goal-import-textarea');
+  if (ta) { ta.value = ''; ta.style.borderColor = 'var(--border)'; }
+  _importData = null;
+}
+
+function switchImportTab(tab) {
+  const pasteArea = document.getElementById('gim-paste-area');
+  const fileArea = document.getElementById('gim-file-area');
+  const pasteBtn = document.getElementById('gim-tab-paste');
+  const fileBtn = document.getElementById('gim-tab-file');
+  if (tab === 'paste') {
+    pasteArea.style.display = 'block';
+    fileArea.style.display = 'none';
+    pasteBtn.style.background = '#534AB7'; pasteBtn.style.color = '#fff'; pasteBtn.style.borderColor = '#534AB7';
+    fileBtn.style.background = 'var(--surface2)'; fileBtn.style.color = 'var(--text-secondary)'; fileBtn.style.borderColor = 'var(--border)';
+  } else {
+    pasteArea.style.display = 'none';
+    fileArea.style.display = 'block';
+    fileBtn.style.background = '#534AB7'; fileBtn.style.color = '#fff'; fileBtn.style.borderColor = '#534AB7';
+    pasteBtn.style.background = 'var(--surface2)'; pasteBtn.style.color = 'var(--text-secondary)'; pasteBtn.style.borderColor = 'var(--border)';
+  }
+}
+
+function parseImportTextarea() {
+  const ta = document.getElementById('goal-import-textarea');
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { showGoalImportError('請先貼上 JSON 內容'); return; }
+  try {
+    const data = JSON.parse(text);
+    _importData = null;
+    document.getElementById('goal-import-input-area').style.display = 'none';
+    showGoalImportPreview(data);
+  } catch(err) {
+    showGoalImportError('JSON 格式錯誤：' + err.message);
+  }
 }
 
 function closeGoalImport() {
@@ -2814,6 +2885,10 @@ function showGoalImportPreview(raw) {
   });
 
   _importData = years;
+
+  // 隱藏輸入區，顯示預覽
+  const inputArea = document.getElementById('goal-import-input-area');
+  if (inputArea) inputArea.style.display = 'none';
 
   // 顯示預覽
   document.getElementById('goal-import-preview').style.display = 'block';
