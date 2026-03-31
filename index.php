@@ -317,8 +317,8 @@ $username = $_SESSION['username'] ?? 'User';
   .act-btn.postpone { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); }
   .act-btn.del { color: #E24B4A; }
 
-  .col-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
-  .col-collapsible.collapsed { max-height: 0 !important; }
+  .col-collapsible { overflow: hidden; max-height: 4000px; transition: max-height 0.35s ease; }
+  .col-collapsible.collapsed { max-height: 0 !important; overflow: hidden; }
   .col-resize-handle {
     text-align: center; font-size: 14px; color: var(--text-muted);
     padding: 4px 0; cursor: ns-resize; user-select: none;
@@ -745,14 +745,8 @@ $username = $_SESSION['username'] ?? 'User';
     gap: 8px;
   }
   .goal-panel-title { font-size: 13px; font-weight: 700; color: #FFD700; white-space: nowrap; overflow: hidden; letter-spacing: 0.5px; }
-  .goal-panel.collapsed .goal-panel-title { display: none; }
   .goal-panel-toggle { background: none; border: none; cursor: pointer; font-size: 16px; color: rgba(255,255,255,0.7); padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: transform 0.25s; line-height: 1; }
-  .goal-panel.collapsed .goal-panel-toggle { transform: rotate(180deg); }
   .goal-panel-body { overflow-y: auto; flex: 1; padding: 8px; }
-  .goal-panel.collapsed .goal-panel-body { display: none; }
-  .goal-panel.collapsed .goal-add-btn { display: none; }
-  .goal-add-btn { margin: 8px; padding: 8px; width: calc(100% - 16px); border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0; }
-  .goal-add-btn:hover { background: var(--surface2); color: var(--text); border-color: #FFD700; }
 
   /* 年度卡 - 最大最醒目，金色邊框 */
   .goal-year-card { background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; border: 2px solid rgba(255,215,0,0.5); box-shadow: 0 2px 8px rgba(255,215,0,0.1); }
@@ -804,7 +798,8 @@ $username = $_SESSION['username'] ?? 'User';
   #goal-filter-bar button { background:rgba(255,255,255,0.25); border:none; color:#fff; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px; font-family:inherit; }
 
   /* 子任務標籤（右側看板卡片） */
-  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 3px 9px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 100%; white-space: normal; word-break: break-word; line-height: 1.5; }
+  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 3px 9px; border-radius: 8px; background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.18); font-weight: 600; max-width: 100%; white-space: normal; word-break: break-word; line-height: 1.5; }
+  .parent-badge.block, div.parent-badge { display: block; border-radius: 6px; padding: 5px 8px; }
 
   @media (max-width: 768px) { .goal-panel { display: none; } }
 </style>
@@ -908,9 +903,9 @@ $username = $_SESSION['username'] ?? 'User';
       <!-- 動態渲染 -->
     </div>
     <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;" id="goal-add-btns">
-      <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(255,215,0,0.4);background:rgba(255,215,0,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#FFD700;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
-      <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(99,102,241,0.4);background:rgba(99,102,241,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#a5b4fc;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
-      <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(249,115,22,0.4);background:rgba(249,115,22,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#fb923c;cursor:pointer;font-family:inherit;">📋 ＋週</button>
+      <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(180,140,0,0.5);background:rgba(255,215,0,0.12);border-radius:8px;font-size:11px;font-weight:700;color:#7A5C00;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
+      <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(99,102,241,0.5);background:rgba(99,102,241,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#3730A3;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
+      <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(194,86,10,0.5);background:rgba(249,115,22,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#C2560A;cursor:pointer;font-family:inherit;">📋 ＋週</button>
     </div>
   </div>
 
@@ -2222,6 +2217,8 @@ function toggleGoalPanel() {
 // 初始化收折狀態（桌面預設 sm）
 function initGoalPanelState() {
   try {
+    // 清掉舊版 key，避免殘留 collapsed 狀態
+    localStorage.removeItem('goalPanelCollapsed');
     const saved = localStorage.getItem('goalPanelSize') || 'sm';
     setGoalPanelSize(saved);
   } catch(e) {
@@ -3066,20 +3063,13 @@ function buildCard(card, col, cardNo) {
       if (ancestors.length > 0) {
         const levelIcons = { year: '📌', month: '📅', week: '📋' };
         const levelBg    = { year: '#92750A', month: '#4338ca', week: '#c2410c' };
-        // 顯示路徑：最多兩層，太長就縮略
+        // 顯示完整路徑
         const topCard = ancestors[0];
-        const directParent = ancestors[ancestors.length - 1];
-        if (ancestors.length === 1) {
-          // 只有一層父
-          const icon = levelIcons[directParent.level] || '';
-          const name = directParent.title.length > 10 ? directParent.title.slice(0,10)+'…' : directParent.title;
-          tagLabel = `${icon} ${name}`;
-        } else {
-          // 多層：顯示「頂層名 › 直接父名」
-          const topName = topCard.title.length > 6 ? topCard.title.slice(0,6)+'…' : topCard.title;
-          const parentName = directParent.title.length > 6 ? directParent.title.slice(0,6)+'…' : directParent.title;
-          tagLabel = `${levelIcons[topCard.level]||''} ${topName} › ${levelIcons[directParent.level]||''} ${parentName}`;
-        }
+        const parts = ancestors.map(a => {
+          const name = a.title.length > 8 ? a.title.slice(0,8)+'…' : a.title;
+          return (levelIcons[a.level]||'') + ' ' + name;
+        });
+        tagLabel = parts.join(' › ');
         tagBg = levelBg[topCard.level] || '#C8922A';
         tagColor = '#fff';
       }
@@ -3092,7 +3082,7 @@ function buildCard(card, col, cardNo) {
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
 
-  // parent-badge：追溯完整祖先鏈，「年度 › 月度 › 週」完整路徑
+  // parent-badge：追溯完整祖先鏈，顯示完整「年 › 月 › 週」路徑
   let parentBadgeHTML = '';
   if (card.parentId) {
     const ancestors = [];
@@ -3101,27 +3091,29 @@ function buildCard(card, col, cardNo) {
     while (currentId && safety < 5) {
       const found = state.goal.find(c => c.id === currentId);
       if (!found) break;
-      ancestors.unshift(found); // 最高層放最前
+      ancestors.unshift(found);
       currentId = found.parentId;
       safety++;
     }
     if (ancestors.length > 0) {
-      const levelColors = { year: '#E8A800', month: '#6366f1', week: '#f97316' };
-      const levelIcons  = { year: '📌', month: '📅', week: '📋' };
-      // 完整路徑文字：年度 › 月度 › 週
-      const pathParts = ancestors.map(a => {
+      const levelBadge = {
+        year:  { bg: '#92700A', fg: '#FFF8DC', label: '年' },
+        month: { bg: '#3730A3', fg: '#EEF2FF', label: '月' },
+        week:  { bg: '#C2560A', fg: '#FFF7ED', label: '週' },
+      };
+      const levelIcons = { year: '📌', month: '📅', week: '📋' };
+      // 組合完整路徑 HTML
+      const pathHTML = ancestors.map((a, i) => {
+        const bd = levelBadge[a.level] || { bg:'#555', fg:'#fff', label:'?' };
         const icon = levelIcons[a.level] || '';
-        return icon + ' ' + a.title;
-      });
-      const pathText = pathParts.join(' › ');
-      // badge 用最高層（年度）的顏色
-      const topAncestor = ancestors[0];
-      const badgeColor = levelColors[topAncestor.level] || '#6366f1';
-      // 顯示最直接父層名稱，hover 顯示完整路徑
-      const directParent = ancestors[ancestors.length - 1];
-      const displayName = directParent.title.length > 14 ? directParent.title.slice(0,14)+'…' : directParent.title;
-      const levelIcon = levelIcons[topAncestor.level] || '🎯';
-      parentBadgeHTML = `<span class="parent-badge" style="color:${badgeColor};border-color:${badgeColor}40;background:${badgeColor}12;" title="${escHtml(pathText)}">${levelIcon} ${escHtml(displayName)}</span>`;
+        const indent = i > 0 ? `margin-left:${i * 6}px;` : '';
+        return `<div style="display:flex;align-items:center;gap:4px;${indent}${i>0?'margin-top:2px;':''}">
+          <span style="font-size:9px;font-weight:700;background:${bd.bg};color:${bd.fg};border-radius:3px;padding:1px 4px;flex-shrink:0;">${bd.label}</span>
+          <span style="font-size:10px;color:var(--text-secondary);">${icon} ${escHtml(a.title)}</span>
+        </div>`;
+      }).join('');
+      const pathText = ancestors.map(a => `${levelIcons[a.level]||''} ${a.title}`).join(' › ');
+      parentBadgeHTML = `<div class="parent-badge" style="display:block;padding:5px 8px;margin-bottom:4px;" title="${escHtml(pathText)}">${pathHTML}</div>`;
     } else {
       parentBadgeHTML = `<span class="parent-badge">🎯 目標任務</span>`;
     }
