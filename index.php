@@ -776,7 +776,7 @@ $username = $_SESSION['username'] ?? 'User';
   #goal-filter-bar button { background:rgba(255,255,255,0.25); border:none; color:#fff; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px; font-family:inherit; }
 
   /* 子任務標籤（右側看板卡片） */
-  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 3px 9px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 100%; white-space: normal; word-break: break-word; line-height: 1.5; }
 
   @media (max-width: 768px) { .goal-panel { display: none; } }
 </style>
@@ -2152,8 +2152,8 @@ function renderGoalTree() {
       </div>`;
     } else {
       yearCards.forEach(year => container.appendChild(buildYearCard(year, goalCards)));
-      looseMonths.forEach(month => container.appendChild(buildMonthCard(month, goalCards)));
-      looseWeeks.forEach(week => container.appendChild(buildWeekCard(week)));
+      looseMonths.forEach(month => container.appendChild(buildMonthCard(month, goalCards, null)));
+      looseWeeks.forEach(week => container.appendChild(buildWeekCard(week, null, null)));
     }
   }
 
@@ -2273,6 +2273,9 @@ function buildYearCard(year, allGoalCards) {
   const progress = calcGoalProgress(year);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const monthCount = monthCards.length;
+  // 每個月度對年度的貢獻占比
+  const monthWeight = monthCount > 0 ? Math.round(100 / monthCount) : 0;
 
   const div = document.createElement('div');
   div.className = 'goal-year-card open';
@@ -2292,21 +2295,30 @@ function buildYearCard(year, allGoalCards) {
     <div class="goal-year-progress-bar">
       <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
+    ${monthCount > 0 ? `<div style="padding:4px 12px 6px;font-size:10px;color:rgba(255,215,0,0.55);display:flex;align-items:center;gap:6px;">
+      <span>共 ${monthCount} 個月度目標</span>
+      <span style="opacity:0.5;">·</span>
+      <span>每個完成貢獻 <b style="color:#FFD700;">${monthWeight}%</b> 年度進度</span>
+    </div>` : `<div style="padding:4px 12px 6px;font-size:10px;color:rgba(255,255,255,0.25);">尚未新增月度目標</div>`}
     <div class="goal-year-children" id="year-children-${year.id}"></div>
   `;
 
   const childrenEl = div.querySelector('#year-children-' + year.id);
-  monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards)));
+  monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
 
   return div;
 }
 
 // 建立月度卡
-function buildMonthCard(month, allGoalCards) {
+function buildMonthCard(month, allGoalCards, parentWeight) {
   const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const weekCount = weekCards.length;
+  const weekWeight = weekCount > 0 ? Math.round(100 / weekCount) : 0;
+  // 這個月度對年度貢獻的實際%（parentWeight × 自己完成率）
+  const yearContrib = parentWeight ? Math.round(parentWeight * pct / 100) : null;
 
   const div = document.createElement('div');
   div.className = 'goal-month-card open';
@@ -2325,36 +2337,60 @@ function buildMonthCard(month, allGoalCards) {
     <div class="goal-month-progress-bar">
       <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
+    <div style="padding:3px 10px 5px;display:flex;align-items:center;justify-content:space-between;font-size:10px;">
+      ${parentWeight ? `<span style="color:rgba(99,102,241,0.7);">完成本月 → 年度 <b style="color:#a5b4fc;">+${parentWeight}%</b>${yearContrib > 0 ? `（已貢獻 ${yearContrib}%）` : ''}</span>` : '<span></span>'}
+      ${weekCount > 0 ? `<span style="color:rgba(255,255,255,0.3);">共 ${weekCount} 週，各佔 ${weekWeight}%</span>` : `<span style="color:rgba(255,255,255,0.2);">尚未新增週目標</span>`}
+    </div>
     <div class="goal-month-children" id="month-children-${month.id}"></div>
   `;
 
   const childrenEl = div.querySelector('#month-children-' + month.id);
-  weekCards.forEach(week => childrenEl.appendChild(buildWeekCard(week)));
+  weekCards.forEach(week => childrenEl.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
 
   return div;
 }
 
 // 建立週卡
-function buildWeekCard(week) {
+function buildWeekCard(week, weekWeight, monthWeight) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
-  // 第5點：修正完成判斷，col=done 或有 completedAt 都算完成
   const doneCount = children.filter(c => c.col === 'done' || !!c.completedAt).length;
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
   const isFiltered = goalFilterParentId === week.id;
 
+  // 此週完成後對月度的貢獻 / 對年度的貢獻（兩層換算）
+  const monthContrib = weekWeight || null;
+  const yearContrib = (weekWeight && monthWeight) ? Math.round(weekWeight * monthWeight / 100) : null;
+
   const div = document.createElement('div');
   div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '') + (isComplete ? ' goal-week-complete' : '');
   div.id = 'goal-week-' + week.id;
   div.dataset.weekId = week.id;
 
-  // 第6點：全部完成時顯示紅色完成提示
   const completeAlert = (isComplete && total > 0) ? `
     <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:5px;display:flex;align-items:center;gap:4px;">
       🎉 全部完成！可以結案了
     </div>` : '';
+
+  // 子任務預覽（最多顯示3條，其餘摺疊）
+  let taskPreviewHTML = '';
+  if (children.length > 0) {
+    const preview = children.slice(0, 4);
+    taskPreviewHTML = `<div style="margin-top:5px;display:flex;flex-direction:column;gap:2px;">`;
+    preview.forEach(c => {
+      const isDone = c.col === 'done' || !!c.completedAt;
+      taskPreviewHTML += `<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:${isDone?'#22c55e':'rgba(255,255,255,0.55)'};padding:1px 0;cursor:pointer;" onclick="filterByParent(${week.id});event.stopPropagation()">
+        <span style="flex-shrink:0;">${isDone?'✅':'⬜'}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isDone?'text-decoration:line-through;opacity:0.6;':''}">${escHtml(c.title)}</span>
+      </div>`;
+    });
+    if (children.length > 4) {
+      taskPreviewHTML += `<div style="font-size:10px;color:rgba(255,255,255,0.3);padding:1px 0;">... 還有 ${children.length - 4} 項</div>`;
+    }
+    taskPreviewHTML += `</div>`;
+  }
 
   div.innerHTML = `
     ${completeAlert}
@@ -2365,11 +2401,19 @@ function buildWeekCard(week) {
     <div class="goal-week-bar" style="margin-top:5px;">
       <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
     </div>
-    <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;text-align:right;">${pct}%</div>
-    <div class="goal-week-actions" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;">
+      <div style="font-size:10px;color:rgba(255,255,255,0.25);">
+        ${monthContrib ? `完成 → 月 <b style="color:#f97316;">+${monthContrib}%</b>` : ''}
+        ${yearContrib ? ` / 年 <b style="color:#FFD700;">+${yearContrib}%</b>` : ''}
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.35);">${pct}%</div>
+    </div>
+    ${taskPreviewHTML}
+    <div class="goal-week-actions" onclick="event.stopPropagation()" style="margin-top:6px;">
       <button class="goal-action-btn primary" onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')">＋ 子任務</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();filterByParent(${week.id})">🔍 查看</button>
       <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;border-color:rgba(226,75,74,0.3);">🗑 刪除</button>
+      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;border-color:rgba(226,75,74,0.3);">🗑</button>
     </div>
   `;
 
