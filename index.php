@@ -453,17 +453,9 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-b .mini-toolbar { display: none; }
   .cornell-b .mini-toolbar.active { display: flex !important; }
   .cornell-b .mini-toolbar.hidden { display: none !important; }
-  /* done 欄卡片預設收合，點標題展開 */
-  .col-done .card .cornell-layout,
-  .col-done .card .card-meta,
-  .col-done .card .card-summary,
-  .col-done .card .card-next-step,
-  .col-done .card .source-link { display: none; }
-  .col-done .card.open .cornell-layout,
-  .col-done .card.open .card-meta,
-  .col-done .card.open .card-summary,
-  .col-done .card.open .card-next-step,
-  .col-done .card.open .source-link { display: block; }
+  /* 所有欄位卡片預設收合，只用 card-collapse-body 控制 */
+  .card .card-collapse-body { display: none; }
+  .card.open .card-collapse-body { display: block; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
@@ -717,20 +709,23 @@ $username = $_SESSION['username'] ?? 'User';
   }
   .goal-panel.size-lg { width: 560px; max-width: 560px; }
   .goal-panel.size-md { width: 320px; max-width: 320px; }
-  .goal-panel.size-sm { width: 44px; max-width: 44px; }
-  .goal-panel.size-xs { width: 44px; max-width: 44px; }
+  .goal-panel.size-sm { width: 44px; max-width: 44px; overflow: hidden; }
+  .goal-panel.size-xs { width: 44px; max-width: 44px; overflow: hidden; }
+  /* 收折時隱藏所有內容，只保留 toggle 按鈕 */
   .goal-panel.size-sm .goal-panel-body,
   .goal-panel.size-sm #goal-add-btns,
   .goal-panel.size-sm .goal-panel-title,
-  .goal-panel.size-xs .goal-panel-body,
-  .goal-panel.size-xs #goal-add-btns,
-  .goal-panel.size-xs .goal-panel-title { display: none; }
   .goal-panel.size-sm #gp-btn-sm,
   .goal-panel.size-sm #gp-btn-md,
   .goal-panel.size-sm #gp-btn-lg,
+  .goal-panel.size-xs .goal-panel-body,
+  .goal-panel.size-xs #goal-add-btns,
+  .goal-panel.size-xs .goal-panel-title,
   .goal-panel.size-xs #gp-btn-sm,
   .goal-panel.size-xs #gp-btn-md,
-  .goal-panel.size-xs #gp-btn-lg { display: none; }
+  .goal-panel.size-xs #gp-btn-lg { display: none !important; }
+  .goal-panel.size-sm .goal-panel-header,
+  .goal-panel.size-xs .goal-panel-header { padding: 12px 4px; justify-content: center; }
   .goal-panel.size-sm .goal-panel-toggle,
   .goal-panel.size-xs .goal-panel-toggle { transform: rotate(180deg); }
   .goal-panel-header {
@@ -2214,15 +2209,15 @@ function toggleGoalPanel() {
   }
 }
 
-// 初始化收折狀態（桌面預設 sm）
+// 初始化收折狀態（桌面預設 lg 展開）
 function initGoalPanelState() {
   try {
     // 清掉舊版 key，避免殘留 collapsed 狀態
     localStorage.removeItem('goalPanelCollapsed');
-    const saved = localStorage.getItem('goalPanelSize') || 'sm';
+    const saved = localStorage.getItem('goalPanelSize') || 'lg';
     setGoalPanelSize(saved);
   } catch(e) {
-    setGoalPanelSize('sm');
+    setGoalPanelSize('lg');
   }
 }
 
@@ -3320,7 +3315,7 @@ function buildCard(card, col, cardNo) {
   const _cardInitOpen = localStorage.getItem(_cardOpenKey) === '1';
   if (_cardInitOpen) div.classList.add('open');
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this);event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this);event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div>`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
