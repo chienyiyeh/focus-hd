@@ -2767,22 +2767,27 @@ let _importData = null; // 暫存解析後的匯入資料
 // 讀取 JSON 檔案
 function handleGoalImportFile(input) {
   const file = input.files[0];
-  if (!file) return;
-  input.value = ''; // 允許重複選同一檔案
+  if (!file) { alert('沒有選到檔案'); return; }
+  input.value = '';
 
   const reader = new FileReader();
+  reader.onerror = () => alert('FileReader 錯誤：' + reader.error);
   reader.onload = (e) => {
-    // 先開 Modal、重置畫面
-    openGoalImportModal();
     try {
-      const data = JSON.parse(e.target.result);
-      _importData = null;
-      // 解析成功後直接隱藏輸入區、顯示預覽
+      openGoalImportModal();
+      const text = e.target.result;
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch(parseErr) {
+        showGoalImportError('JSON 解析失敗：' + parseErr.message);
+        return;
+      }
       const inputArea = document.getElementById('goal-import-input-area');
       if (inputArea) inputArea.style.display = 'none';
       showGoalImportPreview(data);
     } catch(err) {
-      showGoalImportError('JSON 格式錯誤，請確認檔案內容：' + err.message);
+      alert('匯入發生錯誤：' + err.message + '\n' + err.stack);
     }
   };
   reader.readAsText(file);
@@ -2872,6 +2877,7 @@ function closeGoalImport() {
 
 // 解析並預覽匯入資料
 function showGoalImportPreview(raw) {
+  try {
   // 支援兩種格式：
   // 格式A：{ years: [...] }
   // 格式B：直接一個 { title, summary, months: [...] }
@@ -2952,6 +2958,10 @@ function showGoalImportPreview(raw) {
   }
 
   document.getElementById('goal-import-confirm-btn').style.display = 'inline-block';
+
+  } catch(err) {
+    alert('showGoalImportPreview 錯誤：' + err.message + '\n' + err.stack);
+  }
 }
 
 function showGoalImportError(msg) {
