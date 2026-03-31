@@ -884,7 +884,7 @@ $username = $_SESSION['username'] ?? 'User';
   </aside>
 
   <!-- 戰略樹面板（左側收折） -->
-  <div class="goal-panel" id="goal-panel">
+  <div class="goal-panel size-lg" id="goal-panel">
     <div class="goal-panel-header">
       <span class="goal-panel-title">🌳 焦點目標樹</span>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
@@ -2209,13 +2209,12 @@ function toggleGoalPanel() {
   }
 }
 
-// 初始化收折狀態（桌面預設 lg 展開）
+// 初始化收折狀態（永遠從 lg 展開開始，使用者縮小後記住）
 function initGoalPanelState() {
   try {
-    // 清掉舊版 key，避免殘留 collapsed 狀態
     localStorage.removeItem('goalPanelCollapsed');
-    const saved = localStorage.getItem('goalPanelSize') || 'lg';
-    setGoalPanelSize(saved);
+    localStorage.removeItem('goalPanelSize');
+    setGoalPanelSize('lg');
   } catch(e) {
     setGoalPanelSize('lg');
   }
