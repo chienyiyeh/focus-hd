@@ -690,44 +690,33 @@ $username = $_SESSION['username'] ?? 'User';
   /* ==========================================
      戰略樹（左側收折面板）
   ========================================== */
+  /* 側邊小標籤（面板收折時顯示） */
+  .goal-panel-tab {
+    position: sticky; top: 16px; align-self: flex-start; flex-shrink: 0;
+    width: 24px; display: none; flex-direction: column; align-items: center; cursor: pointer; z-index: 10;
+  }
+  .goal-panel-tab-inner {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%);
+    color: #FFD700; font-size: 11px; font-weight: 700; padding: 12px 5px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    border: 1px solid rgba(255,215,0,0.3); border-left: none;
+    white-space: nowrap; letter-spacing: 1px; user-select: none;
+  }
+  .goal-panel-tab-inner:hover { background: linear-gradient(135deg, #2d2d2a 0%, #3d3d38 100%); }
+  .goal-panel-tab.visible { display: flex; }
+
   .goal-panel {
-    width: 560px;
-    max-width: 560px;
-    min-width: 260px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    align-self: flex-start;
-    position: sticky;
-    top: 16px;
-    max-height: calc(100vh - 100px);
-    overflow: hidden;
-    transition: width 0.25s ease, max-width 0.25s ease;
+    flex-shrink: 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    align-self: flex-start; position: sticky; top: 16px;
+    max-height: calc(100vh - 100px); overflow: hidden;
+    transition: width 0.25s ease, max-width 0.25s ease, opacity 0.2s ease;
+    width: 560px; max-width: 560px; min-width: 260px;
   }
   .goal-panel.size-lg { width: 560px; max-width: 560px; }
-  .goal-panel.size-md { width: 320px; max-width: 320px; }
-  .goal-panel.size-sm { width: 44px; max-width: 44px; overflow: hidden; }
-  .goal-panel.size-xs { width: 44px; max-width: 44px; overflow: hidden; }
-  /* 收折時隱藏所有內容，只保留 toggle 按鈕 */
-  .goal-panel.size-sm .goal-panel-body,
-  .goal-panel.size-sm #goal-add-btns,
-  .goal-panel.size-sm .goal-panel-title,
-  .goal-panel.size-sm #gp-btn-sm,
-  .goal-panel.size-sm #gp-btn-md,
-  .goal-panel.size-sm #gp-btn-lg,
-  .goal-panel.size-xs .goal-panel-body,
-  .goal-panel.size-xs #goal-add-btns,
-  .goal-panel.size-xs .goal-panel-title,
-  .goal-panel.size-xs #gp-btn-sm,
-  .goal-panel.size-xs #gp-btn-md,
-  .goal-panel.size-xs #gp-btn-lg { display: none !important; }
-  .goal-panel.size-sm .goal-panel-header,
-  .goal-panel.size-xs .goal-panel-header { padding: 12px 4px; justify-content: center; }
-  .goal-panel.size-sm .goal-panel-toggle,
-  .goal-panel.size-xs .goal-panel-toggle { transform: rotate(180deg); }
+  .goal-panel.size-md { width: 340px; max-width: 340px; }
+  .goal-panel.size-hidden { width: 0; max-width: 0; min-width: 0; opacity: 0; pointer-events: none; border: none; overflow: hidden; }
   .goal-panel-header {
     display: flex;
     align-items: center;
@@ -883,15 +872,19 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
   </aside>
 
+  <!-- 焦點目標樹：收折時的側邊標籤 -->
+  <div class="goal-panel-tab" id="goal-panel-tab" onclick="openGoalPanel()">
+    <div class="goal-panel-tab-inner">🌳 焦點目標樹</div>
+  </div>
+
   <!-- 戰略樹面板（左側收折） -->
   <div class="goal-panel size-lg" id="goal-panel">
     <div class="goal-panel-header">
       <span class="goal-panel-title">🌳 焦點目標樹</span>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-        <button onclick="setGoalPanelSize('sm')" id="gp-btn-sm" title="全收折" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">小</button>
-        <button onclick="setGoalPanelSize('md')" id="gp-btn-md" title="中等寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">中</button>
-        <button onclick="setGoalPanelSize('lg')" id="gp-btn-lg" title="完整寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-family:inherit;">大</button>
-        <button class="goal-panel-toggle" onclick="setGoalPanelSize('xs')" title="收折面板">◀</button>
+        <button onclick="setGoalPanelSize('md')" id="gp-btn-md" title="中等寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;">中</button>
+        <button onclick="setGoalPanelSize('lg')" id="gp-btn-lg" title="完整寬度" style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;">大</button>
+        <button onclick="hideGoalPanel()" title="收折面板" style="background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.7);padding:2px 4px;border-radius:4px;line-height:1;">◀</button>
       </div>
     </div>
     <div class="goal-panel-body" id="goal-panel-body">
@@ -2175,46 +2168,65 @@ function initColSections() {
   });
 }
 
-// 三段式收折：xs(收折) → sm(收折顯示) → md(中) → lg(大)
-// 桌面預設 sm
+// 設定面板尺寸（只有 md / lg）
 function setGoalPanelSize(size) {
   const panel = document.getElementById('goal-panel');
   if (!panel) return;
-  panel.classList.remove('size-xs','size-sm','size-md','size-lg','collapsed');
+  panel.classList.remove('size-xs','size-sm','size-md','size-lg','size-hidden','collapsed');
   panel.classList.add('size-' + size);
   // 更新按鈕高亮
-  ['sm','md','lg'].forEach(s => {
+  ['md','lg'].forEach(s => {
     const btn = document.getElementById('gp-btn-' + s);
     if (btn) {
       btn.style.background = (s === size) ? 'rgba(255,255,255,0.25)' : 'none';
       btn.style.color = (s === size) ? '#fff' : 'rgba(255,255,255,0.6)';
     }
   });
+  // 記住最後開啟的尺寸
   try { localStorage.setItem('goalPanelSize', size); } catch(e) {}
+  // 確保面板可見，側邊標籤隱藏
+  panel.style.removeProperty('display');
+  const tab = document.getElementById('goal-panel-tab');
+  if (tab) tab.classList.remove('visible');
 }
 
-// 點 ◀ 按鈕：在收折(sm)和上次開啟尺寸之間切換
-function toggleGoalPanel() {
+// 收折面板（完全隱藏，顯示側邊標籤）
+function hideGoalPanel() {
   const panel = document.getElementById('goal-panel');
-  if (!panel) return;
-  const isCollapsed = panel.classList.contains('size-sm') || panel.classList.contains('size-xs');
-  if (isCollapsed) {
-    const lastSize = localStorage.getItem('goalPanelLastOpen') || 'lg';
-    setGoalPanelSize(lastSize);
-  } else {
-    // 記住當前開啟尺寸
-    const cur = panel.classList.contains('size-md') ? 'md' : 'lg';
-    try { localStorage.setItem('goalPanelLastOpen', cur); } catch(e) {}
-    setGoalPanelSize('sm');
-  }
+  const tab = document.getElementById('goal-panel-tab');
+  if (panel) panel.classList.add('size-hidden');
+  if (tab) tab.classList.add('visible');
+  try { localStorage.setItem('goalPanelHidden', '1'); } catch(e) {}
 }
 
-// 初始化收折狀態（永遠從 lg 展開開始，使用者縮小後記住）
+// 展開面板（從側邊標籤點開）
+function openGoalPanel() {
+  const panel = document.getElementById('goal-panel');
+  const tab = document.getElementById('goal-panel-tab');
+  if (panel) {
+    panel.classList.remove('size-hidden');
+    // 恢復上次的尺寸
+    const lastSize = localStorage.getItem('goalPanelSize') || 'lg';
+    setGoalPanelSize(lastSize);
+  }
+  if (tab) tab.classList.remove('visible');
+  try { localStorage.removeItem('goalPanelHidden'); } catch(e) {}
+}
+
+// 相容舊呼叫
+function toggleGoalPanel() { hideGoalPanel(); }
+
+// 初始化（永遠展開，恢復記憶尺寸）
 function initGoalPanelState() {
   try {
     localStorage.removeItem('goalPanelCollapsed');
-    localStorage.removeItem('goalPanelSize');
-    setGoalPanelSize('lg');
+    const wasHidden = localStorage.getItem('goalPanelHidden') === '1';
+    if (wasHidden) {
+      hideGoalPanel();
+    } else {
+      const lastSize = localStorage.getItem('goalPanelSize') || 'lg';
+      setGoalPanelSize(lastSize);
+    }
   } catch(e) {
     setGoalPanelSize('lg');
   }
