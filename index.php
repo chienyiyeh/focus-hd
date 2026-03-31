@@ -3974,6 +3974,8 @@ async function inlineSave(cardId, col, updates) {
     textcolor: card.textcolor,
     isPrivate: card.isPrivate ? 1 : 0,
     checklist: card.checklist,
+    parentId: card.parentId || null,
+    level: card.level || 'general',
     ...updates
   };
   try {
