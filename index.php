@@ -1202,95 +1202,6 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<!-- 匯入目標樹 Modal -->
-<div id="goal-import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-size:16px;font-weight:700;">📥 匯入目標樹</div>
-      <button onclick="closeGoalImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
-    </div>
-    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
-
-      <!-- 輸入區 -->
-      <div id="goal-import-input-area">
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <button id="gim-tab-paste" onclick="switchImportTab('paste')"
-            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #534AB7;background:#534AB7;color:#fff;">
-            📋 貼上 JSON
-          </button>
-          <button id="gim-tab-file" onclick="switchImportTab('file')"
-            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-secondary);">
-            📂 選取檔案
-          </button>
-        </div>
-        <div id="gim-paste-area">
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">把 JSON 內容貼到下方（手機長按貼上）：</div>
-
-          <!-- 網址輸入（手機複製連結後貼這裡） -->
-          <div style="margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:600;color:#534AB7;margin-bottom:4px;">📎 或貼上 JSON 檔案的網址：</div>
-            <div style="display:flex;gap:6px;">
-              <input id="goal-import-url" type="url" placeholder="https://... 貼上連結"
-                style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface2);color:var(--text);outline:none;min-width:0;"
-                oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'">
-              <button onclick="fetchImportUrl()"
-                style="padding:8px 12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
-                抓取
-              </button>
-            </div>
-          </div>
-
-          <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">或直接貼上 JSON 文字：</div>
-          <textarea id="goal-import-textarea"
-            placeholder='{"years":[{"title":"年度目標","months":[...]}]}'
-            style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
-            oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'"></textarea>
-          <button onclick="parseImportTextarea()"
-            style="margin-top:10px;width:100%;padding:11px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
-            🔍 解析並預覽
-          </button>
-        </div>
-        <div id="gim-file-area" style="display:none;">
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">選取 .json 檔案（建議桌面使用）：</div>
-          <button onclick="document.getElementById('goal-import-file').click()"
-            style="width:100%;padding:14px;border:2px dashed var(--border);border-radius:8px;background:var(--surface2);color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:inherit;">
-            📂 點此選取 JSON 檔案
-          </button>
-        </div>
-      </div>
-
-      <!-- 預覽區 -->
-      <div id="goal-import-preview" style="display:none;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">📋 預覽匯入內容：</div>
-        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:260px;overflow-y:auto;line-height:1.8;"></div>
-        <div id="goal-import-conflict" style="display:none;margin-top:12px;padding:10px 14px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;font-size:12px;color:#92400E;">
-          <div style="font-weight:700;margin-bottom:4px;">⚠️ 發現同名目標</div>
-          <div id="goal-import-conflict-list" style="line-height:1.8;"></div>
-          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名會新增為獨立項目，不會覆蓋）</div>
-        </div>
-        <div id="goal-import-summary" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
-        <button onclick="resetGoalImport()" style="margin-top:8px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">← 重新輸入</button>
-      </div>
-
-      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;margin-top:8px;"></div>
-      <div id="goal-import-progress" style="display:none;margin-top:12px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">匯入中...</div>
-        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
-          <div id="goal-import-bar" style="height:100%;background:#534AB7;width:0%;transition:width 0.3s;"></div>
-        </div>
-        <div id="goal-import-status" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
-      </div>
-      <div id="goal-import-done" style="display:none;margin-top:12px;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
-    </div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
-      <button onclick="closeGoalImport()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
-      <button id="goal-import-confirm-btn" onclick="confirmGoalImport()" style="display:none;padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;">確認匯入</button>
-    </div>
-  </div>
-</div>
-
-
-
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
   <div class="modal">
@@ -2803,6 +2714,8 @@ function handleGoalImportFile(input) {
 function openGoalImportModal() {
   const overlay = document.getElementById('goal-import-overlay');
   if (!overlay) { alert('找不到匯入 Modal，請重新整理頁面'); return; }
+  // 每次開啟都移到 body 最末，確保不被任何 overflow:hidden 裁切
+  document.body.appendChild(overlay);
   overlay.style.display = 'flex';
   resetGoalImport();
 }
@@ -5276,6 +5189,96 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
 <!-- 匯入/匯出全域元素，放 body 底部確保不被隱藏容器影響 -->
 <input type="file" id="goal-import-file" accept=".json" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;">
 <a id="goal-export-link" style="display:none;"></a>
+
+
+
+
+<!-- 匯入目標樹 Modal -->
+<div id="goal-import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;">📥 匯入目標樹</div>
+      <button onclick="closeGoalImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+
+      <!-- 輸入區 -->
+      <div id="goal-import-input-area">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="gim-tab-paste" onclick="switchImportTab('paste')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #534AB7;background:#534AB7;color:#fff;">
+            📋 貼上 JSON
+          </button>
+          <button id="gim-tab-file" onclick="switchImportTab('file')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-secondary);">
+            📂 選取檔案
+          </button>
+        </div>
+        <div id="gim-paste-area">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">把 JSON 內容貼到下方（手機長按貼上）：</div>
+
+          <!-- 網址輸入（手機複製連結後貼這裡） -->
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:600;color:#534AB7;margin-bottom:4px;">📎 或貼上 JSON 檔案的網址：</div>
+            <div style="display:flex;gap:6px;">
+              <input id="goal-import-url" type="url" placeholder="https://... 貼上連結"
+                style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface2);color:var(--text);outline:none;min-width:0;"
+                oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'">
+              <button onclick="fetchImportUrl()"
+                style="padding:8px 12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
+                抓取
+              </button>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">或直接貼上 JSON 文字：</div>
+          <textarea id="goal-import-textarea"
+            placeholder='{"years":[{"title":"年度目標","months":[...]}]}'
+            style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
+            oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'"></textarea>
+          <button onclick="parseImportTextarea()"
+            style="margin-top:10px;width:100%;padding:11px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+            🔍 解析並預覽
+          </button>
+        </div>
+        <div id="gim-file-area" style="display:none;">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">選取 .json 檔案（建議桌面使用）：</div>
+          <button onclick="document.getElementById('goal-import-file').click()"
+            style="width:100%;padding:14px;border:2px dashed var(--border);border-radius:8px;background:var(--surface2);color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:inherit;">
+            📂 點此選取 JSON 檔案
+          </button>
+        </div>
+      </div>
+
+      <!-- 預覽區 -->
+      <div id="goal-import-preview" style="display:none;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">📋 預覽匯入內容：</div>
+        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:260px;overflow-y:auto;line-height:1.8;"></div>
+        <div id="goal-import-conflict" style="display:none;margin-top:12px;padding:10px 14px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;font-size:12px;color:#92400E;">
+          <div style="font-weight:700;margin-bottom:4px;">⚠️ 發現同名目標</div>
+          <div id="goal-import-conflict-list" style="line-height:1.8;"></div>
+          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名會新增為獨立項目，不會覆蓋）</div>
+        </div>
+        <div id="goal-import-summary" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
+        <button onclick="resetGoalImport()" style="margin-top:8px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">← 重新輸入</button>
+      </div>
+
+      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;margin-top:8px;"></div>
+      <div id="goal-import-progress" style="display:none;margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">匯入中...</div>
+        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div id="goal-import-bar" style="height:100%;background:#534AB7;width:0%;transition:width 0.3s;"></div>
+        </div>
+        <div id="goal-import-status" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+      <div id="goal-import-done" style="display:none;margin-top:12px;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
+      <button onclick="closeGoalImport()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
+      <button id="goal-import-confirm-btn" onclick="confirmGoalImport()" style="display:none;padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;">確認匯入</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
