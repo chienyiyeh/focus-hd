@@ -3084,7 +3084,10 @@ async function confirmGoalImport() {
     });
     const json = await res.json();
     if (!json.success) throw new Error(json.error || '儲存失敗');
-    return json.id;
+    // API 回傳格式：{ success: true, data: { id: 123 } }
+    const id = json.data?.id ?? json.id;
+    if (!id) throw new Error('API 未回傳 id');
+    return id;
   }
 
   try {
