@@ -896,14 +896,35 @@ $username = $_SESSION['username'] ?? 'User';
       <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(99,102,241,0.5);background:rgba(99,102,241,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#3730A3;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
       <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(194,86,10,0.5);background:rgba(249,115,22,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#C2560A;cursor:pointer;font-family:inherit;">📋 ＋週</button>
     </div>
+    <!-- 批次刪除列（有勾選時才顯示） -->
+    <div id="goal-batch-bar" style="display:none;margin:0 8px 8px;padding:8px 10px;background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.3);border-radius:8px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="goal-batch-count" style="font-size:12px;font-weight:700;color:#C0392B;flex:1;">已選 0 個</span>
+        <button onclick="goalBatchSelectAll()" style="padding:4px 10px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.15);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">全選</button>
+        <button onclick="goalBatchClear()" style="padding:4px 10px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.15);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">取消</button>
+        <button onclick="goalBatchDelete()" style="padding:4px 12px;background:#E24B4A;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff;">🗑 刪除</button>
+      </div>
+    </div>
     <div style="margin:0 8px 10px;display:flex;gap:6px;">
     </div>
   </div>
   <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:0;">
     <!-- 匯入/匯出固定在看板頂部，完全在 goal-panel 外面 -->
-    <div style="display:flex;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;">
-      <button onclick="openGoalImportModal()" style="padding:5px 16px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
-      <button onclick="exportGoalTree()" style="padding:5px 16px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
+    <div style="display:flex;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;align-items:center;">
+      <button onclick="openGoalImportModal()" style="padding:5px 14px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+      <button onclick="exportGoalTree()" style="padding:5px 14px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
+      <div style="flex:1;"></div>
+      <button id="card-batch-toggle-btn" onclick="toggleCardBatchMode()" style="padding:5px 14px;border:1px solid rgba(226,75,74,0.4);background:rgba(226,75,74,0.06);border-radius:8px;font-size:12px;font-weight:700;color:#C0392B;cursor:pointer;font-family:inherit;">☑ 批次選取</button>
+    </div>
+    <!-- 批次操作列（選取模式時顯示） -->
+    <div id="card-batch-bar" style="display:none;padding:8px 12px;background:rgba(226,75,74,0.07);border-bottom:2px solid rgba(226,75,74,0.3);flex-shrink:0;align-items:center;gap:8px;">
+      <span id="card-batch-count" style="font-size:13px;font-weight:700;color:#C0392B;flex:1;">點卡片勾選</span>
+      <button onclick="cardBatchSelectAll()" style="padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">全選</button>
+      <button onclick="cardBatchClearAll()" style="padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">取消</button>
+      <button onclick="cardBatchMove('done')" style="padding:5px 12px;border:1px solid rgba(34,197,94,0.4);border-radius:6px;background:rgba(34,197,94,0.08);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:#16803C;">✅ 完成</button>
+      <button onclick="cardBatchMove('lib')" style="padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">↩ 退回</button>
+      <button onclick="cardBatchDelete()" style="padding:5px 12px;border:none;border-radius:6px;background:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff;">🗑 刪除</button>
+      <button onclick="toggleCardBatchMode()" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-muted);">✕</button>
     </div>
     <div id="goal-filter-bar">
       <span id="goal-filter-label">🔍 篩選中</span>
@@ -2480,6 +2501,7 @@ function buildYearCard(year, allGoalCards) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <input type="checkbox" class="goal-batch-cb" data-id="${year.id}" onclick="event.stopPropagation();updateGoalBatchBar()" style="width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:#E24B4A;">
     <span style="font-size:9px;font-weight:700;background:#92700A;color:#FFF8DC;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">年</span>
     <span id="year-chevron-${year.id}" style="font-size:10px;color:#B8860B;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:12px;flex-shrink:0;">${isComplete?'🏆':'📌'}</span>
@@ -2556,6 +2578,7 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <input type="checkbox" class="goal-batch-cb" data-id="${month.id}" onclick="event.stopPropagation();updateGoalBatchBar()" style="width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:#E24B4A;">
     <span style="font-size:9px;font-weight:700;background:#3730A3;color:#EEF2FF;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">月</span>
     <span id="month-chevron-${month.id}" style="font-size:10px;color:#4338CA;flex-shrink:0;transition:transform 0.2s;">▼</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
@@ -2629,6 +2652,7 @@ function buildWeekCard(week, weekWeight, monthWeight) {
     cursor:pointer;user-select:none;
   `;
   header.innerHTML = `
+    <input type="checkbox" class="goal-batch-cb" data-id="${week.id}" onclick="event.stopPropagation();updateGoalBatchBar()" style="width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:#E24B4A;">
     <span style="font-size:9px;font-weight:700;background:#C2560A;color:#FFF7ED;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">週</span>
     <span id="week-chevron-${week.id}" style="font-size:9px;color:#C2560A;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
     <span style="font-size:11px;flex-shrink:0;">${isComplete ? '✅' : '📋'}</span>
@@ -2691,8 +2715,127 @@ function buildWeekCard(week, weekWeight, monthWeight) {
 }
 
 // ==========================================
-// 目標樹 匯入 / 匯出
+// 目標樹批次勾選刪除
 // ==========================================
+function updateGoalBatchBar() {
+  const checked = document.querySelectorAll('.goal-batch-cb:checked');
+  const bar = document.getElementById('goal-batch-bar');
+  const count = document.getElementById('goal-batch-count');
+  if (!bar) return;
+  if (checked.length > 0) {
+    bar.style.display = 'block';
+    count.textContent = `已選 ${checked.length} 個`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function goalBatchSelectAll() {
+  document.querySelectorAll('.goal-batch-cb').forEach(cb => cb.checked = true);
+  updateGoalBatchBar();
+}
+
+function goalBatchClear() {
+  document.querySelectorAll('.goal-batch-cb').forEach(cb => cb.checked = false);
+  updateGoalBatchBar();
+}
+
+async function goalBatchDelete() {
+  const checked = document.querySelectorAll('.goal-batch-cb:checked');
+  if (checked.length === 0) return;
+  if (!confirm(`確定要刪除這 ${checked.length} 個目標嗎？`)) return;
+  const ids = Array.from(checked).map(cb => cb.dataset.id);
+  toast('刪除中...');
+  for (const id of ids) {
+    await fetch(`api/cards.php?action=delete&id=${id}`);
+  }
+  goalBatchClear();
+  await loadCards();
+  toast(`✅ 已刪除 ${ids.length} 個目標`);
+}
+
+// ==========================================
+// 看板卡片批次選取
+// ==========================================
+let cardBatchMode = false;
+const cardBatchSelected = new Set();
+
+function toggleCardBatchMode() {
+  cardBatchMode = !cardBatchMode;
+  cardBatchSelected.clear();
+  updateCardBatchBar();
+  render();
+}
+
+function toggleCardBatchSelect(id) {
+  if (cardBatchSelected.has(id)) {
+    cardBatchSelected.delete(id);
+  } else {
+    cardBatchSelected.add(id);
+  }
+  updateCardBatchBar();
+}
+
+function updateCardBatchBar() {
+  const bar = document.getElementById('card-batch-bar');
+  if (!bar) return;
+  if (cardBatchMode && cardBatchSelected.size > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('card-batch-count').textContent = `已選 ${cardBatchSelected.size} 張`;
+  } else if (cardBatchMode) {
+    bar.style.display = 'flex';
+    document.getElementById('card-batch-count').textContent = '點卡片勾選';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function cardBatchSelectAll() {
+  ['lib','week','focus','done'].forEach(col => {
+    state[col].forEach(c => cardBatchSelected.add(c.id));
+  });
+  updateCardBatchBar();
+  render();
+}
+
+function cardBatchClearAll() {
+  cardBatchSelected.clear();
+  updateCardBatchBar();
+  render();
+}
+
+async function cardBatchDelete() {
+  if (cardBatchSelected.size === 0) { toast('請先勾選要刪除的卡片'); return; }
+  if (!confirm(`確定要刪除這 ${cardBatchSelected.size} 張卡片嗎？此動作無法復原。`)) return;
+  const ids = Array.from(cardBatchSelected);
+  toast('刪除中...');
+  for (const id of ids) {
+    await fetch(`api/cards.php?action=delete&id=${id}`);
+  }
+  cardBatchSelected.clear();
+  cardBatchMode = false;
+  updateCardBatchBar();
+  await loadCards();
+  toast(`✅ 已刪除 ${ids.length} 張卡片`);
+}
+
+async function cardBatchMove(col) {
+  if (cardBatchSelected.size === 0) { toast('請先勾選要移動的卡片'); return; }
+  const colNames = { lib:'策略筆記', week:'本週目標', focus:'今日專注', done:'已完成' };
+  if (!confirm(`確定要將 ${cardBatchSelected.size} 張卡片移到「${colNames[col]}」嗎？`)) return;
+  const ids = Array.from(cardBatchSelected);
+  toast('移動中...');
+  for (const id of ids) {
+    await fetch(`api/cards.php?action=move&id=${id}&col=${col}`, { method:'POST' });
+  }
+  cardBatchSelected.clear();
+  cardBatchMode = false;
+  updateCardBatchBar();
+  await loadCards();
+  toast(`✅ 已移動 ${ids.length} 張卡片`);
+}
+
+// 目標樹批次勾選刪除結束
 
 let _importData = null; // 暫存解析後的匯入資料
 
@@ -3700,7 +3843,10 @@ function buildCard(card, col, cardNo) {
   const _cardInitOpen = localStorage.getItem(_cardOpenKey) === '1';
   if (_cardInitOpen) div.classList.add('open');
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this);event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div>`;
+  // 批次選取勾選框
+  const batchCb = cardBatchMode ? `<input type="checkbox" ${cardBatchSelected.has(card.id)?'checked':''} onclick="event.stopPropagation();toggleCardBatchSelect(${card.id})" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:#E24B4A;margin-right:2px;">` : '';
+
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="${cardBatchMode ? `toggleCardBatchSelect(${card.id});render()` : `(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this)`};event.stopPropagation()">${batchCb}<span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div>`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
