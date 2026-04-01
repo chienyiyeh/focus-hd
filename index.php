@@ -2507,14 +2507,22 @@ function buildYearCard(year, allGoalCards) {
   children.id = 'year-children-' + year.id;
   children.style.cssText = 'padding-left:14px;border-left:2px solid rgba(255,215,0,0.2);margin-left:10px;margin-top:2px;';
 
-  // 收折切換
-  let open = true;
+  // 收折切換 - 預設收折，localStorage 記住狀態
+  const yearOpenKey = 'goal_year_open_' + year.id;
+  let open = localStorage.getItem(yearOpenKey) === '1';
+  children.style.display = open ? 'block' : 'none';
+  meta.style.display = open ? 'flex' : 'none';
+  const yearChev = header.querySelector('[id^="year-chevron-"]');
+  if (yearChev) yearChev.style.transform = open ? '' : 'rotate(90deg)';
+
   header.addEventListener('click', (e) => {
     if (e.target.closest('button')) return;
     open = !open;
     children.style.display = open ? 'block' : 'none';
     meta.style.display = open ? 'flex' : 'none';
-    document.getElementById('year-chevron-' + year.id).style.transform = open ? '' : 'rotate(90deg)';
+    const chev = document.getElementById('year-chevron-' + year.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+    try { localStorage.setItem(yearOpenKey, open ? '1' : '0'); } catch(e) {}
   });
 
   monthCards.forEach(month => children.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
