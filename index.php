@@ -1223,7 +1223,52 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<!-- 專案設定 Modal -->
+<!-- 掛到目標樹 Modal -->
+<div id="link-to-goal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:440px;display:flex;flex-direction:column;overflow:hidden;max-height:90vh;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;">🎯 掛到目標樹</div>
+      <button onclick="closeLinkToGoalModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">選擇要掛到哪個週目標下：</div>
+
+      <!-- 目前掛載狀態 -->
+      <div id="ltg-current" style="display:none;margin-bottom:12px;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:12px;">
+        <span style="color:var(--text-muted);">目前掛載：</span>
+        <span id="ltg-current-text" style="font-weight:600;color:var(--text);"></span>
+        <button onclick="unlinkFromGoal()" style="margin-left:8px;padding:2px 10px;border:1px solid rgba(226,75,74,0.4);background:rgba(226,75,74,0.08);border-radius:6px;font-size:11px;cursor:pointer;color:#C0392B;font-family:inherit;">解除掛載</button>
+      </div>
+
+      <!-- 選擇器 -->
+      <div id="ltg-selector">
+        <!-- 年度選擇 -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;color:#7A5C00;margin-bottom:5px;">📌 年度目標</div>
+          <div id="ltg-years" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <!-- 月度選擇（點年度後出現） -->
+        <div id="ltg-month-section" style="display:none;margin-bottom:10px;padding-left:12px;border-left:2px solid rgba(255,215,0,0.3);">
+          <div style="font-size:11px;font-weight:700;color:#3730A3;margin-bottom:5px;">📅 月度目標</div>
+          <div id="ltg-months" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <!-- 週選擇（點月度後出現） -->
+        <div id="ltg-week-section" style="display:none;margin-bottom:10px;padding-left:24px;border-left:2px solid rgba(99,102,241,0.3);">
+          <div style="font-size:11px;font-weight:700;color:#C2560A;margin-bottom:5px;">📋 週目標</div>
+          <div id="ltg-weeks" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <!-- 也可以選到月度就停（不選週） -->
+        <div id="ltg-confirm-section" style="display:none;margin-top:12px;padding:10px 12px;background:rgba(83,74,183,0.06);border:1px solid rgba(83,74,183,0.2);border-radius:8px;">
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">掛載到：<span id="ltg-selected-text" style="font-weight:700;color:#534AB7;"></span></div>
+          <button onclick="confirmLinkToGoal()" style="width:100%;padding:9px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">✓ 確認掛載</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0;">
+      <button onclick="closeLinkToGoalModal()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -2715,6 +2760,171 @@ function buildWeekCard(week, weekWeight, monthWeight) {
 }
 
 // ==========================================
+// 掛到目標樹（往上掛）
+// ==========================================
+let _ltgCardId = null;
+let _ltgSelectedId = null;
+let _ltgSelectedLevel = null;
+
+function openLinkToGoalModal(cardId) {
+  _ltgCardId = cardId;
+  _ltgSelectedId = null;
+  _ltgSelectedLevel = null;
+
+  const overlay = document.getElementById('link-to-goal-overlay');
+  document.body.appendChild(overlay);
+  overlay.style.display = 'flex';
+
+  // 顯示目前掛載狀態
+  const found = getCard(cardId);
+  const card = found ? found.card : null;
+  const currentDiv = document.getElementById('ltg-current');
+  if (card && card.parentId) {
+    const parentGoal = state.goal.find(g => g.id == card.parentId);
+    if (parentGoal) {
+      currentDiv.style.display = 'block';
+      document.getElementById('ltg-current-text').textContent = parentGoal.title;
+    }
+  } else {
+    currentDiv.style.display = 'none';
+  }
+
+  // 重置選擇器
+  document.getElementById('ltg-month-section').style.display = 'none';
+  document.getElementById('ltg-week-section').style.display = 'none';
+  document.getElementById('ltg-confirm-section').style.display = 'none';
+
+  // 渲染年度列表
+  const yearsEl = document.getElementById('ltg-years');
+  yearsEl.innerHTML = '';
+  const yearCards = (state.goal || []).filter(g => g.level === 'year');
+  if (yearCards.length === 0) {
+    yearsEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">還沒有年度目標，請先在目標樹建立</div>';
+    return;
+  }
+  yearCards.forEach(year => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'text-align:left;padding:7px 12px;border:1px solid rgba(180,140,0,0.3);background:rgba(255,215,0,0.06);border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#7A5C00;';
+    btn.textContent = '📌 ' + year.title;
+    btn.onclick = () => ltgSelectYear(year.id);
+    yearsEl.appendChild(btn);
+  });
+}
+
+function ltgSelectYear(yearId) {
+  // 高亮選中的年度
+  document.querySelectorAll('#ltg-years button').forEach(b => {
+    b.style.background = b.textContent.includes(state.goal.find(g=>g.id==yearId)?.title) ? 'rgba(255,215,0,0.2)' : 'rgba(255,215,0,0.06)';
+  });
+
+  const monthCards = (state.goal || []).filter(g => g.level === 'month' && g.parentId == yearId);
+  const monthSection = document.getElementById('ltg-month-section');
+  const monthsEl = document.getElementById('ltg-months');
+  monthsEl.innerHTML = '';
+  document.getElementById('ltg-week-section').style.display = 'none';
+  document.getElementById('ltg-confirm-section').style.display = 'none';
+
+  if (monthCards.length === 0) {
+    // 直接掛到年度
+    _ltgSelectedId = yearId;
+    _ltgSelectedLevel = 'year';
+    const year = state.goal.find(g => g.id == yearId);
+    document.getElementById('ltg-selected-text').textContent = '📌 ' + (year?.title || '');
+    document.getElementById('ltg-confirm-section').style.display = 'block';
+    monthSection.style.display = 'none';
+    return;
+  }
+
+  monthSection.style.display = 'block';
+  monthCards.forEach(month => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'text-align:left;padding:6px 10px;border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.05);border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#3730A3;';
+    btn.textContent = '📅 ' + month.title;
+    btn.onclick = () => ltgSelectMonth(month.id);
+    monthsEl.appendChild(btn);
+  });
+}
+
+function ltgSelectMonth(monthId) {
+  document.querySelectorAll('#ltg-months button').forEach(b => b.style.background = 'rgba(99,102,241,0.05)');
+  const clicked = Array.from(document.querySelectorAll('#ltg-months button')).find(b => b.onclick.toString().includes(monthId));
+
+  const weekCards = (state.goal || []).filter(g => g.level === 'week' && g.parentId == monthId);
+  const weekSection = document.getElementById('ltg-week-section');
+  const weeksEl = document.getElementById('ltg-weeks');
+  weeksEl.innerHTML = '';
+
+  // 先設定為掛到月度
+  const month = state.goal.find(g => g.id == monthId);
+  _ltgSelectedId = monthId;
+  _ltgSelectedLevel = 'month';
+  document.getElementById('ltg-selected-text').textContent = '📅 ' + (month?.title || '');
+  document.getElementById('ltg-confirm-section').style.display = 'block';
+
+  if (weekCards.length === 0) {
+    weekSection.style.display = 'none';
+    return;
+  }
+
+  weekSection.style.display = 'block';
+  weekCards.forEach(week => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'text-align:left;padding:6px 10px;border:1px solid rgba(194,86,10,0.25);background:rgba(249,115,22,0.05);border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#C2560A;';
+    btn.textContent = '📋 ' + week.title;
+    btn.onclick = () => ltgSelectWeek(week.id);
+    weeksEl.appendChild(btn);
+  });
+}
+
+function ltgSelectWeek(weekId) {
+  document.querySelectorAll('#ltg-weeks button').forEach(b => b.style.background = 'rgba(249,115,22,0.05)');
+  const week = state.goal.find(g => g.id == weekId);
+  _ltgSelectedId = weekId;
+  _ltgSelectedLevel = 'week';
+  document.getElementById('ltg-selected-text').textContent = '📋 ' + (week?.title || '');
+  document.getElementById('ltg-confirm-section').style.display = 'block';
+}
+
+async function confirmLinkToGoal() {
+  if (!_ltgCardId || !_ltgSelectedId) return;
+  const found = getCard(_ltgCardId);
+  if (!found) return;
+  const card = found.card;
+
+  try {
+    await inlineSave(_ltgCardId, found.col, {
+      parentId: _ltgSelectedId,
+      level: 'project'
+    });
+    closeLinkToGoalModal();
+    await loadCards();
+    toast('✅ 已掛載到目標樹');
+  } catch(err) {
+    toast('❌ 掛載失敗：' + err.message);
+  }
+}
+
+async function unlinkFromGoal() {
+  if (!_ltgCardId) return;
+  const found = getCard(_ltgCardId);
+  if (!found) return;
+  try {
+    await inlineSave(_ltgCardId, found.col, { parentId: null, level: 'general' });
+    closeLinkToGoalModal();
+    await loadCards();
+    toast('✅ 已解除掛載');
+  } catch(err) {
+    toast('❌ 操作失敗');
+  }
+}
+
+function closeLinkToGoalModal() {
+  const overlay = document.getElementById('link-to-goal-overlay');
+  if (overlay) overlay.style.display = 'none';
+  _ltgCardId = null;
+  _ltgSelectedId = null;
+}
+
 // 目標樹批次勾選刪除
 // ==========================================
 function updateGoalBatchBar() {
@@ -3725,6 +3935,7 @@ function buildCard(card, col, cardNo) {
     if (col !== 'focus' && myFocusCnt < 1) menuItems += `<button class="card-action-item primary" onclick="moveAPI(${card.id},'focus');closeCardMenu('${menuId}');event.stopPropagation()">→ 今日專注</button>`;
     if (col === 'week' || col === 'focus') menuItems += `<button class="card-action-item" onclick="moveAPI(${card.id},'lib');closeCardMenu('${menuId}');event.stopPropagation()">↩ 退回策略庫</button>`;
     menuItems += `<button class="card-action-item" onclick="editCard(${card.id},'${col}');closeCardMenu('${menuId}');event.stopPropagation()">✏️ 編輯卡片</button>`;
+    menuItems += `<button class="card-action-item" onclick="openLinkToGoalModal(${card.id});closeCardMenu('${menuId}');event.stopPropagation()">🎯 掛到目標樹</button>`;
     const sfCheck = getSubtaskFocus();
     const isSubtask = sfCheck && sfCheck.cardId === card.id;
     if (col === 'focus' && isSubtask) {
