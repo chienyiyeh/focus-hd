@@ -1667,6 +1667,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   injectProjectStyles();
   initGoalPanelState(); // 戰略樹收折狀態
   initColSections();    // 策略筆記/本週欄收折狀態
+
+  // 動態綁定匯入 file input（避免 onchange 屬性時機問題）
+  const _importFileEl = document.getElementById('goal-import-file');
+  if (_importFileEl) {
+    _importFileEl.addEventListener('change', function() {
+      handleGoalImportFile(this);
+    });
+  }
   // 手機版：載入前先設定預設分頁（今日專注）
   if (window.innerWidth <= 768) {
     setMobileTab('focus');
@@ -2765,7 +2773,6 @@ let _importData = null; // 暫存解析後的匯入資料
 function handleGoalImportFile(input) {
   const file = input.files[0];
   if (!file) { alert('沒有選到檔案'); return; }
-  input.value = '';
 
   const reader = new FileReader();
   reader.onerror = () => alert('FileReader 錯誤：' + reader.error);
@@ -2788,6 +2795,8 @@ function handleGoalImportFile(input) {
     }
   };
   reader.readAsText(file);
+  // 重置 value 放最後，避免影響 FileReader
+  setTimeout(() => { input.value = ''; }, 1000);
 }
 
 function openGoalImportModal() {
@@ -5264,7 +5273,7 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
 </div>
 
 <!-- 匯入/匯出全域元素，放 body 底部確保不被隱藏容器影響 -->
-<input type="file" id="goal-import-file" accept=".json" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;" onchange="handleGoalImportFile(this)">
+<input type="file" id="goal-import-file" accept=".json" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;">
 <a id="goal-export-link" style="display:none;"></a>
 
 </body>
