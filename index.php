@@ -2743,15 +2743,27 @@ function goalBatchClear() {
 async function goalBatchDelete() {
   const checked = document.querySelectorAll('.goal-batch-cb:checked');
   if (checked.length === 0) return;
-  if (!confirm(`確定要刪除這 ${checked.length} 個目標嗎？`)) return;
-  const ids = Array.from(checked).map(cb => cb.dataset.id);
+
+  const ids = Array.from(checked).map(cb => Number(cb.dataset.id));
+  const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
+  const linkedCards = allCards.filter(c => ids.includes(Number(c.parentId)));
+
+  let confirmMsg = `確定要刪除這 ${ids.length} 個目標嗎？`;
+  if (linkedCards.length > 0) {
+    confirmMsg += `\n\n⚠️ 策略筆記區有 ${linkedCards.length} 張關聯的子任務卡片也會一起刪除。`;
+  }
+  if (!confirm(confirmMsg)) return;
+
   toast('刪除中...');
   for (const id of ids) {
     await fetch(`api/cards.php?action=delete&id=${id}`);
   }
+  for (const card of linkedCards) {
+    await fetch(`api/cards.php?action=delete&id=${card.id}`);
+  }
   goalBatchClear();
   await loadCards();
-  toast(`✅ 已刪除 ${ids.length} 個目標`);
+  toast(`✅ 已刪除 ${ids.length} 個目標${linkedCards.length > 0 ? ` 及 ${linkedCards.length} 張關聯卡片` : ''}`);
 }
 
 // ==========================================
@@ -3423,13 +3435,34 @@ function editGoalCard(id, e) {
 // 刪除目標卡
 async function deleteGoalCard(id, e) {
   if (e) e.stopPropagation();
-  if (!confirm('確定刪除這個目標嗎？子目標不會一起刪除。')) return;
+
+  // 找出這個 goal 底下的所有子任務（看板卡片）
+  const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
+  const linkedCards = allCards.filter(c => c.parentId == id);
+
+  let confirmMsg = '確定刪除這個目標嗎？';
+  if (linkedCards.length > 0) {
+    confirmMsg += `\n\n⚠️ 策略筆記區有 ${linkedCards.length} 張關聯的子任務卡片也會一起刪除。`;
+  }
+  if (!confirm(confirmMsg)) return;
+
   try {
+    // 先刪 goal 卡
     const res = await fetch(`api/cards.php?action=delete&id=${id}`);
     const d = await res.json();
-    if (d.success) { toast('🗑 已刪除'); await loadCards(); }
-    else toast('❌ ' + (d.error || '刪除失敗'));
-  } catch(e) { toast('❌ 連線錯誤'); }
+    if (!d.success) { toast('❌ ' + (d.error || '刪除失敗')); return; }
+
+    // 再刪關聯的子任務卡片
+    for (const card of linkedCards) {
+      await fetch(`api/cards.php?action=delete&id=${card.id}`);
+    }
+
+    const msg = linkedCards.length > 0
+      ? `🗑 已刪除目標及 ${linkedCards.length} 張關聯卡片`
+      : '🗑 已刪除';
+    toast(msg);
+    await loadCards();
+  } catch(err) { toast('❌ 連線錯誤'); }
 }
 
 function render() {
