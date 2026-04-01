@@ -2286,10 +2286,10 @@ function renderGoalTree() {
 
   const goalCards = state.goal || [];
   const yearCards  = goalCards.filter(c => c.level === 'year');
-  // 獨立月度：沒有父層或父層不在 goal 裡
-  const looseMonths = goalCards.filter(c => c.level === 'month' && !goalCards.find(p => p.id === c.parentId));
-  // 獨立週目標：沒有父層月度
-  const looseWeeks  = goalCards.filter(c => c.level === 'week'  && !goalCards.find(p => p.id === c.parentId));
+  // 獨立月度：沒有父層或父層不在 goal 裡（用 == 比較，同時處理字串/整數）
+  const looseMonths = goalCards.filter(c => c.level === 'month' && !goalCards.find(p => p.id == c.parentId));
+  // 獨立週目標：沒有父層月度（用 == 比較）
+  const looseWeeks  = goalCards.filter(c => c.level === 'week'  && !goalCards.find(p => p.id == c.parentId));
 
   const isEmpty = yearCards.length === 0 && looseMonths.length === 0 && looseWeeks.length === 0;
 
@@ -2320,7 +2320,7 @@ function renderGoalTree() {
 
 // 手機版年度計畫（淺色主題）
 function buildMobileYearCard(year, allGoalCards) {
-  const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
+  const monthCards = allGoalCards.filter(c => c.parentId == year.id && c.level === 'month');
   const progress = calcGoalProgress(year);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
@@ -2356,7 +2356,7 @@ function buildMobileYearCard(year, allGoalCards) {
 }
 
 function buildMobileMonthCard(month, allGoalCards, parentWeight) {
-  const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
+  const weekCards = allGoalCards.filter(c => c.parentId == month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
@@ -2459,7 +2459,7 @@ function buildMobileWeekCard(week, weekWeight) {
 
 // 建立年度卡（縮排清單樹）
 function buildYearCard(year, allGoalCards) {
-  const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
+  const monthCards = allGoalCards.filter(c => c.parentId == year.id && c.level === 'month');
   const progress = calcGoalProgress(year);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
@@ -2536,7 +2536,7 @@ function buildYearCard(year, allGoalCards) {
 
 // 建立月度卡（縮排清單樹）
 function buildMonthCard(month, allGoalCards, parentWeight) {
-  const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
+  const weekCards = allGoalCards.filter(c => c.parentId == month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
@@ -2577,12 +2577,19 @@ function buildMonthCard(month, allGoalCards, parentWeight) {
   children.id = 'month-children-' + month.id;
   children.style.cssText = 'padding-left:12px;border-left:2px solid rgba(99,102,241,0.2);margin-left:10px;margin-top:2px;';
 
-  let open = true;
+  const monthOpenKey = 'goal_month_open_' + month.id;
+  let open = localStorage.getItem(monthOpenKey) === '1';
+  children.style.display = open ? 'block' : 'none';
+  const initChev = header.querySelector('[id^="month-chevron-"]');
+  if (initChev) initChev.style.transform = open ? '' : 'rotate(-90deg)';
+
   header.addEventListener('click', (e) => {
     if (e.target.closest('button')) return;
     open = !open;
     children.style.display = open ? 'block' : 'none';
-    document.getElementById('month-chevron-' + month.id).style.transform = open ? '' : 'rotate(90deg)';
+    const chev = document.getElementById('month-chevron-' + month.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(-90deg)';
+    try { localStorage.setItem(monthOpenKey, open ? '1' : '0'); } catch(e) {}
   });
 
   weekCards.forEach(week => children.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
