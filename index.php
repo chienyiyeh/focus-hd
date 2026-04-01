@@ -317,6 +317,15 @@ $username = $_SESSION['username'] ?? 'User';
   .act-btn.postpone { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); }
   .act-btn.del { color: #E24B4A; }
 
+  .col-collapsible { overflow: hidden; max-height: 4000px; transition: max-height 0.35s ease; }
+  .col-collapsible.collapsed { max-height: 0 !important; overflow: hidden; }
+  .col-resize-handle {
+    text-align: center; font-size: 14px; color: var(--text-muted);
+    padding: 4px 0; cursor: ns-resize; user-select: none;
+    border-top: 1px dashed var(--border); letter-spacing: 4px;
+    flex-shrink: 0;
+  }
+  .col-resize-handle:hover { background: var(--surface2); color: var(--text-secondary); }
   .add-card-btn { width: 100%; padding: 12px; border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 4px; }
   .add-card-btn:hover { background: var(--surface2); color: var(--text-secondary); border-color: var(--text-secondary); }
   .clear-done-btn { width: 100%; padding: 10px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; margin-top: 8px; }
@@ -444,17 +453,9 @@ $username = $_SESSION['username'] ?? 'User';
   .cornell-b .mini-toolbar { display: none; }
   .cornell-b .mini-toolbar.active { display: flex !important; }
   .cornell-b .mini-toolbar.hidden { display: none !important; }
-  /* done 欄卡片預設收合，點標題展開 */
-  .col-done .card .cornell-layout,
-  .col-done .card .card-meta,
-  .col-done .card .card-summary,
-  .col-done .card .card-next-step,
-  .col-done .card .source-link { display: none; }
-  .col-done .card.open .cornell-layout,
-  .col-done .card.open .card-meta,
-  .col-done .card.open .card-summary,
-  .col-done .card.open .card-next-step,
-  .col-done .card.open .source-link { display: block; }
+  /* 所有欄位卡片預設收合，只用 card-collapse-body 控制 */
+  .card .card-collapse-body { display: none; }
+  .card.open .card-collapse-body { display: block; }
   .mini-tb-btn { padding: 4px 10px; border: none; border-radius: 5px; background: transparent; font-size: 14px; cursor: pointer; font-family: inherit; color: #FFF; line-height: 1; }
   .mini-tb-btn:hover { background: rgba(255,255,255,0.2); }
   .mini-tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); margin: 0 2px; flex-shrink: 0; }
@@ -689,22 +690,34 @@ $username = $_SESSION['username'] ?? 'User';
   /* ==========================================
      戰略樹（左側收折面板）
   ========================================== */
-  .goal-panel {
-    width: 280px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    align-self: flex-start;
-    position: sticky;
-    top: 16px;
-    max-height: calc(100vh - 100px);
-    overflow: hidden;
-    transition: width 0.25s ease;
+  /* 側邊小標籤（面板收折時顯示） */
+  .goal-panel-tab {
+    position: sticky; top: 16px; align-self: flex-start; flex-shrink: 0;
+    width: 24px; display: none; flex-direction: column; align-items: center; cursor: pointer; z-index: 10;
   }
-  .goal-panel.collapsed { width: 44px; }
+  .goal-panel-tab-inner {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    background: linear-gradient(180deg, #1A1A18 0%, #2d2d2a 100%);
+    color: #FFD700; font-size: 11px; font-weight: 700; padding: 12px 5px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    border: 1px solid rgba(255,215,0,0.3); border-left: none;
+    white-space: nowrap; letter-spacing: 1px; user-select: none;
+  }
+  .goal-panel-tab-inner:hover { background: linear-gradient(135deg, #2d2d2a 0%, #3d3d38 100%); }
+  .goal-panel-tab.visible { display: flex; }
+
+  .goal-panel {
+    flex-shrink: 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    align-self: flex-start; position: sticky; top: 16px;
+    max-height: calc(100vh - 100px); overflow: hidden;
+    transition: width 0.25s ease, max-width 0.25s ease, opacity 0.2s ease;
+    width: 560px; max-width: 560px; min-width: 260px;
+  }
+  .goal-panel.size-lg { width: 560px; max-width: 560px; }
+  .goal-panel.size-md { width: 340px; max-width: 340px; }
+  .goal-panel.size-hidden { width: 0; max-width: 0; min-width: 0; opacity: 0; pointer-events: none; border: none; overflow: hidden; }
   .goal-panel-header {
     display: flex;
     align-items: center;
@@ -717,14 +730,8 @@ $username = $_SESSION['username'] ?? 'User';
     gap: 8px;
   }
   .goal-panel-title { font-size: 13px; font-weight: 700; color: #FFD700; white-space: nowrap; overflow: hidden; letter-spacing: 0.5px; }
-  .goal-panel.collapsed .goal-panel-title { display: none; }
   .goal-panel-toggle { background: none; border: none; cursor: pointer; font-size: 16px; color: rgba(255,255,255,0.7); padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: transform 0.25s; line-height: 1; }
-  .goal-panel.collapsed .goal-panel-toggle { transform: rotate(180deg); }
   .goal-panel-body { overflow-y: auto; flex: 1; padding: 8px; }
-  .goal-panel.collapsed .goal-panel-body { display: none; }
-  .goal-panel.collapsed .goal-add-btn { display: none; }
-  .goal-add-btn { margin: 8px; padding: 8px; width: calc(100% - 16px); border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0; }
-  .goal-add-btn:hover { background: var(--surface2); color: var(--text); border-color: #FFD700; }
 
   /* 年度卡 - 最大最醒目，金色邊框 */
   .goal-year-card { background: linear-gradient(135deg, #1A1A18 0%, #2d2d2a 100%); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; border: 2px solid rgba(255,215,0,0.5); box-shadow: 0 2px 8px rgba(255,215,0,0.1); }
@@ -776,7 +783,8 @@ $username = $_SESSION['username'] ?? 'User';
   #goal-filter-bar button { background:rgba(255,255,255,0.25); border:none; color:#fff; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px; font-family:inherit; }
 
   /* 子任務標籤（右側看板卡片） */
-  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); font-weight: 600; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .parent-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 3px 9px; border-radius: 8px; background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.18); font-weight: 600; max-width: 100%; white-space: normal; word-break: break-word; line-height: 1.5; }
+  .parent-badge.block, div.parent-badge { display: block; border-radius: 6px; padding: 5px 8px; }
 
   @media (max-width: 768px) { .goal-panel { display: none; } }
 </style>
@@ -865,24 +873,38 @@ $username = $_SESSION['username'] ?? 'User';
     </div>
   </aside>
 
+  <!-- 焦點目標樹：收折時的側邊標籤 -->
+  <div class="goal-panel-tab" id="goal-panel-tab" onclick="openGoalPanel()">
+    <div class="goal-panel-tab-inner">🌳 焦點目標樹</div>
+  </div>
+
   <!-- 戰略樹面板（左側收折） -->
-  <div class="goal-panel" id="goal-panel">
+  <div class="goal-panel size-lg" id="goal-panel">
     <div class="goal-panel-header">
-      <span class="goal-panel-title">🏆 戰略目標</span>
-      <button class="goal-panel-toggle" onclick="toggleGoalPanel()" title="收折/展開">◀</button>
+      <span class="goal-panel-title">🌳 焦點目標樹</span>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <button onclick="setGoalPanelSize('md')" id="gp-btn-md" title="中等寬度" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;">中</button>
+        <button onclick="setGoalPanelSize('lg')" id="gp-btn-lg" title="完整寬度" style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;">大</button>
+        <button onclick="hideGoalPanel()" title="收折面板" style="background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.7);padding:2px 4px;border-radius:4px;line-height:1;">◀</button>
+      </div>
     </div>
     <div class="goal-panel-body" id="goal-panel-body">
       <!-- 動態渲染 -->
     </div>
-    <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;">
-      <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(255,215,0,0.4);background:rgba(255,215,0,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#FFD700;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
-      <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(99,102,241,0.4);background:rgba(99,102,241,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#a5b4fc;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
-      <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px dashed rgba(249,115,22,0.4);background:rgba(249,115,22,0.06);border-radius:8px;font-size:11px;font-weight:700;color:#fb923c;cursor:pointer;font-family:inherit;">📋 ＋週</button>
+    <div style="display:flex;gap:6px;margin:8px;flex-shrink:0;" id="goal-add-btns">
+      <button onclick="openGoalModal('year',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(180,140,0,0.5);background:rgba(255,215,0,0.12);border-radius:8px;font-size:11px;font-weight:700;color:#7A5C00;cursor:pointer;font-family:inherit;">📌 ＋年度</button>
+      <button onclick="openGoalModal('month',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(99,102,241,0.5);background:rgba(99,102,241,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#3730A3;cursor:pointer;font-family:inherit;">📅 ＋月度</button>
+      <button onclick="openGoalModal('week',null)" style="flex:1;padding:7px 4px;border:1px solid rgba(194,86,10,0.5);background:rgba(249,115,22,0.1);border-radius:8px;font-size:11px;font-weight:700;color:#C2560A;cursor:pointer;font-family:inherit;">📋 ＋週</button>
+    </div>
+    <div style="margin:0 8px 10px;display:flex;gap:6px;">
     </div>
   </div>
-
-  <!-- 篩選提示列 + 看板 -->
   <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:0;">
+    <!-- 匯入/匯出固定在看板頂部，完全在 goal-panel 外面 -->
+    <div style="display:flex;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;">
+      <button onclick="openGoalImportModal()" style="padding:5px 16px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+      <button onclick="exportGoalTree()" style="padding:5px 16px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
+    </div>
     <div id="goal-filter-bar">
       <span id="goal-filter-label">🔍 篩選中</span>
       <button onclick="filterByParent(null)">✕ 清除篩選</button>
@@ -891,29 +913,41 @@ $username = $_SESSION['username'] ?? 'User';
   <div class="board-wrap">
     <div class="col col-lib" data-col="lib">
       <div class="col-accent"></div>
-      <div class="col-header">
+      <div class="col-header" style="cursor:pointer;" onclick="toggleColSection('lib')">
         <div class="col-title-row">
           <div class="col-title">📚 策略筆記區</div>
-          <div class="badge badge-lib" id="badge-lib">0 則</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="badge badge-lib" id="badge-lib">0 則</div>
+            <span id="col-chev-lib" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▲</span>
+          </div>
         </div>
         <div class="col-sub">長期儲存 • 無限制</div>
       </div>
-      <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
-      <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib')">+ 新增筆記</button></div>
-      <div class="cards-area" id="cards-lib"></div>
+      <div id="col-body-lib" class="col-collapsible">
+        <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
+        <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib');event.stopPropagation()">+ 新增筆記</button></div>
+        <div class="cards-area" id="cards-lib" style="overflow-y:auto;"></div>
+        <div class="col-resize-handle" onmousedown="startColResize(event,'lib')" title="拖曳調整高度">⋯</div>
+      </div>
     </div>
 
     <div class="col col-week" data-col="week">
       <div class="col-accent"></div>
-      <div class="col-header">
+      <div class="col-header" style="cursor:pointer;" onclick="toggleColSection('week')">
         <div class="col-title-row">
           <div class="col-title">📅 本週目標</div>
-          <div class="badge badge-week" id="badge-week">0 / 3</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="badge badge-week" id="badge-week">0 / 3</div>
+            <span id="col-chev-week" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▲</span>
+          </div>
         </div>
         <div class="col-sub">這週最重要的事</div>
       </div>
-      <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week')">+ 新增目標</button></div>
-      <div class="cards-area" id="cards-week"></div>
+      <div id="col-body-week" class="col-collapsible">
+        <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week');event.stopPropagation()">+ 新增目標</button></div>
+        <div class="cards-area" id="cards-week" style="overflow-y:auto;"></div>
+        <div class="col-resize-handle" onmousedown="startColResize(event,'week')" title="拖曳調整高度">⋯</div>
+      </div>
     </div>
 
     <div class="col col-focus" data-col="focus">
@@ -947,9 +981,13 @@ $username = $_SESSION['username'] ?? 'User';
 
 <!-- 手機版年度計畫面板 -->
 <div id="mobile-goal-panel" style="display:none;padding:16px;padding-bottom:80px;">
-  <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-    🏆 戰略目標
-    <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 新增年度目標</button>
+  <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    🌳 焦點目標樹
+    <button onclick="openGoalModal('year',null)" style="margin-left:auto;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">＋ 年度</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <button onclick="openGoalImportModal()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📥 匯入目標樹</button>
+    <button onclick="exportGoalTree()" style="flex:1;padding:8px 4px;border:1px solid rgba(83,74,183,0.4);background:rgba(83,74,183,0.07);border-radius:8px;font-size:12px;font-weight:700;color:#534AB7;cursor:pointer;font-family:inherit;">📤 匯出目標樹</button>
   </div>
   <div id="mobile-goal-body">
     <!-- 由 renderGoalTree 同步渲染 -->
@@ -1148,6 +1186,8 @@ $username = $_SESSION['username'] ?? 'User';
       <input type="hidden" id="input-edit-id">
       <input type="hidden" id="input-bgcolor">
       <input type="hidden" id="input-textcolor">
+      <input type="hidden" id="input-parent-id">
+      <input type="hidden" id="input-level" value="general">
     </div>
     <div class="modal-footer" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <button id="modal-back-btn" onclick="closeModal()" style="display:none;padding:8px 16px;font-size:13px;border:1px solid var(--accent-week);border-radius:var(--radius);background:none;cursor:pointer;color:var(--accent-week);font-weight:600;">← 返回外部</button>
@@ -1162,7 +1202,94 @@ $username = $_SESSION['username'] ?? 'User';
 
 
 
-<!-- 戰略目標 Modal（動態建立，見 openGoalModal JS 函數） -->
+<!-- 匯入目標樹 Modal -->
+<div id="goal-import-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;">📥 匯入目標樹</div>
+      <button onclick="closeGoalImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+
+      <!-- 輸入區 -->
+      <div id="goal-import-input-area">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="gim-tab-paste" onclick="switchImportTab('paste')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #534AB7;background:#534AB7;color:#fff;">
+            📋 貼上 JSON
+          </button>
+          <button id="gim-tab-file" onclick="switchImportTab('file')"
+            style="flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-secondary);">
+            📂 選取檔案
+          </button>
+        </div>
+        <div id="gim-paste-area">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">把 JSON 內容貼到下方（手機長按貼上）：</div>
+
+          <!-- 網址輸入（手機複製連結後貼這裡） -->
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:600;color:#534AB7;margin-bottom:4px;">📎 或貼上 JSON 檔案的網址：</div>
+            <div style="display:flex;gap:6px;">
+              <input id="goal-import-url" type="url" placeholder="https://... 貼上連結"
+                style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface2);color:var(--text);outline:none;min-width:0;"
+                oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'">
+              <button onclick="fetchImportUrl()"
+                style="padding:8px 12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
+                抓取
+              </button>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">或直接貼上 JSON 文字：</div>
+          <textarea id="goal-import-textarea"
+            placeholder='{"years":[{"title":"年度目標","months":[...]}]}'
+            style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;background:var(--surface2);color:var(--text);box-sizing:border-box;outline:none;"
+            oninput="this.style.borderColor=this.value?'#534AB7':'var(--border)'"></textarea>
+          <button onclick="parseImportTextarea()"
+            style="margin-top:10px;width:100%;padding:11px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+            🔍 解析並預覽
+          </button>
+        </div>
+        <div id="gim-file-area" style="display:none;">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">選取 .json 檔案（建議桌面使用）：</div>
+          <button onclick="document.getElementById('goal-import-file').click()"
+            style="width:100%;padding:14px;border:2px dashed var(--border);border-radius:8px;background:var(--surface2);color:var(--text-secondary);font-size:14px;cursor:pointer;font-family:inherit;">
+            📂 點此選取 JSON 檔案
+          </button>
+        </div>
+      </div>
+
+      <!-- 預覽區 -->
+      <div id="goal-import-preview" style="display:none;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">📋 預覽匯入內容：</div>
+        <div id="goal-import-preview-body" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;max-height:260px;overflow-y:auto;line-height:1.8;"></div>
+        <div id="goal-import-conflict" style="display:none;margin-top:12px;padding:10px 14px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;font-size:12px;color:#92400E;">
+          <div style="font-weight:700;margin-bottom:4px;">⚠️ 發現同名目標</div>
+          <div id="goal-import-conflict-list" style="line-height:1.8;"></div>
+          <div style="margin-top:8px;font-weight:600;">確定要繼續匯入嗎？（同名會新增為獨立項目，不會覆蓋）</div>
+        </div>
+        <div id="goal-import-summary" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
+        <button onclick="resetGoalImport()" style="margin-top:8px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-secondary);">← 重新輸入</button>
+      </div>
+
+      <div id="goal-import-error" style="display:none;padding:10px 14px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;margin-top:8px;"></div>
+      <div id="goal-import-progress" style="display:none;margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">匯入中...</div>
+        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div id="goal-import-bar" style="height:100%;background:#534AB7;width:0%;transition:width 0.3s;"></div>
+        </div>
+        <div id="goal-import-status" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+      <div id="goal-import-done" style="display:none;margin-top:12px;padding:12px 16px;background:#E6F9EF;border:1px solid #6EE7A0;border-radius:8px;font-size:13px;font-weight:600;color:#166534;"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
+      <button onclick="closeGoalImport()" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-secondary);">取消</button>
+      <button id="goal-import-confirm-btn" onclick="confirmGoalImport()" style="display:none;padding:8px 20px;border:none;border-radius:8px;background:#534AB7;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;">確認匯入</button>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- 專案設定 Modal -->
 <div class="overlay" id="project-settings-overlay" onclick="handleProjectSettingsClick(event)">
@@ -1540,6 +1667,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderProjectSelect();
   injectProjectStyles();
   initGoalPanelState(); // 戰略樹收折狀態
+  initColSections();    // 策略筆記/本週欄收折狀態
+
+  // 動態綁定匯入 file input（避免 onchange 屬性時機問題）
+  const _importFileEl = document.getElementById('goal-import-file');
+  if (_importFileEl) {
+    _importFileEl.addEventListener('change', function() {
+      handleGoalImportFile(this);
+    });
+  }
   // 手機版：載入前先設定預設分頁（今日專注）
   if (window.innerWidth <= 768) {
     setMobileTab('focus');
@@ -2077,24 +2213,128 @@ function stripHtml(html) {
 let goalPanelCollapsed = false;
 let goalFilterParentId = null; // 點擊月/週目標時高亮右側子任務
 
-// 收折/展開戰略樹
-function toggleGoalPanel() {
-  goalPanelCollapsed = !goalPanelCollapsed;
-  const panel = document.getElementById('goal-panel');
-  if (panel) panel.classList.toggle('collapsed', goalPanelCollapsed);
-  try { localStorage.setItem('goalPanelCollapsed', goalPanelCollapsed ? '1' : '0'); } catch(e) {}
+// 欄位收折（策略筆記＋本週目標）
+function toggleColSection(col) {
+  const body = document.getElementById('col-body-' + col);
+  const chev = document.getElementById('col-chev-' + col);
+  if (!body) return;
+  const isCollapsed = body.classList.contains('collapsed');
+  if (isCollapsed) {
+    // 展開：恢復記憶高度
+    body.classList.remove('collapsed');
+    const savedH = localStorage.getItem('colHeight_' + col);
+    const area = document.getElementById('cards-' + col);
+    if (area && savedH) area.style.maxHeight = savedH + 'px';
+    if (chev) chev.style.transform = '';
+    try { localStorage.setItem('colOpen_' + col, '1'); } catch(e) {}
+  } else {
+    // 收折
+    body.classList.add('collapsed');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    try { localStorage.setItem('colOpen_' + col, '0'); } catch(e) {}
+  }
 }
 
-// 初始化收折狀態
+// 拖曳調整欄位高度
+function startColResize(e, col) {
+  e.preventDefault(); e.stopPropagation();
+  const area = document.getElementById('cards-' + col);
+  if (!area) return;
+  const startY = e.clientY;
+  const startH = area.offsetHeight;
+  function onMove(ev) {
+    const newH = Math.max(80, startH + ev.clientY - startY);
+    area.style.maxHeight = newH + 'px';
+    try { localStorage.setItem('colHeight_' + col, newH); } catch(e) {}
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// 初始化欄位收折狀態（預設收起，打開後記住）
+function initColSections() {
+  ['lib', 'week'].forEach(col => {
+    const body = document.getElementById('col-body-' + col);
+    const chev = document.getElementById('col-chev-' + col);
+    const area = document.getElementById('cards-' + col);
+    if (!body) return;
+    const isOpen = localStorage.getItem('colOpen_' + col) === '1';
+    const savedH = localStorage.getItem('colHeight_' + col);
+    if (!isOpen) {
+      body.classList.add('collapsed');
+      if (chev) chev.style.transform = 'rotate(180deg)';
+    } else {
+      if (area && savedH) area.style.maxHeight = savedH + 'px';
+    }
+  });
+}
+
+// 設定面板尺寸（只有 md / lg）
+function setGoalPanelSize(size) {
+  const panel = document.getElementById('goal-panel');
+  if (!panel) return;
+  panel.classList.remove('size-xs','size-sm','size-md','size-lg','size-hidden','collapsed');
+  panel.classList.add('size-' + size);
+  // 更新按鈕高亮
+  ['md','lg'].forEach(s => {
+    const btn = document.getElementById('gp-btn-' + s);
+    if (btn) {
+      btn.style.background = (s === size) ? 'rgba(255,255,255,0.25)' : 'none';
+      btn.style.color = (s === size) ? '#fff' : 'rgba(255,255,255,0.6)';
+    }
+  });
+  // 記住最後開啟的尺寸
+  try { localStorage.setItem('goalPanelSize', size); } catch(e) {}
+  // 確保面板可見，側邊標籤隱藏
+  panel.style.removeProperty('display');
+  const tab = document.getElementById('goal-panel-tab');
+  if (tab) tab.classList.remove('visible');
+}
+
+// 收折面板（完全隱藏，顯示側邊標籤）
+function hideGoalPanel() {
+  const panel = document.getElementById('goal-panel');
+  const tab = document.getElementById('goal-panel-tab');
+  if (panel) panel.classList.add('size-hidden');
+  if (tab) tab.classList.add('visible');
+  try { localStorage.setItem('goalPanelHidden', '1'); } catch(e) {}
+}
+
+// 展開面板（從側邊標籤點開）
+function openGoalPanel() {
+  const panel = document.getElementById('goal-panel');
+  const tab = document.getElementById('goal-panel-tab');
+  if (panel) {
+    panel.classList.remove('size-hidden');
+    // 恢復上次的尺寸
+    const lastSize = localStorage.getItem('goalPanelSize') || 'lg';
+    setGoalPanelSize(lastSize);
+  }
+  if (tab) tab.classList.remove('visible');
+  try { localStorage.removeItem('goalPanelHidden'); } catch(e) {}
+}
+
+// 相容舊呼叫
+function toggleGoalPanel() { hideGoalPanel(); }
+
+// 初始化（永遠展開，恢復記憶尺寸）
 function initGoalPanelState() {
   try {
-    const saved = localStorage.getItem('goalPanelCollapsed');
-    if (saved === '1') {
-      goalPanelCollapsed = true;
-      const panel = document.getElementById('goal-panel');
-      if (panel) panel.classList.add('collapsed');
+    localStorage.removeItem('goalPanelCollapsed');
+    const wasHidden = localStorage.getItem('goalPanelHidden') === '1';
+    if (wasHidden) {
+      hideGoalPanel();
+    } else {
+      const lastSize = localStorage.getItem('goalPanelSize') || 'lg';
+      setGoalPanelSize(lastSize);
     }
-  } catch(e) {}
+  } catch(e) {
+    setGoalPanelSize('lg');
+  }
 }
 
 // 計算進度（每層只算直接子項）
@@ -2150,8 +2390,8 @@ function renderGoalTree() {
       </div>`;
     } else {
       yearCards.forEach(year => container.appendChild(buildYearCard(year, goalCards)));
-      looseMonths.forEach(month => container.appendChild(buildMonthCard(month, goalCards)));
-      looseWeeks.forEach(week => container.appendChild(buildWeekCard(week)));
+      looseMonths.forEach(month => container.appendChild(buildMonthCard(month, goalCards, null)));
+      looseWeeks.forEach(week => container.appendChild(buildWeekCard(week, null, null)));
     }
   }
 
@@ -2194,8 +2434,9 @@ function buildMobileYearCard(year, allGoalCards) {
   `;
 
   // 渲染月度卡
+  const monthWeight = monthCards.length > 0 ? Math.round(100 / monthCards.length) : 0;
   const childrenEl = div.querySelector(`#m-year-children-${year.id}`);
-  monthCards.forEach(month => childrenEl.appendChild(buildMobileMonthCard(month, allGoalCards)));
+  monthCards.forEach(month => childrenEl.appendChild(buildMobileMonthCard(month, allGoalCards, monthWeight)));
   if (monthCards.length === 0) {
     childrenEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;">點上方「＋月」新增月度目標</div>`;
   }
@@ -2203,175 +2444,665 @@ function buildMobileYearCard(year, allGoalCards) {
   return div;
 }
 
-function buildMobileMonthCard(month, allGoalCards) {
+function buildMobileMonthCard(month, allGoalCards, parentWeight) {
   const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const weekCount = weekCards.length;
+  const weekWeight = weekCount > 0 ? Math.round(100 / weekCount) : 0;
 
   const div = document.createElement('div');
-  div.style.cssText = 'background:var(--surface2);border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border);';
+  div.style.cssText = 'margin-bottom:4px;';
 
-  div.innerHTML = `
-    <div style="padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;"
-      onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">
-      <span style="font-size:13px;">📅</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${pct}% · ${progress.done}/${progress.total}</div>
-      </div>
-      <button onclick="openGoalModal('week',${month.id});event.stopPropagation()" style="background:var(--accent-lib);background:rgba(83,74,183,0.15);border:1px solid rgba(83,74,183,0.3);color:#534AB7;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;">＋週</button>
-    </div>
-    <div style="height:3px;background:var(--border);"><div style="height:100%;background:${isComplete?'#22c55e':'#6366f1'};width:${pct}%;transition:width 0.6s;"></div></div>
-    <div style="display:block;padding:6px 8px;">
-      <div id="m-month-children-${month.id}"></div>
-    </div>
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;background:${isComplete?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.06)'};border:1px solid ${isComplete?'rgba(34,197,94,0.3)':'rgba(99,102,241,0.2)'};cursor:pointer;user-select:none;`;
+  header.innerHTML = `
+    <span style="font-size:10px;color:#4338CA;flex-shrink:0;" id="m-month-chev-${month.id}">▼</span>
+    <span style="font-size:13px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
+    <span style="font-size:13px;font-weight:600;color:${isComplete?'#16803C':'#3730A3'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(month.title)}</span>
+    <span style="font-size:11px;color:#4338CA;">${pct}%</span>
+    <button onclick="openGoalModal('week',${month.id});event.stopPropagation()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:#3730A3;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋週</button>
   `;
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(99,102,241,0.1);margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#16803C':'#6366f1'};transition:width 0.6s;"></div>`;
 
-  const childrenEl = div.querySelector(`#m-month-children-${month.id}`);
-  weekCards.forEach(week => childrenEl.appendChild(buildMobileWeekCard(week)));
-  if (weekCards.length === 0) {
-    childrenEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:11px;">點「＋週」新增週目標</div>`;
+  const body = document.createElement('div');
+  body.id = `m-month-children-${month.id}`;
+  body.style.cssText = 'padding-left:12px;border-left:2px solid rgba(99,102,241,0.2);margin-left:10px;margin-top:2px;';
+
+  let open = true;
+  header.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    body.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('m-month-chev-' + month.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+  });
+
+  weekCards.forEach(week => body.appendChild(buildMobileWeekCard(week, weekWeight)));  if (weekCards.length === 0) {
+    body.innerHTML = `<div style="padding:6px 4px;color:var(--text-muted);font-size:11px;">點「＋週」新增週目標</div>`;
   }
 
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(body);
   return div;
 }
 
-function buildMobileWeekCard(week) {
+function buildMobileWeekCard(week, weekWeight) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
-  const doneCount = children.filter(c => c.col === 'done').length;
+  const doneCount = children.filter(c => c.col === 'done' || !!c.completedAt).length;
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
 
   const div = document.createElement('div');
-  div.style.cssText = 'background:var(--surface);border-radius:6px;margin-bottom:4px;padding:8px 10px;border:1px solid var(--border);';
+  div.style.cssText = 'margin-bottom:3px;';
 
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📋 ${escHtml(week.title)}</span>
-      <span style="font-size:11px;color:var(--text-muted);">${doneCount}/${total}</span>
-    </div>
-    <div style="height:2px;background:var(--border);border-radius:1px;margin-bottom:8px;">
-      <div style="height:100%;background:${isComplete?'#22c55e':'#f97316'};width:${pct}%;transition:width 0.6s;border-radius:1px;"></div>
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button onclick="spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="padding:4px 10px;background:#534AB720;border:1px solid #534AB740;color:#534AB7;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">＋ 子任務</button>
-      <button onclick="filterByParent(${week.id});switchMobileTab('lib')" style="padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔍 查看</button>
-    </div>
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:5px;background:${isComplete?'rgba(22,128,60,0.06)':'rgba(249,115,22,0.05)'};border-left:3px solid ${isComplete?'#16803C':'#C2560A'};border-top:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};border-right:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};border-bottom:1px solid ${isComplete?'rgba(22,128,60,0.15)':'rgba(194,86,10,0.12)'};cursor:pointer;user-select:none;`;
+  header.innerHTML = `
+    <span style="font-size:9px;color:#C2560A;flex-shrink:0;" id="m-week-chev-${week.id}">${total>0?'▼':'─'}</span>
+    <span style="font-size:12px;flex-shrink:0;">${isComplete?'✅':'📋'}</span>
+    <span style="font-size:12px;font-weight:600;color:${isComplete?'#16803C':'var(--text)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(week.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#C2560A'};flex-shrink:0;">${doneCount}/${total}</span>
+    ${weekWeight?`<span style="font-size:10px;color:#7A4F00;flex-shrink:0;">月+${weekWeight}%</span>`:''}
+    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(194,86,10,0.1);border:none;color:#C2560A;border-radius:3px;padding:2px 6px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋</button>
+    <button onclick="filterByParent(${week.id});switchMobileTab('lib');event.stopPropagation()" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:2px 5px;font-size:11px;cursor:pointer;flex-shrink:0;">🔍</button>
   `;
 
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(249,115,22,0.1);margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#16803C':'#f97316'};transition:width 0.6s;"></div>`;
+
+  const taskList = document.createElement('div');
+  taskList.style.cssText = 'padding-left:8px;border-left:2px solid rgba(249,115,22,0.12);margin-left:10px;margin-top:2px;';
+  if (children.length > 0) {
+    children.forEach(c => {
+      const isDone = c.col === 'done' || !!c.completedAt;
+      const row = document.createElement('div');
+      row.style.cssText = `display:flex;align-items:center;gap:5px;padding:3px 4px;font-size:11px;color:${isDone?'#16803C':'var(--text-secondary)'};${isDone?'text-decoration:line-through;opacity:0.65;':''}`;
+      row.innerHTML = `<span style="flex-shrink:0;">${isDone?'✅':'⬜'}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(c.title)}</span>`;
+      taskList.appendChild(row);
+    });
+  }
+
+  let open = true;
+  header.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    if (total === 0) return;
+    open = !open;
+    taskList.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('m-week-chev-' + week.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+  });
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  if (children.length > 0) div.appendChild(taskList);
   return div;
 }
 
-// 建立年度卡（桌面深色版）
+// 建立年度卡（縮排清單樹）
 function buildYearCard(year, allGoalCards) {
   const monthCards = allGoalCards.filter(c => c.parentId === year.id && c.level === 'month');
   const progress = calcGoalProgress(year);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const monthCount = monthCards.length;
+  const monthWeight = monthCount > 0 ? Math.round(100 / monthCount) : 0;
 
   const div = document.createElement('div');
-  div.className = 'goal-year-card open';
   div.id = 'goal-year-' + year.id;
+  div.style.cssText = 'margin-bottom:8px;';
 
-  div.innerHTML = `
-    <div class="goal-year-header" onclick="if(!event.target.closest('button'))this.closest('.goal-year-card').classList.toggle('open')">
-      <span class="goal-year-chevron">▶</span>
-      <span class="goal-year-icon">${isComplete?'🏆':'📌'}</span>
-      <span class="goal-year-title" style="${isComplete?'color:#22c55e;':''}">${escHtml(year.title)}</span>
-      <span style="font-size:10px;color:${isComplete?'#22c55e':'rgba(255,255,255,0.4)'};flex-shrink:0;margin-right:2px;font-weight:${isComplete?'700':'400'};">${pct}%</span>
-      <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.2);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪除</button>
-      <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(255,215,0,0.15);border:none;color:#FFD700;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋月</button>
-    </div>
-    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:4px 12px;display:flex;align-items:center;gap:4px;">🎉 年度目標全部完成！可以結案了</div>` : ''}
-    <div class="goal-year-progress-bar">
-      <div class="goal-year-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    <div class="goal-year-children" id="year-children-${year.id}"></div>
+  // 年度列
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:6px;
+    padding:6px 8px;border-radius:8px;
+    background:rgba(255,215,0,0.08);
+    border:1px solid rgba(180,140,0,${isComplete?'0.5':'0.2'});
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#92700A;color:#FFF8DC;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">年</span>
+    <span id="year-chevron-${year.id}" style="font-size:10px;color:#B8860B;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span style="font-size:12px;flex-shrink:0;">${isComplete?'🏆':'📌'}</span>
+    <span style="font-size:12px;font-weight:700;color:${isComplete?'#16803C':'#92700A'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(year.title)}">${escHtml(year.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#92700A'};flex-shrink:0;font-weight:700;">${pct}%</span>
+    <button onclick="event.stopPropagation();editGoalCard(${year.id},event)" style="background:rgba(0,0,0,0.06);border:none;color:var(--text-secondary);border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${year.id},event)" style="background:rgba(226,75,74,0.1);border:none;color:#C0392B;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('month',${year.id})" style="background:rgba(180,140,0,0.12);border:none;color:#92700A;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;flex-shrink:0;font-weight:700;">＋月</button>
   `;
 
-  const childrenEl = div.querySelector('#year-children-' + year.id);
-  monthCards.forEach(month => childrenEl.appendChild(buildMonthCard(month, allGoalCards)));
+  // 進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:3px;background:rgba(255,215,0,0.1);border-radius:0 0 4px 4px;overflow:hidden;margin:0 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#22c55e':'#FFD700'};transition:width 0.6s;"></div>`;
 
+  // 摘要列
+  const meta = document.createElement('div');
+  meta.style.cssText = 'font-size:10px;color:#7A6000;padding:3px 8px 5px;display:flex;gap:8px;';
+  meta.innerHTML = monthCount > 0
+    ? `<span>共 ${monthCount} 個月度</span><span style="opacity:0.5">·</span><span>每月完成貢獻 <b style="color:#92700A">${monthWeight}%</b> 年度進度</span>`
+    : `<span style="color:var(--text-muted);">尚未新增月度目標</span>`;
+
+  // 子層容器
+  const children = document.createElement('div');
+  children.id = 'year-children-' + year.id;
+  children.style.cssText = 'padding-left:14px;border-left:2px solid rgba(255,215,0,0.2);margin-left:10px;margin-top:2px;';
+
+  // 收折切換
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    children.style.display = open ? 'block' : 'none';
+    meta.style.display = open ? 'flex' : 'none';
+    document.getElementById('year-chevron-' + year.id).style.transform = open ? '' : 'rotate(90deg)';
+  });
+
+  monthCards.forEach(month => children.appendChild(buildMonthCard(month, allGoalCards, monthWeight)));
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(meta);
+  div.appendChild(children);
   return div;
 }
 
-// 建立月度卡
-function buildMonthCard(month, allGoalCards) {
+// 建立月度卡（縮排清單樹）
+function buildMonthCard(month, allGoalCards, parentWeight) {
   const weekCards = allGoalCards.filter(c => c.parentId === month.id && c.level === 'week');
   const progress = calcGoalProgress(month);
   const pct = progress.total > 0 ? Math.round(progress.done / progress.total * 100) : 0;
   const isComplete = progress.total > 0 && progress.done === progress.total;
+  const weekCount = weekCards.length;
+  const weekWeight = weekCount > 0 ? Math.round(100 / weekCount) : 0;
 
   const div = document.createElement('div');
-  div.className = 'goal-month-card open';
   div.id = 'goal-month-' + month.id;
+  div.style.cssText = 'margin-bottom:4px;margin-top:4px;';
 
-  div.innerHTML = `
-    <div class="goal-month-header" onclick="if(!event.target.closest('button'))this.closest('.goal-month-card').classList.toggle('open')">
-      <span class="goal-month-chevron">▶</span>
-      <span class="goal-month-title" style="${isComplete?'color:#22c55e;':''}">${isComplete?'✅':'📅'} ${escHtml(month.title)}</span>
-      <span class="goal-month-badge" style="${isComplete?'background:rgba(34,197,94,0.2);color:#22c55e;border-color:rgba(34,197,94,0.4);':''}">${progress.done}/${progress.total}</span>
-      <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:2px;">✏️</button>
-      <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.15);border:none;color:#E24B4A;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑刪</button>
-      <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.2);border:none;color:#a5b4fc;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;flex-shrink:0;">＋週</button>
-    </div>
-    ${isComplete ? `<div style="background:#166534;color:#86efac;font-size:10px;font-weight:700;padding:3px 10px;display:flex;align-items:center;gap:4px;">🎉 月度目標全部完成！</div>` : ''}
-    <div class="goal-month-progress-bar">
-      <div class="goal-month-progress-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    <div class="goal-month-children" id="month-children-${month.id}"></div>
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:5px;
+    padding:5px 8px;border-radius:6px;
+    background:${isComplete?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.06)'};
+    border:1px solid ${isComplete?'rgba(34,197,94,0.35)':'rgba(99,102,241,0.25)'};
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#3730A3;color:#EEF2FF;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">月</span>
+    <span id="month-chevron-${month.id}" style="font-size:10px;color:#4338CA;flex-shrink:0;transition:transform 0.2s;">▼</span>
+    <span style="font-size:11px;flex-shrink:0;">${isComplete?'✅':'📅'}</span>
+    <span style="font-size:11px;font-weight:700;color:${isComplete?'#16803C':'#3730A3'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(month.title)}">${escHtml(month.title)}</span>
+    <span style="font-size:10px;color:${isComplete?'#16803C':'#4338CA'};flex-shrink:0;">${progress.done}/${progress.total}</span>
+    ${parentWeight ? `<span style="font-size:10px;color:#92700A;flex-shrink:0;margin-left:2px;font-weight:600;">年+${parentWeight}%</span>` : ''}
+    <button onclick="event.stopPropagation();editGoalCard(${month.id},event)" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${month.id},event)" style="background:rgba(226,75,74,0.08);border:none;color:#C0392B;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
+    <button onclick="event.stopPropagation();openGoalModal('week',${month.id})" style="background:rgba(99,102,241,0.12);border:none;color:#3730A3;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;font-weight:700;">＋週</button>
   `;
 
-  const childrenEl = div.querySelector('#month-children-' + month.id);
-  weekCards.forEach(week => childrenEl.appendChild(buildWeekCard(week)));
+  // 月度進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(99,102,241,0.1);border-radius:1px;overflow:hidden;margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete?'#22c55e':'#818cf8'};transition:width 0.6s;"></div>`;
 
+  // 週的子層
+  const children = document.createElement('div');
+  children.id = 'month-children-' + month.id;
+  children.style.cssText = 'padding-left:12px;border-left:2px solid rgba(99,102,241,0.2);margin-left:10px;margin-top:2px;';
+
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    open = !open;
+    children.style.display = open ? 'block' : 'none';
+    document.getElementById('month-chevron-' + month.id).style.transform = open ? '' : 'rotate(90deg)';
+  });
+
+  weekCards.forEach(week => children.appendChild(buildWeekCard(week, weekWeight, parentWeight)));
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  div.appendChild(children);
   return div;
 }
 
-// 建立週卡
-function buildWeekCard(week) {
+// 建立週卡（縮排清單樹）
+function buildWeekCard(week, weekWeight, monthWeight) {
   const allCards = [...state.lib, ...state.week, ...state.focus, ...state.done];
   const children = allCards.filter(c => c.parentId === week.id);
-  // 第5點：修正完成判斷，col=done 或有 completedAt 都算完成
   const doneCount = children.filter(c => c.col === 'done' || !!c.completedAt).length;
   const total = children.length;
   const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
   const isComplete = total > 0 && doneCount === total;
   const isFiltered = goalFilterParentId === week.id;
+  const yearContrib = (weekWeight && monthWeight) ? Math.round(weekWeight * monthWeight / 100) : null;
 
   const div = document.createElement('div');
-  div.className = 'goal-week-card' + (isFiltered ? ' goal-active-filter' : '') + (isComplete ? ' goal-week-complete' : '');
   div.id = 'goal-week-' + week.id;
   div.dataset.weekId = week.id;
+  div.style.cssText = 'margin-bottom:3px;margin-top:3px;';
 
-  // 第6點：全部完成時顯示紅色完成提示
-  const completeAlert = (isComplete && total > 0) ? `
-    <div style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-bottom:5px;display:flex;align-items:center;gap:4px;">
-      🎉 全部完成！可以結案了
-    </div>` : '';
-
-  div.innerHTML = `
-    ${completeAlert}
-    <div class="goal-week-header" onclick="if(!event.target.closest('button'))filterByParent(${week.id})" title="點擊標題篩選此週子任務" style="cursor:pointer;">
-      <span class="goal-week-title" style="${isComplete?'color:#22c55e;font-weight:700;':''}">${isComplete?'✅':'📋'} ${escHtml(week.title)}</span>
-      <span class="goal-week-progress" style="${isComplete?'color:#22c55e;':''}">${doneCount}/${total}</span>
-    </div>
-    <div class="goal-week-bar" style="margin-top:5px;">
-      <div class="goal-week-bar-fill${isComplete?' complete':''}" style="width:${pct}%"></div>
-    </div>
-    <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;text-align:right;">${pct}%</div>
-    <div class="goal-week-actions" onclick="event.stopPropagation()">
-      <button class="goal-action-btn primary" onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')">＋ 子任務</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();editGoalCard(${week.id},event)">✏️</button>
-      <button class="goal-action-btn" onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="color:#E24B4A;border-color:rgba(226,75,74,0.3);">🗑 刪除</button>
-    </div>
+  // 週標題列
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display:flex;align-items:center;gap:5px;
+    padding:4px 8px;border-radius:5px;
+    background:${isFiltered ? 'rgba(22,128,60,0.08)' : isComplete ? 'rgba(22,128,60,0.06)' : 'rgba(249,115,22,0.06)'};
+    border-left:3px solid ${isFiltered ? '#16803C' : isComplete ? '#16803C' : '#C2560A'};
+    border-top:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
+    border-right:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
+    border-bottom:1px solid ${isFiltered ? 'rgba(22,128,60,0.2)' : 'rgba(194,86,10,0.15)'};
+    cursor:pointer;user-select:none;
+  `;
+  header.innerHTML = `
+    <span style="font-size:9px;font-weight:700;background:#C2560A;color:#FFF7ED;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:0.5px;">週</span>
+    <span id="week-chevron-${week.id}" style="font-size:9px;color:#C2560A;flex-shrink:0;transition:transform 0.2s;">${total > 0 ? '▼' : '─'}</span>
+    <span style="font-size:11px;flex-shrink:0;">${isComplete ? '✅' : '📋'}</span>
+    <span style="font-size:11px;font-weight:600;color:${isComplete ? '#16803C' : 'var(--text)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(week.title)}">${escHtml(week.title)}</span>
+    <span style="font-size:10px;color:${isComplete ? '#16803C' : '#C2560A'};flex-shrink:0;font-weight:600;">${doneCount}/${total}</span>
+    ${weekWeight ? `<span style="font-size:10px;color:#7A4F00;flex-shrink:0;margin-left:2px;">月+${weekWeight}%</span>` : ''}
+    ${yearContrib ? `<span style="font-size:10px;color:#92700A;flex-shrink:0;">年+${yearContrib}%</span>` : ''}
+    <button onclick="event.stopPropagation();spawnProjectCard(${week.id},'${escHtml(week.title)}')" style="background:rgba(194,86,10,0.12);border:none;color:#C2560A;border-radius:3px;padding:1px 5px;font-size:11px;cursor:pointer;flex-shrink:0;font-weight:700;">＋</button>
+    <button onclick="event.stopPropagation();filterByParent(${week.id})" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🔍</button>
+    <button onclick="event.stopPropagation();editGoalCard(${week.id},event)" style="background:rgba(0,0,0,0.05);border:none;color:var(--text-secondary);border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">✏️</button>
+    <button onclick="event.stopPropagation();deleteGoalCard(${week.id},event)" style="background:rgba(226,75,74,0.08);border:none;color:#C0392B;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;flex-shrink:0;">🗑</button>
   `;
 
+  // 週進度條
+  const bar = document.createElement('div');
+  bar.style.cssText = 'height:2px;background:rgba(249,115,22,0.1);border-radius:1px;overflow:hidden;margin:0 1px 1px;';
+  bar.innerHTML = `<div style="height:100%;width:${pct}%;background:${isComplete ? '#22c55e' : '#f97316'};transition:width 0.6s;"></div>`;
+
+  // 子任務列表
+  const taskList = document.createElement('div');
+  taskList.id = 'week-tasks-' + week.id;
+  taskList.style.cssText = 'padding-left:10px;border-left:2px solid rgba(249,115,22,0.15);margin-left:10px;margin-top:2px;';
+
+  if (children.length > 0) {
+    children.forEach(c => {
+      const isDone = c.col === 'done' || !!c.completedAt;
+      const row = document.createElement('div');
+      row.style.cssText = `
+        display:flex;align-items:center;gap:6px;
+        padding:3px 6px;font-size:10px;
+        color:${isDone ? '#16803C' : 'var(--text-secondary)'};
+        border-radius:3px;cursor:pointer;
+        ${isDone ? 'text-decoration:line-through;opacity:0.65;' : ''}
+      `;
+      row.innerHTML = `
+        <span style="flex-shrink:0;font-size:11px;">${isDone ? '✅' : '⬜'}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(c.title)}</span>
+      `;
+      row.onclick = () => filterByParent(week.id);
+      taskList.appendChild(row);
+    });
+  }
+
+  // 收折切換
+  let open = true;
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    if (total === 0) return;
+    open = !open;
+    taskList.style.display = open ? 'block' : 'none';
+    bar.style.display = open ? 'block' : 'none';
+    const chev = document.getElementById('week-chevron-' + week.id);
+    if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+  });
+
+  div.appendChild(header);
+  div.appendChild(bar);
+  if (children.length > 0) div.appendChild(taskList);
   return div;
+}
+
+// ==========================================
+// 目標樹 匯入 / 匯出
+// ==========================================
+
+let _importData = null; // 暫存解析後的匯入資料
+
+// 讀取 JSON 檔案
+function handleGoalImportFile(input) {
+  const file = input.files[0];
+  if (!file) { alert('沒有選到檔案'); return; }
+
+  const reader = new FileReader();
+  reader.onerror = () => alert('FileReader 錯誤：' + reader.error);
+  reader.onload = (e) => {
+    try {
+      openGoalImportModal();
+      const text = e.target.result;
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch(parseErr) {
+        showGoalImportError('JSON 解析失敗：' + parseErr.message);
+        return;
+      }
+      const inputArea = document.getElementById('goal-import-input-area');
+      if (inputArea) inputArea.style.display = 'none';
+      showGoalImportPreview(data);
+    } catch(err) {
+      alert('匯入發生錯誤：' + err.message + '\n' + err.stack);
+    }
+  };
+  reader.readAsText(file);
+  // 重置 value 放最後，避免影響 FileReader
+  setTimeout(() => { input.value = ''; }, 1000);
+}
+
+function openGoalImportModal() {
+  const overlay = document.getElementById('goal-import-overlay');
+  if (!overlay) { alert('找不到匯入 Modal，請重新整理頁面'); return; }
+  overlay.style.display = 'flex';
+  resetGoalImport();
+}
+
+function resetGoalImport() {
+  ['goal-import-preview','goal-import-error','goal-import-progress','goal-import-done','goal-import-conflict'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  const btn = document.getElementById('goal-import-confirm-btn');
+  if (btn) btn.style.display = 'none';
+  const inputArea = document.getElementById('goal-import-input-area');
+  if (inputArea) inputArea.style.display = 'block';
+  const ta = document.getElementById('goal-import-textarea');
+  if (ta) { ta.value = ''; ta.style.borderColor = 'var(--border)'; }
+  _importData = null;
+}
+
+function switchImportTab(tab) {
+  const pasteArea = document.getElementById('gim-paste-area');
+  const fileArea = document.getElementById('gim-file-area');
+  const pasteBtn = document.getElementById('gim-tab-paste');
+  const fileBtn = document.getElementById('gim-tab-file');
+  if (tab === 'paste') {
+    pasteArea.style.display = 'block';
+    fileArea.style.display = 'none';
+    pasteBtn.style.background = '#534AB7'; pasteBtn.style.color = '#fff'; pasteBtn.style.borderColor = '#534AB7';
+    fileBtn.style.background = 'var(--surface2)'; fileBtn.style.color = 'var(--text-secondary)'; fileBtn.style.borderColor = 'var(--border)';
+  } else {
+    pasteArea.style.display = 'none';
+    fileArea.style.display = 'block';
+    fileBtn.style.background = '#534AB7'; fileBtn.style.color = '#fff'; fileBtn.style.borderColor = '#534AB7';
+    pasteBtn.style.background = 'var(--surface2)'; pasteBtn.style.color = 'var(--text-secondary)'; pasteBtn.style.borderColor = 'var(--border)';
+  }
+}
+
+function parseImportTextarea() {
+  const ta = document.getElementById('goal-import-textarea');
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { showGoalImportError('請先貼上 JSON 內容'); return; }
+  try {
+    const data = JSON.parse(text);
+    _importData = null;
+    document.getElementById('goal-import-input-area').style.display = 'none';
+    showGoalImportPreview(data);
+  } catch(err) {
+    showGoalImportError('JSON 格式錯誤：' + err.message);
+  }
+}
+
+async function fetchImportUrl() {
+  const urlInput = document.getElementById('goal-import-url');
+  const url = urlInput ? urlInput.value.trim() : '';
+  if (!url) { showGoalImportError('請先貼上 JSON 檔案的網址'); return; }
+
+  // 直接用 fetch 抓（同網域或 CORS 允許的連結）
+  const errEl = document.getElementById('goal-import-error');
+  errEl.style.display = 'none';
+  urlInput.disabled = true;
+
+  try {
+    // 先嘗試直接 fetch
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    urlInput.disabled = false;
+    document.getElementById('goal-import-input-area').style.display = 'none';
+    showGoalImportPreview(data);
+  } catch(err) {
+    urlInput.disabled = false;
+    // 如果直接抓失敗（CORS），把內容填到 textarea 讓使用者手動貼
+    showGoalImportError('無法直接抓取該網址（可能是權限問題）。請改用「複製原始內容」再貼到下方文字框。');
+  }
+}
+
+function closeGoalImport() {
+  document.getElementById('goal-import-overlay').style.display = 'none';
+  _importData = null;
+}
+
+// 解析並預覽匯入資料
+function showGoalImportPreview(raw) {
+  try {
+  // 支援兩種格式：
+  // 格式A：{ years: [...] }
+  // 格式B：直接一個 { title, summary, months: [...] }
+  let years = [];
+  if (Array.isArray(raw.years)) {
+    years = raw.years;
+  } else if (raw.title && Array.isArray(raw.months)) {
+    years = [raw];
+  } else if (Array.isArray(raw)) {
+    years = raw;
+  } else {
+    showGoalImportError('找不到有效的目標資料，請確認 JSON 格式是否正確。');
+    return;
+  }
+
+  if (years.length === 0) {
+    showGoalImportError('JSON 內沒有任何目標資料。');
+    return;
+  }
+
+  // 統計
+  let totalMonths = 0, totalWeeks = 0;
+  let conflicts = [];
+  const existingTitles = (state.goal || []).map(c => c.title.trim().toLowerCase());
+
+  let previewHTML = '';
+  years.forEach(year => {
+    const yConflict = existingTitles.includes((year.title||'').trim().toLowerCase());
+    if (yConflict) conflicts.push({ level: '年度', title: year.title });
+    previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <span style="font-size:9px;font-weight:700;background:#92700A;color:#FFF8DC;border-radius:3px;padding:1px 5px;">年</span>
+      <span style="font-weight:700;color:#7A5C00;">${escHtml(year.title||'')}</span>
+      ${yConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+    </div>`;
+
+    (year.months || []).forEach(month => {
+      totalMonths++;
+      const mConflict = existingTitles.includes((month.title||'').trim().toLowerCase());
+      if (mConflict) conflicts.push({ level: '月度', title: month.title });
+      previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;padding-left:16px;">
+        <span style="font-size:9px;font-weight:700;background:#3730A3;color:#EEF2FF;border-radius:3px;padding:1px 5px;">月</span>
+        <span style="color:#3730A3;">${escHtml(month.title||'')}</span>
+        ${mConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+      </div>`;
+
+      (month.weeks || []).forEach(week => {
+        totalWeeks++;
+        const wConflict = existingTitles.includes((week.title||'').trim().toLowerCase());
+        if (wConflict) conflicts.push({ level: '週', title: week.title });
+        previewHTML += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;padding-left:32px;">
+          <span style="font-size:9px;font-weight:700;background:#C2560A;color:#FFF7ED;border-radius:3px;padding:1px 5px;">週</span>
+          <span style="color:#C2560A;">${escHtml(week.title||'')}</span>
+          ${wConflict ? '<span style="font-size:10px;color:#C2560A;">⚠️ 同名</span>' : ''}
+        </div>`;
+      });
+    });
+  });
+
+  _importData = years;
+
+  // 隱藏輸入區，顯示預覽
+  const inputArea = document.getElementById('goal-import-input-area');
+  if (inputArea) inputArea.style.display = 'none';
+
+  // 顯示預覽
+  document.getElementById('goal-import-preview').style.display = 'block';
+  document.getElementById('goal-import-preview-body').innerHTML = previewHTML;
+  document.getElementById('goal-import-summary').textContent =
+    `共 ${years.length} 個年度目標、${totalMonths} 個月度、${totalWeeks} 個週目標`;
+
+  // 衝突警告
+  if (conflicts.length > 0) {
+    document.getElementById('goal-import-conflict').style.display = 'block';
+    document.getElementById('goal-import-conflict-list').innerHTML =
+      conflicts.map(c => `• ${c.level}：${escHtml(c.title)}`).join('<br>');
+  } else {
+    document.getElementById('goal-import-conflict').style.display = 'none';
+  }
+
+  document.getElementById('goal-import-confirm-btn').style.display = 'inline-block';
+
+  } catch(err) {
+    alert('showGoalImportPreview 錯誤：' + err.message + '\n' + err.stack);
+  }
+}
+
+function showGoalImportError(msg) {
+  document.getElementById('goal-import-error').style.display = 'block';
+  document.getElementById('goal-import-error').textContent = '❌ ' + msg;
+  openGoalImportModal();
+}
+
+// 執行匯入
+async function confirmGoalImport() {
+  if (!_importData) return;
+  const years = _importData;
+
+  document.getElementById('goal-import-confirm-btn').style.display = 'none';
+  document.getElementById('goal-import-preview').style.display = 'none';
+  document.getElementById('goal-import-progress').style.display = 'block';
+
+  // 計算總步驟
+  let totalSteps = 0;
+  years.forEach(y => {
+    totalSteps++;
+    (y.months||[]).forEach(m => {
+      totalSteps++;
+      totalSteps += (m.weeks||[]).length;
+    });
+  });
+  let doneSteps = 0;
+
+  function updateProgress(msg) {
+    doneSteps++;
+    const pct = Math.round(doneSteps / totalSteps * 100);
+    document.getElementById('goal-import-bar').style.width = pct + '%';
+    document.getElementById('goal-import-status').textContent = msg;
+  }
+
+  async function saveGoal(data) {
+    const res = await fetch('api/cards.php?action=save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || '儲存失敗');
+    return json.id;
+  }
+
+  try {
+    for (const year of years) {
+      const yearId = await saveGoal({
+        col: 'goal', level: 'year',
+        title: year.title,
+        summary: year.summary || null,
+        isPrivate: 0
+      });
+      updateProgress(`年度：${year.title}`);
+
+      for (const month of (year.months || [])) {
+        const monthId = await saveGoal({
+          col: 'goal', level: 'month',
+          title: month.title,
+          summary: month.summary || null,
+          parentId: yearId, isPrivate: 0
+        });
+        updateProgress(`月度：${month.title}`);
+
+        for (const week of (month.weeks || [])) {
+          await saveGoal({
+            col: 'goal', level: 'week',
+            title: week.title,
+            summary: week.summary || null,
+            parentId: monthId, isPrivate: 0
+          });
+          updateProgress(`週：${week.title}`);
+        }
+      }
+    }
+
+    document.getElementById('goal-import-progress').style.display = 'none';
+    document.getElementById('goal-import-done').style.display = 'block';
+    document.getElementById('goal-import-done').textContent =
+      `✅ 匯入完成！共建立 ${years.length} 年度、${years.reduce((a,y)=>a+(y.months||[]).length,0)} 月度、${years.reduce((a,y)=>(y.months||[]).reduce((b,m)=>b+(m.weeks||[]).length,a),0)} 週目標`;
+
+    await loadCards();
+    _importData = null;
+
+  } catch (err) {
+    document.getElementById('goal-import-progress').style.display = 'none';
+    showGoalImportError('匯入過程發生錯誤：' + err.message);
+  }
+}
+
+// 匯出目前目標樹為 JSON
+function exportGoalTree() {
+  const goalCards = state.goal || [];
+  const years = goalCards.filter(c => c.level === 'year').map(year => ({
+    title: year.title,
+    summary: year.summary || '',
+    months: goalCards.filter(m => m.parentId === year.id && m.level === 'month').map(month => ({
+      title: month.title,
+      summary: month.summary || '',
+      weeks: goalCards.filter(w => w.parentId === month.id && w.level === 'week').map(week => ({
+        title: week.title,
+        summary: week.summary || ''
+      }))
+    }))
+  }));
+
+  // 加上獨立月度（沒有父層年度的）
+  const looseMonths = goalCards.filter(m => m.level === 'month' && !goalCards.find(y => y.id === m.parentId));
+  if (looseMonths.length > 0) {
+    years.push({
+      title: '（未分類月度目標）',
+      summary: '',
+      months: looseMonths.map(month => ({
+        title: month.title,
+        summary: month.summary || '',
+        weeks: goalCards.filter(w => w.parentId === month.id && w.level === 'week').map(week => ({
+          title: week.title,
+          summary: week.summary || ''
+        }))
+      }))
+    });
+  }
+
+  const json = JSON.stringify({ years }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.getElementById('goal-export-link');
+  a.href = url;
+  a.download = `目標樹_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ 目標樹已匯出');
 }
 
 // 開啟新增/編輯目標 Modal
@@ -2573,9 +3304,9 @@ function spawnProjectCard(weekId, weekTitle) {
   // 設定 modal 標題
   document.getElementById('modal-title').textContent = `🚀 新增子任務 → ${weekTitle}`;
 
-  // 儲存週ID供儲存時使用
-  window._spawnParentId = weekId;
-  window._spawnLevel = 'project';
+  // 儲存週ID供儲存時使用（存到 hidden input，不用全域變數，避免儲存後清掉）
+  document.getElementById('input-parent-id').value = weekId;
+  document.getElementById('input-level').value = 'project';
 
   const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
   const bb = document.getElementById('bottom-bar'); if (bb) bb.style.display = 'none';
@@ -2784,20 +3515,13 @@ function buildCard(card, col, cardNo) {
       if (ancestors.length > 0) {
         const levelIcons = { year: '📌', month: '📅', week: '📋' };
         const levelBg    = { year: '#92750A', month: '#4338ca', week: '#c2410c' };
-        // 顯示路徑：最多兩層，太長就縮略
+        // 顯示完整路徑
         const topCard = ancestors[0];
-        const directParent = ancestors[ancestors.length - 1];
-        if (ancestors.length === 1) {
-          // 只有一層父
-          const icon = levelIcons[directParent.level] || '';
-          const name = directParent.title.length > 10 ? directParent.title.slice(0,10)+'…' : directParent.title;
-          tagLabel = `${icon} ${name}`;
-        } else {
-          // 多層：顯示「頂層名 › 直接父名」
-          const topName = topCard.title.length > 6 ? topCard.title.slice(0,6)+'…' : topCard.title;
-          const parentName = directParent.title.length > 6 ? directParent.title.slice(0,6)+'…' : directParent.title;
-          tagLabel = `${levelIcons[topCard.level]||''} ${topName} › ${levelIcons[directParent.level]||''} ${parentName}`;
-        }
+        const parts = ancestors.map(a => {
+          const name = a.title.length > 8 ? a.title.slice(0,8)+'…' : a.title;
+          return (levelIcons[a.level]||'') + ' ' + name;
+        });
+        tagLabel = parts.join(' › ');
         tagBg = levelBg[topCard.level] || '#C8922A';
         tagColor = '#fff';
       }
@@ -2810,7 +3534,7 @@ function buildCard(card, col, cardNo) {
   const hasBodyOrNext = (card.body && card.body.trim()) || (card.nextStep && card.nextStep.trim());
   let metaHTML = '';
 
-  // parent-badge：追溯完整祖先鏈，「年度 › 月度 › 週」完整路徑
+  // parent-badge：追溯完整祖先鏈，顯示完整「年 › 月 › 週」路徑
   let parentBadgeHTML = '';
   if (card.parentId) {
     const ancestors = [];
@@ -2819,27 +3543,29 @@ function buildCard(card, col, cardNo) {
     while (currentId && safety < 5) {
       const found = state.goal.find(c => c.id === currentId);
       if (!found) break;
-      ancestors.unshift(found); // 最高層放最前
+      ancestors.unshift(found);
       currentId = found.parentId;
       safety++;
     }
     if (ancestors.length > 0) {
-      const levelColors = { year: '#E8A800', month: '#6366f1', week: '#f97316' };
-      const levelIcons  = { year: '📌', month: '📅', week: '📋' };
-      // 完整路徑文字：年度 › 月度 › 週
-      const pathParts = ancestors.map(a => {
+      const levelBadge = {
+        year:  { bg: '#92700A', fg: '#FFF8DC', label: '年' },
+        month: { bg: '#3730A3', fg: '#EEF2FF', label: '月' },
+        week:  { bg: '#C2560A', fg: '#FFF7ED', label: '週' },
+      };
+      const levelIcons = { year: '📌', month: '📅', week: '📋' };
+      // 組合完整路徑 HTML
+      const pathHTML = ancestors.map((a, i) => {
+        const bd = levelBadge[a.level] || { bg:'#555', fg:'#fff', label:'?' };
         const icon = levelIcons[a.level] || '';
-        return icon + ' ' + a.title;
-      });
-      const pathText = pathParts.join(' › ');
-      // badge 用最高層（年度）的顏色
-      const topAncestor = ancestors[0];
-      const badgeColor = levelColors[topAncestor.level] || '#6366f1';
-      // 顯示最直接父層名稱，hover 顯示完整路徑
-      const directParent = ancestors[ancestors.length - 1];
-      const displayName = directParent.title.length > 14 ? directParent.title.slice(0,14)+'…' : directParent.title;
-      const levelIcon = levelIcons[topAncestor.level] || '🎯';
-      parentBadgeHTML = `<span class="parent-badge" style="color:${badgeColor};border-color:${badgeColor}40;background:${badgeColor}12;" title="${escHtml(pathText)}">${levelIcon} ${escHtml(displayName)}</span>`;
+        const indent = i > 0 ? `margin-left:${i * 6}px;` : '';
+        return `<div style="display:flex;align-items:center;gap:4px;${indent}${i>0?'margin-top:2px;':''}">
+          <span style="font-size:9px;font-weight:700;background:${bd.bg};color:${bd.fg};border-radius:3px;padding:1px 4px;flex-shrink:0;">${bd.label}</span>
+          <span style="font-size:10px;color:var(--text-secondary);">${icon} ${escHtml(a.title)}</span>
+        </div>`;
+      }).join('');
+      const pathText = ancestors.map(a => `${levelIcons[a.level]||''} ${a.title}`).join(' › ');
+      parentBadgeHTML = `<div class="parent-badge" style="display:block;padding:5px 8px;margin-bottom:4px;" title="${escHtml(pathText)}">${pathHTML}</div>`;
     } else {
       parentBadgeHTML = `<span class="parent-badge">🎯 目標任務</span>`;
     }
@@ -3042,7 +3768,11 @@ function buildCard(card, col, cardNo) {
   // 摘要永遠顯示在卡片上（康乃爾外面）
   const summaryHTML = hasSummary ? `<div class="card-summary">${escHtml(card.summary)}</div>` : '';
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){el.classList.toggle('open');})(this.closest('.card'));event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div>${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}`;
+  const _cardOpenKey = 'card_open_' + card.id;
+  const _cardInitOpen = localStorage.getItem(_cardOpenKey) === '1';
+  if (_cardInitOpen) div.classList.add('open');
+
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this);event.stopPropagation()"><span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div>`;
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
@@ -3227,6 +3957,9 @@ function openModal(col) {
   // 清空優先級
   document.getElementById('input-priority').value = '';
   document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+  // 清空父子關係（一般新增卡片，不是從戰略樹發射的）
+  document.getElementById('input-parent-id').value = '';
+  document.getElementById('input-level').value = 'general';
   
   initSwatches('', ''); document.getElementById('modal-title').textContent = { lib: '新增策略筆記', week: '新增本週目標', focus: '設定今日專注' }[col];
   const backBtn = document.getElementById('modal-back-btn'); if (backBtn) backBtn.style.display = 'none';
@@ -3251,6 +3984,9 @@ function editCard(id, col) {
   document.querySelectorAll('.priority-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.value === card.priority);
   });
+  // 帶入卡片原本的父子關係（編輯時保留）
+  document.getElementById('input-parent-id').value = card.parentId || '';
+  document.getElementById('input-level').value = card.level || 'general';
   
   initSwatches(card.bgcolor || '', card.textcolor || ''); document.getElementById('modal-title').textContent = '編輯卡片';
   const backBtn2 = document.getElementById('modal-back-btn'); if (backBtn2) backBtn2.style.display = 'none';
@@ -3271,8 +4007,15 @@ async function saveCard() {
   }
   const data = { col: document.getElementById('input-col').value, title: t, project: document.getElementById('input-project').value, priority: priority, sourceLink: document.getElementById('input-source').value.trim(), summary: document.getElementById('input-summary').value.trim(), nextStep: document.getElementById('input-nextstep').value.trim(), body: (document.getElementById('input-body-editor') ? document.getElementById('input-body-editor').innerHTML.trim() : document.getElementById('input-body').value.trim()), bgcolor: document.getElementById('input-bgcolor').value, textcolor: document.getElementById('input-textcolor').value, isPrivate: isPrivate, checklist: checklist, completedAt: completedAt };
   if (eid) data.id = eid;
-  // 子任務發射：帶入 parentId 和 level
-  if (window._spawnParentId) {
+  // 子任務發射：從 hidden input 讀取 parentId 和 level（不用全域變數，避免儲存後清掉）
+  const spawnParentId = document.getElementById('input-parent-id').value;
+  const spawnLevel = document.getElementById('input-level').value;
+  if (spawnParentId) {
+    data.parentId = parseInt(spawnParentId);
+    data.level = spawnLevel || 'project';
+  }
+  // 相容舊的全域變數（保留向後相容）
+  if (!spawnParentId && window._spawnParentId) {
     data.parentId = window._spawnParentId;
     data.level = window._spawnLevel || 'project';
     window._spawnParentId = null;
@@ -3546,92 +4289,7 @@ function exportToPDF() {
   w.document.write(h); w.document.close(); setTimeout(()=>w.print(),500); toast('✅ 準備列印'); toggleExportMenu();
 }
 function backupData() { downloadFile(JSON.stringify({v:'2.0',data:state},null,2), `kanban-backup.json`, 'application/json;charset=utf-8;'); toast('✅ 備份下載'); toggleExportMenu(); }
-async function restoreData(e) {
-  const file = e.target.files[0];
-  e.target.value = '';
-  toggleExportMenu();
-  if (!file) return;
-
-  // 確認操作
-  if (!confirm('⚠️ 匯入備份檔將會新增卡片到資料庫中（不會覆蓋現有卡片）。\n\n確定要繼續嗎？')) return;
-
-  try {
-    const text = await file.text();
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch (err) {
-      toast('❌ 檔案格式錯誤，不是有效的 JSON');
-      return;
-    }
-
-    // 支援兩種格式：{v, data: {lib, week, ...}} 或直接 {lib, week, ...}
-    const cardData = parsed.data || parsed;
-    const cols = ['lib', 'week', 'focus', 'done', 'goal'];
-    let totalCards = 0;
-    let successCount = 0;
-    let failCount = 0;
-
-    // 計算總數
-    cols.forEach(col => {
-      if (Array.isArray(cardData[col])) totalCards += cardData[col].length;
-    });
-
-    if (totalCards === 0) {
-      toast('⚠️ 備份檔中沒有找到任何卡片');
-      return;
-    }
-
-    toast(`📦 開始匯入 ${totalCards} 張卡片...`);
-
-    // 逐欄逐筆匯入
-    for (const col of cols) {
-      if (!Array.isArray(cardData[col])) continue;
-      for (const card of cardData[col]) {
-        try {
-          const saveData = {
-            col: col,
-            title: card.title || '(無標題)',
-            project: card.project || null,
-            priority: card.priority || null,
-            sourceLink: card.sourceLink || card.source_link || null,
-            summary: card.summary || null,
-            nextStep: card.nextStep || card.next_step || null,
-            body: card.body || null,
-            bgcolor: card.bgcolor || null,
-            textcolor: card.textcolor || null,
-            isPrivate: card.isPrivate ? 1 : 0,
-            checklist: card.checklist || null,
-            completedAt: card.completedAt || card.completed_at || null,
-            level: card.level || 'general',
-            parentId: card.parentId || card.parent_id || null
-          };
-          // 不帶 id，強制新增
-          const res = await fetch('api/cards.php?action=save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(saveData)
-          });
-          const result = await res.json();
-          if (result.success) successCount++;
-          else failCount++;
-        } catch (err) {
-          failCount++;
-        }
-      }
-    }
-
-    // 重新載入
-    await loadCards();
-    if (failCount === 0) {
-      toast(`✅ 匯入完成！成功匯入 ${successCount} 張卡片`);
-    } else {
-      toast(`⚠️ 匯入完成：${successCount} 成功，${failCount} 失敗`);
-    }
-  } catch (err) {
-    toast('❌ 匯入失敗：' + err.message);
-  }
-}
+function restoreData(e) { alert("已升級為 MySQL 雲端版，請聯絡管理員手動匯入。"); e.target.value = ''; toggleExportMenu(); }
 function downloadFile(content, filename, mime) { const b = new Blob([content], {type:mime}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); }
 
 // ==========================================
@@ -4044,6 +4702,8 @@ async function inlineSave(cardId, col, updates) {
     textcolor: card.textcolor,
     isPrivate: card.isPrivate ? 1 : 0,
     checklist: card.checklist,
+    parentId: card.parentId || null,
+    level: card.level || 'general',
     ...updates
   };
   try {
@@ -4612,5 +5272,10 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
   <?php endif; ?>
   <a href="index.php?action=logout" style="padding:8px 16px;background:#FEE2E2;color:#991B1B;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">🚪 登出</a>
 </div>
+
+<!-- 匯入/匯出全域元素，放 body 底部確保不被隱藏容器影響 -->
+<input type="file" id="goal-import-file" accept=".json" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;">
+<a id="goal-export-link" style="display:none;"></a>
+
 </body>
 </html>
