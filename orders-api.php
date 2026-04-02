@@ -326,12 +326,84 @@ try {
                 throw new Exception($order['message'] ?? '訂單不存在');
             }
             
+            // 從 meta_data 提取發票資訊
+            $invoiceCompany = '';
+            $invoiceVatNumber = '';
+            $invoiceNeed = '';
+            
+            foreach ($order['meta_data'] as $meta) {
+                if ($meta['key'] === '_billing_company_title') {
+                    $invoiceCompany = $meta['value'];
+                }
+                if ($meta['key'] === '_billing_vat_number') {
+                    $invoiceVatNumber = $meta['value'];
+                }
+                if ($meta['key'] === '_billing_invoice_need') {
+                    $invoiceNeed = $meta['value'];
+                }
+            }
+            
+            // 處理商品項目，包含完整規格
+            $formattedItems = [];
+            foreach ($order['line_items'] as $item) {
+                $itemData = [
+                    'product_name' => $item['name'],
+                    'quantity' => $item['quantity'],
+                    'total' => (float)$item['total'],
+                    'specs' => []
+                ];
+                
+                // 提取商品規格和上傳檔案
+                foreach ($item['meta_data'] as $meta) {
+                    $key = $meta['display_key'] ?? $meta['key'];
+                    $value = $meta['display_value'] ?? $meta['value'];
+                    
+                    // 跳過內部欄位
+                    if (str_starts_with($key, '_') || $key === 'product_extras') {
+                        continue;
+                    }
+                    
+                    // 處理檔案連結
+                    if (strpos($value, '<a href') !== false) {
+                        // 提取檔案 URL
+                        preg_match('/href="([^"]+)"/', $value, $matches);
+                        if (isset($matches[1])) {
+                            $itemData['specs'][] = [
+                                'label' => $key,
+                                'value' => basename($matches[1]),
+                                'file_url' => $matches[1],
+                                'is_file' => true
+                            ];
+                        }
+                    } else {
+                        // 移除 HTML 標籤和價格標記
+                        $cleanValue = strip_tags($value);
+                        $cleanValue = preg_replace('/NT\$\d+/', '', $cleanValue);
+                        $cleanValue = trim($cleanValue);
+                        
+                        if ($cleanValue) {
+                            $itemData['specs'][] = [
+                                'label' => $key,
+                                'value' => $cleanValue,
+                                'is_file' => false
+                            ];
+                        }
+                    }
+                }
+                
+                $formattedItems[] = $itemData;
+            }
+            
             $formattedOrder = [
                 'order_id' => $order['id'],
                 'order_number' => $order['number'],
                 'order_date' => $order['date_created'],
                 'order_status' => 'wc-' . $order['status'],
                 'total' => (float)$order['total'],
+                'subtotal' => (float)$order['total'] - (float)$order['total_tax'],
+                'tax' => (float)$order['total_tax'],
+                'shipping_method' => $order['shipping_lines'][0]['method_title'] ?? '',
+                'payment_method' => $order['payment_method_title'] ?? '',
                 'first_name' => $order['billing']['first_name'] ?? '',
                 'last_name' => $order['billing']['last_name'] ?? '',
                 'customer_name' => trim(($order['billing']['first_name'] ?? '') . ' ' . ($order['billing']['last_name'] ?? '')),
@@ -339,16 +411,15 @@ try {
                 'customer_type' => !empty($order['billing']['company']) ? 'business' : 'personal',
                 'email' => $order['billing']['email'] ?? '',
                 'phone' => $order['billing']['phone'] ?? '',
-                'address' => $order['billing']['address_1'] ?? '',
+                'address' => trim(($order['billing']['address_1'] ?? '') . ' ' . ($order['billing']['address_2'] ?? '')),
                 'city' => $order['billing']['city'] ?? '',
+                'state' => $order['billing']['state'] ?? '',
+                'postcode' => $order['billing']['postcode'] ?? '',
                 'customer_note' => $order['customer_note'] ?? '',
-                'items' => array_map(function($item) {
-                    return [
-                        'product_name' => $item['name'],
-                        'quantity' => $item['quantity'],
-                        'total' => (float)$item['total']
-                    ];
-                }, $order['line_items'])
+                'invoice_need' => $invoiceNeed === 'yes',
+                'invoice_company' => $invoiceCompany,
+                'invoice_vat_number' => $invoiceVatNumber,
+                'items' => $formattedItems
             ];
             
             echo json_encode([
