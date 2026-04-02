@@ -810,6 +810,7 @@ $username = $_SESSION['username'] ?? 'User';
   </div>
 
   <div class="header-actions">
+    <a href="orders-dashboard.html" class="settings-btn" style="text-decoration:none; background: #FFF3E0; color: #E65100; border-color: #FF9800;">📦 訂單管理</a>
     <button class="notification-btn" id="notification-sound-toggle" onclick="toggleNotificationSound()" title="點擊關閉提示音" style="border: none; background: none; font-size: 14px; cursor: pointer; padding: 6px;">
       🔔
     </button>
