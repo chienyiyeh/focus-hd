@@ -15,7 +15,7 @@ require_once '../config.php';
 // 步驟 1：檢查密碼（安全機制）
 // ============================================
 // WordPress 傳來的密鑰（要跟 config.php 一致）
-define('WEBHOOK_SECRET', 'your-secret-key-from-wordpress');
+define('WEBHOOK_SECRET', 'apple-2026');
 
 // 取得 WordPress 傳來的密鑰
 $wpSecret = $_GET['secret'] ?? $_POST['secret'] ?? null;
