@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>訂單管理 + 分析儀表板</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <title>📦 訂單管理 - FOCUS 看板系統</title>
     <style>
         * {
             margin: 0;
@@ -13,578 +12,732 @@
         }
         
         body {
-            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
         
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
-        header {
+        /* 頂部導航 */
+        .header {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 20px 30px;
+            border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        .logo {
+        .header h1 {
+            color: #333;
             font-size: 24px;
-            font-weight: 700;
-            color: #1A1A18;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .time-filter {
+        .back-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+        
+        /* 時間篩選 */
+        .filters {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             display: flex;
             gap: 10px;
             align-items: center;
         }
         
-        .time-filter select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
+        .filter-label {
+            font-weight: 600;
+            color: #64748b;
+            margin-right: 10px;
         }
         
-        .dashboard {
+        .filter-btn {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            background: #e2e8f0;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* 統計卡片 */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
         }
         
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color, #667eea);
         }
         
         .stat-label {
-            font-size: 12px;
-            color: #999;
+            color: #64748b;
+            font-size: 14px;
             margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         
         .stat-value {
+            color: #1e293b;
             font-size: 32px;
             font-weight: 700;
-            color: #1A1A18;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         
-        .stat-detail {
+        .stat-change {
             font-size: 12px;
-            color: #666;
+            color: #10b981;
+            font-weight: 600;
         }
         
-        .chart-row {
+        /* 圖表區塊 */
+        .charts-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
             margin-bottom: 20px;
+        }
+        
+        @media (max-width: 968px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
         }
         
         .chart-card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .chart-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1A1A18;
-            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
         }
         
         .chart-container {
+            height: 250px;
             position: relative;
-            height: 300px;
         }
         
-        .top-products {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        
-        .section-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A1A18;
-        }
-        
-        .product-list {
-            padding: 0;
-        }
-        
-        .product-item {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 15px;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+        /* 圓餅圖 */
+        .pie-chart {
+            display: flex;
             align-items: center;
+            justify-content: center;
+            gap: 40px;
         }
         
-        .product-item:last-child {
-            border-bottom: none;
+        .pie-svg {
+            width: 200px;
+            height: 200px;
         }
         
-        .product-name {
+        .pie-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .legend-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .legend-value {
             font-weight: 600;
-            color: #1A1A18;
+            color: #1e293b;
+            margin-left: auto;
         }
         
-        .product-qty {
-            text-align: right;
-            color: #666;
-        }
-        
-        .product-amount {
-            text-align: right;
-            font-weight: 600;
-            color: #FF9800;
-        }
-        
-        .product-rank {
-            text-align: right;
-            font-size: 12px;
-            color: #999;
-        }
-        
-        .orders-section {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        
-        .orders-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .orders-list {
-            max-height: 500px;
+        /* 產品排行榜 */
+        .product-list {
+            max-height: 300px;
             overflow-y: auto;
         }
         
-        .order-item {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr 1fr;
-            gap: 15px;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+        .product-item {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+        
+        .product-item:hover {
+            background: #f8fafc;
+        }
+        
+        .product-rank {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .product-name {
+            flex: 1;
+            margin: 0 15px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        
+        .product-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .product-qty, .product-revenue {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .product-revenue {
+            font-weight: 600;
+            color: #10b981;
+        }
+        
+        /* 訂單表格 */
+        .orders-table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .search-box {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 250px;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead th {
+            text-align: left;
+            padding: 12px;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
             font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
         }
         
-        .order-item:last-child {
-            border-bottom: none;
+        tbody td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
         }
         
-        .order-id {
-            font-weight: 600;
-            color: #1A1A18;
+        tbody tr:hover {
+            background: #f8fafc;
         }
         
-        .order-customer {
-            color: #1A1A18;
-        }
-        
-        .order-phone {
-            color: #666;
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 12px;
-        }
-        
-        .order-type {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
             font-weight: 600;
+        }
+        
+        .badge-business {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-personal {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+        
+        .badge-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-pending {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* 載入中 */
+        .loading {
             text-align: center;
+            padding: 40px;
+            color: #64748b;
         }
         
-        .order-type.person {
-            background: #E3F2FD;
-            color: #1565C0;
-        }
-        
-        .order-type.company {
-            background: #FFF3E0;
-            color: #E65100;
-        }
-        
-        .order-repeat {
-            text-align: center;
-        }
-        
-        .repeat-badge {
+        .loading-spinner {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f1f5f9;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
-        .repeat-badge.new {
-            background: #E8F5E9;
-            color: #2E7D32;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
-        .repeat-badge.repeat {
-            background: #FCE4EC;
-            color: #C2185B;
+        /* 空狀態 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
         }
         
-        .order-amount {
-            text-align: right;
-            font-weight: 600;
-            color: #FF9800;
-        }
-        
-        .order-date {
-            text-align: right;
-            color: #666;
-            font-size: 12px;
-        }
-        
-        @media (max-width: 1200px) {
-            .dashboard {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .chart-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .product-item,
-            .order-item {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="logo">📦 訂單管理 + 分析儀表板</div>
-            <div class="time-filter">
-                <label style="font-size: 14px; color: #666;">篩選時間：</label>
-                <select id="timeFilter" onchange="updateDashboard()">
-                    <option value="month">本月</option>
-                    <option value="quarter">本季</option>
-                    <option value="year">本年度</option>
-                    <option value="all">全部</option>
-                </select>
-            </div>
-        </header>
+        <!-- 頂部導航 -->
+        <div class="header">
+            <h1>📦 訂單管理</h1>
+            <a href="index.php" class="back-btn">← 返回看板</a>
+        </div>
         
-        <!-- 關鍵指標 -->
-        <div class="dashboard">
-            <div class="stat-card">
-                <div class="stat-label">📊 總訂單數</div>
-                <div class="stat-value" id="totalOrders">0</div>
-                <div class="stat-detail" id="totalOrdersDetail">本月訂單</div>
+        <!-- 時間篩選 -->
+        <div class="filters">
+            <span class="filter-label">時間範圍：</span>
+            <button class="filter-btn active" data-period="all">全部</button>
+            <button class="filter-btn" data-period="month">本月</button>
+            <button class="filter-btn" data-period="quarter">本季</button>
+            <button class="filter-btn" data-period="year">本年度</button>
+        </div>
+        
+        <!-- 統計卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card" style="--accent-color: #667eea;">
+                <div class="stat-label">總訂單數</div>
+                <div class="stat-value" id="total-orders">-</div>
+                <div class="stat-change">載入中...</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label">💰 總營收</div>
-                <div class="stat-value" id="totalRevenue">NT$0</div>
-                <div class="stat-detail" id="totalRevenueDetail">本月營收</div>
+            <div class="stat-card" style="--accent-color: #10b981;">
+                <div class="stat-label">總營收</div>
+                <div class="stat-value" id="total-revenue">-</div>
+                <div class="stat-change">載入中...</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label">🔄 重複客戶比</div>
-                <div class="stat-value" id="repeatRate">0%</div>
-                <div class="stat-detail" id="repeatRateDetail">本月重複購買</div>
+            <div class="stat-card" style="--accent-color: #f59e0b;">
+                <div class="stat-label">總客戶數</div>
+                <div class="stat-value" id="total-customers">-</div>
+                <div class="stat-change">載入中...</div>
+            </div>
+            
+            <div class="stat-card" style="--accent-color: #ec4899;">
+                <div class="stat-label">回購率</div>
+                <div class="stat-value" id="repeat-rate">-</div>
+                <div class="stat-change">載入中...</div>
             </div>
         </div>
         
-        <!-- 圖表區 -->
-        <div class="chart-row">
-            <!-- 法人 vs 個人 -->
+        <!-- 圖表區塊 -->
+        <div class="charts-section">
+            <!-- 客戶類型分析 -->
             <div class="chart-card">
-                <div class="chart-title">法人 vs 個人</div>
+                <h3 class="chart-title">客戶類型分析</h3>
                 <div class="chart-container">
-                    <canvas id="customerTypeChart"></canvas>
-                </div>
-                <div style="margin-top: 15px; font-size: 12px; color: #666;">
-                    <div style="margin-bottom: 5px;">法人：<span id="companyCount">0</span> 筆</div>
-                    <div>個人：<span id="personCount">0</span> 筆</div>
-                </div>
-            </div>
-            
-            <!-- 重複客戶分佈 -->
-            <div class="chart-card">
-                <div class="chart-title">客戶分類</div>
-                <div class="chart-container">
-                    <canvas id="customerSegmentChart"></canvas>
-                </div>
-                <div style="margin-top: 15px; font-size: 12px; color: #666;">
-                    <div style="margin-bottom: 5px;">🆕 新客：<span id="newCustomerCount">0</span> 位</div>
-                    <div style="margin-bottom: 5px;">🔄 回客：<span id="repeatCustomerCount">0</span> 位</div>
-                    <div>⭐ 常客：<span id="vipCustomerCount">0</span> 位</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 產品熱銷排行 -->
-        <div class="top-products">
-            <div class="section-header">
-                <div class="section-title">🏆 產品熱銷排行 TOP 10</div>
-            </div>
-            <div class="product-list" id="productList">
-                <!-- 動態插入 -->
-            </div>
-        </div>
-        
-        <!-- 最近訂單 -->
-        <div class="orders-section">
-            <div class="orders-header">
-                <div class="section-title">📋 最近訂單</div>
-            </div>
-            <div class="orders-list" id="ordersList">
-                <!-- 動態插入 -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 模擬資料
-        const mockOrders = [
-            { id: 'ORD-001', customer: '王小明', phone: '0912345678', type: 'person', amount: 1500, product: '名片', qty: 1, date: '2026-04-01', repeat: 0 },
-            { id: 'ORD-002', customer: '李家豪', phone: '0923456789', type: 'company', amount: 2300, product: '海報', qty: 2, date: '2026-03-28', repeat: 3 },
-            { id: 'ORD-003', customer: '陳美伶', phone: '0934567890', type: 'person', amount: 890, product: '貼紙', qty: 5, date: '2026-03-25', repeat: 0 },
-            { id: 'ORD-004', customer: '台灣科技', phone: '0225678901', type: 'company', amount: 5600, product: '手冊', qty: 100, date: '2026-03-20', repeat: 0 },
-            { id: 'ORD-005', customer: '王小明', phone: '0912345678', type: 'person', amount: 1200, product: '名片', qty: 1, date: '2026-03-15', repeat: 1 },
-            { id: 'ORD-006', customer: '美妝工坊', phone: '0267890123', type: 'company', amount: 3400, product: '包裝盒', qty: 50, date: '2026-03-10', repeat: 0 },
-            { id: 'ORD-007', customer: '李家豪', phone: '0923456789', type: 'company', amount: 1800, product: '海報', qty: 1, date: '2026-03-05', repeat: 2 },
-            { id: 'ORD-008', customer: '黃正宏', phone: '0945678901', type: 'person', amount: 2100, product: '貼紙', qty: 3, date: '2026-02-28', repeat: 0 },
-            { id: 'ORD-009', customer: '台灣科技', phone: '0225678901', type: 'company', amount: 4200, product: '手冊', qty: 80, date: '2026-02-20', repeat: 0 },
-            { id: 'ORD-010', customer: '王小明', phone: '0912345678', type: 'person', amount: 1500, product: '名片', qty: 1, date: '2026-02-10', repeat: 2 },
-        ];
-        
-        let customerTypeChart, customerSegmentChart;
-        
-        function updateDashboard() {
-            const timeFilter = document.getElementById('timeFilter').value;
-            const filteredOrders = filterOrdersByTime(mockOrders, timeFilter);
-            
-            // 更新關鍵指標
-            updateStats(filteredOrders, timeFilter);
-            
-            // 更新圖表
-            updateCharts(filteredOrders);
-            
-            // 更新產品排行
-            updateProductRanking(filteredOrders);
-            
-            // 更新訂單列表
-            updateOrdersList(filteredOrders);
-        }
-        
-        function filterOrdersByTime(orders, timeFilter) {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            
-            return orders.filter(order => {
-                const orderDate = new Date(order.date);
-                const orderMonth = orderDate.getMonth();
-                const orderYear = orderDate.getFullYear();
-                
-                switch(timeFilter) {
-                    case 'month':
-                        return orderMonth === currentMonth && orderYear === currentYear;
-                    case 'quarter':
-                        const currentQuarter = Math.floor(currentMonth / 3);
-                        const orderQuarter = Math.floor(orderMonth / 3);
-                        return orderQuarter === currentQuarter && orderYear === currentYear;
-                    case 'year':
-                        return orderYear === currentYear;
-                    default:
-                        return true;
-                }
-            });
-        }
-        
-        function updateStats(orders, timeFilter) {
-            const totalOrders = orders.length;
-            const totalRevenue = orders.reduce((sum, o) => sum + o.amount, 0);
-            const repeatOrders = orders.filter(o => o.repeat > 0).length;
-            const repeatRate = totalOrders > 0 ? Math.round((repeatOrders / totalOrders) * 100) : 0;
-            
-            document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('totalRevenue').textContent = `NT$${totalRevenue.toLocaleString()}`;
-            document.getElementById('repeatRate').textContent = `${repeatRate}%`;
-            
-            const timeText = {
-                'month': '本月',
-                'quarter': '本季',
-                'year': '本年度',
-                'all': '全部'
-            }[timeFilter];
-            
-            document.getElementById('totalOrdersDetail').textContent = `${timeText}訂單`;
-            document.getElementById('totalRevenueDetail').textContent = `${timeText}營收`;
-            document.getElementById('repeatRateDetail').textContent = `${timeText}重複購買`;
-        }
-        
-        function updateCharts(orders) {
-            // 法人 vs 個人
-            const companyCount = orders.filter(o => o.type === 'company').length;
-            const personCount = orders.filter(o => o.type === 'person').length;
-            
-            document.getElementById('companyCount').textContent = companyCount;
-            document.getElementById('personCount').textContent = personCount;
-            
-            if (customerTypeChart) customerTypeChart.destroy();
-            const ctx1 = document.getElementById('customerTypeChart').getContext('2d');
-            customerTypeChart = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['法人', '個人'],
-                    datasets: [{
-                        data: [companyCount, personCount],
-                        backgroundColor: ['#FF9800', '#2196F3'],
-                        borderColor: ['#fff', '#fff'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            // 客戶分類
-            const newCustomer = orders.filter(o => o.repeat === 0).length;
-            const repeatCustomer = orders.filter(o => o.repeat === 1 || o.repeat === 2).length;
-            const vipCustomer = orders.filter(o => o.repeat >= 3).length;
-            
-            document.getElementById('newCustomerCount').textContent = newCustomer;
-            document.getElementById('repeatCustomerCount').textContent = repeatCustomer;
-            document.getElementById('vipCustomerCount').textContent = vipCustomer;
-            
-            if (customerSegmentChart) customerSegmentChart.destroy();
-            const ctx2 = document.getElementById('customerSegmentChart').getContext('2d');
-            customerSegmentChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['🆕 新客', '🔄 回客', '⭐ 常客'],
-                    datasets: [{
-                        label: '客戶數',
-                        data: [newCustomer, repeatCustomer, vipCustomer],
-                        backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'x',
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updateProductRanking(orders) {
-            // 計算產品銷售
-            const productStats = {};
-            orders.forEach(order => {
-                if (!productStats[order.product]) {
-                    productStats[order.product] = { qty: 0, amount: 0 };
-                }
-                productStats[order.product].qty += order.qty;
-                productStats[order.product].amount += order.amount;
-            });
-            
-            // 排序（金額）
-            const sorted = Object.entries(productStats)
-                .map(([name, stats]) => ({
-                    name,
-                    qty: stats.qty,
-                    amount: stats.amount
-                }))
-                .sort((a, b) => b.amount - a.amount)
-                .slice(0, 10);
-            
-            const html = sorted.map((p, idx) => `
-                <div class="product-item">
-                    <div class="product-name">#${idx + 1} ${p.name}</div>
-                    <div class="product-qty">銷售數量: ${p.qty}</div>
-                    <div class="product-amount">NT$${p.amount.toLocaleString()}</div>
-                    <div class="product-rank">營收排名 #${idx + 1}</div>
-                </div>
-            `).join('');
-            
-            document.getElementById('productList').innerHTML = html || '<div style="padding: 20px; text-align: center; color: #999;">無訂單資料</div>';
-        }
-        
-        function updateOrdersList(orders) {
-            const html = orders.slice(0, 20).reverse().map(o => `
-                <div class="order-item">
-                    <div class="order-id">${o.id}</div>
-                    <div>
-                        <div class="order-customer">${o.customer}</div>
-                        <div class="order-phone">${o.phone}</div>
-                    </div>
-                    <div class="order-type ${o.type}">${o.type === 'company' ? '法人' : '個人'}</div>
-                    <div class="order-repeat">
-                        <div class="repeat-badge ${o.repeat === 0 ? 'new' : 'repeat'}">
-                            ${o.repeat === 0 ? '🆕 新客' : `🔄 第${o.repeat + 1}次`}
+                    <div class="pie-chart">
+                        <svg class="pie-svg" viewBox="0 0 200 200" id="customer-type-chart">
+                            <circle cx="100" cy="100" r="80" fill="#e2e8f0" />
+                        </svg>
+                        <div class="pie-legend" id="customer-type-legend">
+                            <div class="loading">載入中...</div>
                         </div>
                     </div>
-                    <div class="order-amount">NT$${o.amount.toLocaleString()}</div>
-                    <div class="order-date">${o.date}</div>
                 </div>
-            `).join('');
+            </div>
             
-            document.getElementById('ordersList').innerHTML = html;
+            <!-- 產品排行榜 -->
+            <div class="chart-card">
+                <h3 class="chart-title">熱銷產品 TOP 10</h3>
+                <div class="product-list" id="product-ranking">
+                    <div class="loading">載入中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 訂單表格 -->
+        <div class="orders-table-container">
+            <div class="table-header">
+                <h3 class="table-title">訂單列表</h3>
+                <input type="text" class="search-box" placeholder="搜尋訂單、客戶..." id="search-input">
+            </div>
+            
+            <table id="orders-table">
+                <thead>
+                    <tr>
+                        <th>訂單編號</th>
+                        <th>日期</th>
+                        <th>客戶</th>
+                        <th>類型</th>
+                        <th>金額</th>
+                        <th>狀態</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                    <tr>
+                        <td colspan="6" class="loading">
+                            <div class="loading-spinner"></div>
+                            <div>載入訂單資料中...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // API 基礎路徑
+        const API_BASE = 'orders-api.php';
+        
+        // 當前篩選條件
+        let currentPeriod = 'all';
+        let allOrders = [];
+        
+        // ============================================
+        // 初始化
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            setupEventListeners();
+        });
+        
+        // ============================================
+        // 設定事件監聽
+        // ============================================
+        function setupEventListeners() {
+            // 時間篩選按鈕
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentPeriod = btn.dataset.period;
+                    loadAllData();
+                });
+            });
+            
+            // 搜尋框
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                filterOrders(e.target.value);
+            });
         }
         
-        // 初始化
-        updateDashboard();
+        // ============================================
+        // 載入所有數據
+        // ============================================
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadOrders(),
+                loadProducts()
+            ]);
+        }
+        
+        // ============================================
+        // 載入統計數據
+        // ============================================
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}?action=stats&period=${currentPeriod}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    
+                    document.getElementById('total-orders').textContent = data.total_orders.toLocaleString();
+                    document.getElementById('total-revenue').textContent = `NT$ ${data.total_revenue.toLocaleString()}`;
+                    document.getElementById('total-customers').textContent = data.total_customers.toLocaleString();
+                    document.getElementById('repeat-rate').textContent = `${data.repeat_rate}%`;
+                    
+                    // 繪製客戶類型圓餅圖
+                    drawCustomerTypePieChart(data.customer_types);
+                }
+            } catch (error) {
+                console.error('載入統計數據失敗:', error);
+            }
+        }
+        
+        // ============================================
+        // 載入訂單列表
+        // ============================================
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}?action=list&period=${currentPeriod}&limit=100`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    allOrders = result.data.orders;
+                    renderOrders(allOrders);
+                }
+            } catch (error) {
+                console.error('載入訂單列表失敗:', error);
+                document.getElementById('orders-tbody').innerHTML = `
+                    <tr><td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div>載入失敗</div>
+                    </td></tr>
+                `;
+            }
+        }
+        
+        // ============================================
+        // 載入產品排行
+        // ============================================
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}?action=products&period=${currentPeriod}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderProducts(result.data.slice(0, 10));
+                }
+            } catch (error) {
+                console.error('載入產品排行失敗:', error);
+            }
+        }
+        
+        // ============================================
+        // 渲染訂單列表
+        // ============================================
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-tbody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <div>目前沒有訂單</div>
+                    </td></tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = orders.map(order => {
+                const statusMap = {
+                    'wc-completed': { text: '已完成', class: 'completed' },
+                    'wc-processing': { text: '處理中', class: 'processing' },
+                    'wc-pending': { text: '待付款', class: 'pending' }
+                };
+                
+                const status = statusMap[order.order_status] || { text: order.order_status, class: 'pending' };
+                
+                return `
+                    <tr>
+                        <td>#${order.order_id}</td>
+                        <td>${new Date(order.order_date).toLocaleDateString('zh-TW')}</td>
+                        <td>
+                            <div>${order.customer_name || '訪客'}</div>
+                            ${order.company ? `<small style="color: #64748b;">${order.company}</small>` : ''}
+                        </td>
+                        <td><span class="badge badge-${order.customer_type}">${order.customer_type === 'business' ? '法人' : '個人'}</span></td>
+                        <td style="font-weight: 600;">NT$ ${order.total.toLocaleString()}</td>
+                        <td><span class="badge badge-${status.class}">${status.text}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // ============================================
+        // 渲染產品排行
+        // ============================================
+        function renderProducts(products) {
+            const container = document.getElementById('product-ranking');
+            
+            if (products.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div>目前沒有銷售數據</div></div>';
+                return;
+            }
+            
+            container.innerHTML = products.map((product, index) => `
+                <div class="product-item">
+                    <div class="product-rank">${index + 1}</div>
+                    <div class="product-name">${product.product_name}</div>
+                    <div class="product-stats">
+                        <div class="product-qty">數量: ${product.quantity}</div>
+                        <div class="product-revenue">NT$ ${product.revenue.toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ============================================
+        // 繪製客戶類型圓餅圖
+        // ============================================
+        function drawCustomerTypePieChart(data) {
+            const total = data.business.count + data.personal.count;
+            
+            if (total === 0) {
+                document.getElementById('customer-type-legend').innerHTML = '<div class="empty-state">暫無數據</div>';
+                return;
+            }
+            
+            const businessPercent = (data.business.count / total) * 100;
+            const personalPercent = (data.personal.count / total) * 100;
+            
+            // 繪製圓餅圖
+            const svg = document.getElementById('customer-type-chart');
+            const businessAngle = (businessPercent / 100) * 360;
+            
+            svg.innerHTML = `
+                <circle cx="100" cy="100" r="80" fill="#3b82f6" />
+                ${businessAngle < 360 ? `
+                    <path d="M 100 100 L 100 20 A 80 80 0 ${businessAngle > 180 ? 1 : 0} 1 ${100 + 80 * Math.sin(businessAngle * Math.PI / 180)} ${100 - 80 * Math.cos(businessAngle * Math.PI / 180)} Z" fill="#a855f7" />
+                ` : ''}
+            `;
+            
+            // 更新圖例
+            document.getElementById('customer-type-legend').innerHTML = `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3b82f6;"></div>
+                    <div class="legend-label">法人客戶</div>
+                    <div class="legend-value">${businessPercent.toFixed(1)}%</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #a855f7;"></div>
+                    <div class="legend-label">個人客戶</div>
+                    <div class="legend-value">${personalPercent.toFixed(1)}%</div>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // 搜尋過濾
+        // ============================================
+        function filterOrders(keyword) {
+            if (!keyword) {
+                renderOrders(allOrders);
+                return;
+            }
+            
+            const filtered = allOrders.filter(order => {
+                return order.order_id.toString().includes(keyword) ||
+                       (order.customer_name && order.customer_name.toLowerCase().includes(keyword.toLowerCase())) ||
+                       (order.company && order.company.toLowerCase().includes(keyword.toLowerCase()));
+            });
+            
+            renderOrders(filtered);
+        }
     </script>
 </body>
 </html>
