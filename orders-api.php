@@ -1,50 +1,34 @@
 <?php
 /**
- * 訂單管理 API
- * 功能：從 WordPress 資料庫讀取 WooCommerce 訂單
- * 提供：訂單列表、統計分析、客戶分析
+ * 訂單管理 API (跨資料庫版本)
+ * 使用看板系統的資料庫帳號，跨資料庫查詢 WordPress
  */
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 // ============================================
-// 資料庫配置
+// 使用看板系統的資料庫帳號（有權限讀取所有資料庫）
 // ============================================
 
-// WordPress 資料庫
-define('WP_DB_HOST', 'localhost');
-define('WP_DB_NAME', 'jdrnmynced');
-define('WP_DB_USER', 'jdrnmynced');
-define('WP_DB_PASS', 'GDUC8CmrFk');
+define('DB_HOST', 'localhost');
+define('DB_USER', 'zeyjsvrczr');      // 看板系統帳號
+define('DB_PASS', 'nrPBsleknr');      // 看板系統密碼
 
-// 看板系統資料庫（用於記錄同步狀態）
-define('KANBAN_DB_HOST', 'localhost');
-define('KANBAN_DB_NAME', 'zeyjsvrczr');
-define('KANBAN_DB_USER', 'zeyjsvrczr');
-define('KANBAN_DB_PASS', 'nrPBsleknr');
+// 資料庫名稱
+define('WP_DB', 'jdrnmynced');        // WordPress 資料庫
+define('KANBAN_DB', 'zeyjsvrczr');    // 看板資料庫
 
 // ============================================
 // 資料庫連線
 // ============================================
 
 try {
-    // WordPress 資料庫連線
-    $wp_pdo = new PDO(
-        "mysql:host=" . WP_DB_HOST . ";dbname=" . WP_DB_NAME . ";charset=utf8mb4",
-        WP_DB_USER,
-        WP_DB_PASS,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]
-    );
-    
-    // 看板系統資料庫連線
-    $kanban_pdo = new PDO(
-        "mysql:host=" . KANBAN_DB_HOST . ";dbname=" . KANBAN_DB_NAME . ";charset=utf8mb4",
-        KANBAN_DB_USER,
-        KANBAN_DB_PASS,
+    // 使用看板系統帳號連線（不指定資料庫）
+    $pdo = new PDO(
+        "mysql:host=" . DB_HOST . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -65,7 +49,7 @@ try {
 // ============================================
 
 $action = $_GET['action'] ?? 'list';
-$period = $_GET['period'] ?? 'all'; // all, month, quarter, year
+$period = $_GET['period'] ?? 'all';
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
@@ -105,6 +89,7 @@ switch($action) {
         try {
             $dateFilter = getDateFilter($period);
             
+            // 使用完整資料庫名稱：jdrnmynced.wp_posts
             $sql = "
                 SELECT 
                     p.ID as order_id,
@@ -116,8 +101,8 @@ switch($action) {
                     MAX(CASE WHEN pm.meta_key = '_billing_company' THEN pm.meta_value END) as company,
                     MAX(CASE WHEN pm.meta_key = '_billing_email' THEN pm.meta_value END) as email,
                     MAX(CASE WHEN pm.meta_key = '_billing_phone' THEN pm.meta_value END) as phone
-                FROM wp_posts p
-                LEFT JOIN wp_postmeta pm ON p.ID = pm.post_id
+                FROM " . WP_DB . ".wp_posts p
+                LEFT JOIN " . WP_DB . ".wp_postmeta pm ON p.ID = pm.post_id
                 WHERE p.post_type = 'shop_order'
                 $dateFilter
                 GROUP BY p.ID
@@ -125,7 +110,7 @@ switch($action) {
                 LIMIT :limit OFFSET :offset
             ";
             
-            $stmt = $wp_pdo->prepare($sql);
+            $stmt = $pdo->prepare($sql);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
@@ -138,12 +123,12 @@ switch($action) {
                 $order['total'] = (float)($order['total'] ?? 0);
                 
                 // 取得訂單項目
-                $order['items'] = getOrderItems($wp_pdo, $order['order_id']);
+                $order['items'] = getOrderItems($pdo, $order['order_id']);
             }
             
             // 取得總數
-            $countSql = "SELECT COUNT(DISTINCT p.ID) as total FROM wp_posts p WHERE p.post_type = 'shop_order' $dateFilter";
-            $total = $wp_pdo->query($countSql)->fetch()['total'];
+            $countSql = "SELECT COUNT(DISTINCT p.ID) as total FROM " . WP_DB . ".wp_posts p WHERE p.post_type = 'shop_order' $dateFilter";
+            $total = $pdo->query($countSql)->fetch()['total'];
             
             echo json_encode([
                 'success' => true,
@@ -176,12 +161,12 @@ switch($action) {
                 SELECT 
                     COUNT(DISTINCT p.ID) as total_orders,
                     SUM(CAST(pm.meta_value AS DECIMAL(10,2))) as total_revenue
-                FROM wp_posts p
-                LEFT JOIN wp_postmeta pm ON p.ID = pm.post_id AND pm.meta_key = '_order_total'
+                FROM " . WP_DB . ".wp_posts p
+                LEFT JOIN " . WP_DB . ".wp_postmeta pm ON p.ID = pm.post_id AND pm.meta_key = '_order_total'
                 WHERE p.post_type = 'shop_order'
                 $dateFilter
             ";
-            $stats = $wp_pdo->query($statsSql)->fetch();
+            $stats = $pdo->query($statsSql)->fetch();
             
             // 法人 vs 個人
             $customerTypeSql = "
@@ -193,13 +178,13 @@ switch($action) {
                     END as customer_type,
                     COUNT(*) as count,
                     SUM(CAST(MAX(CASE WHEN pm.meta_key = '_order_total' THEN pm.meta_value END) AS DECIMAL(10,2))) as revenue
-                FROM wp_posts p
-                LEFT JOIN wp_postmeta pm ON p.ID = pm.post_id
+                FROM " . WP_DB . ".wp_posts p
+                LEFT JOIN " . WP_DB . ".wp_postmeta pm ON p.ID = pm.post_id
                 WHERE p.post_type = 'shop_order'
                 $dateFilter
                 GROUP BY p.ID
             ";
-            $customerTypeData = $wp_pdo->query($customerTypeSql)->fetchAll();
+            $customerTypeData = $pdo->query($customerTypeSql)->fetchAll();
             
             $customerTypes = [
                 'business' => ['count' => 0, 'revenue' => 0],
@@ -218,13 +203,13 @@ switch($action) {
                     MAX(CASE WHEN pm.meta_key = '_billing_email' THEN pm.meta_value END) as email,
                     COUNT(*) as order_count,
                     SUM(CAST(MAX(CASE WHEN pm.meta_key = '_order_total' THEN pm.meta_value END) AS DECIMAL(10,2))) as total_spent
-                FROM wp_posts p
-                LEFT JOIN wp_postmeta pm ON p.ID = pm.post_id
+                FROM " . WP_DB . ".wp_posts p
+                LEFT JOIN " . WP_DB . ".wp_postmeta pm ON p.ID = pm.post_id
                 WHERE p.post_type = 'shop_order'
                 $dateFilter
                 GROUP BY p.ID
             ";
-            $customerData = $wp_pdo->query($repeatCustomerSql)->fetchAll();
+            $customerData = $pdo->query($repeatCustomerSql)->fetchAll();
             
             $emailStats = [];
             foreach($customerData as $row) {
@@ -273,10 +258,10 @@ switch($action) {
                     oi.order_item_name as product_name,
                     SUM(CAST(oim_qty.meta_value AS UNSIGNED)) as quantity,
                     SUM(CAST(oim_total.meta_value AS DECIMAL(10,2))) as revenue
-                FROM wp_posts p
-                INNER JOIN wp_woocommerce_order_items oi ON p.ID = oi.order_id
-                LEFT JOIN wp_woocommerce_order_itemmeta oim_qty ON oi.order_item_id = oim_qty.order_item_id AND oim_qty.meta_key = '_qty'
-                LEFT JOIN wp_woocommerce_order_itemmeta oim_total ON oi.order_item_id = oim_total.order_item_id AND oim_total.meta_key = '_line_total'
+                FROM " . WP_DB . ".wp_posts p
+                INNER JOIN " . WP_DB . ".wp_woocommerce_order_items oi ON p.ID = oi.order_id
+                LEFT JOIN " . WP_DB . ".wp_woocommerce_order_itemmeta oim_qty ON oi.order_item_id = oim_qty.order_item_id AND oim_qty.meta_key = '_qty'
+                LEFT JOIN " . WP_DB . ".wp_woocommerce_order_itemmeta oim_total ON oi.order_item_id = oim_total.order_item_id AND oim_total.meta_key = '_line_total'
                 WHERE p.post_type = 'shop_order'
                 AND oi.order_item_type = 'line_item'
                 $dateFilter
@@ -285,7 +270,7 @@ switch($action) {
                 LIMIT 20
             ";
             
-            $products = $wp_pdo->query($sql)->fetchAll();
+            $products = $pdo->query($sql)->fetchAll();
             
             foreach($products as &$product) {
                 $product['quantity'] = (int)$product['quantity'];
@@ -317,7 +302,6 @@ switch($action) {
                 throw new Exception('缺少訂單 ID');
             }
             
-            // 訂單基本資訊
             $sql = "
                 SELECT 
                     p.ID as order_id,
@@ -332,14 +316,14 @@ switch($action) {
                     MAX(CASE WHEN pm.meta_key = '_billing_address_1' THEN pm.meta_value END) as address,
                     MAX(CASE WHEN pm.meta_key = '_billing_city' THEN pm.meta_value END) as city,
                     MAX(CASE WHEN pm.meta_key = '_customer_note' THEN pm.meta_value END) as customer_note
-                FROM wp_posts p
-                LEFT JOIN wp_postmeta pm ON p.ID = pm.post_id
+                FROM " . WP_DB . ".wp_posts p
+                LEFT JOIN " . WP_DB . ".wp_postmeta pm ON p.ID = pm.post_id
                 WHERE p.ID = :order_id
                 AND p.post_type = 'shop_order'
                 GROUP BY p.ID
             ";
             
-            $stmt = $wp_pdo->prepare($sql);
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([':order_id' => $orderId]);
             $order = $stmt->fetch();
             
@@ -350,7 +334,7 @@ switch($action) {
             $order['customer_name'] = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
             $order['customer_type'] = !empty($order['company']) ? 'business' : 'personal';
             $order['total'] = (float)($order['total'] ?? 0);
-            $order['items'] = getOrderItems($wp_pdo, $orderId);
+            $order['items'] = getOrderItems($pdo, $orderId);
             
             echo json_encode([
                 'success' => true,
@@ -387,8 +371,8 @@ function getOrderItems($pdo, $orderId) {
             oi.order_item_name as product_name,
             MAX(CASE WHEN oim.meta_key = '_qty' THEN oim.meta_value END) as quantity,
             MAX(CASE WHEN oim.meta_key = '_line_total' THEN oim.meta_value END) as total
-        FROM wp_woocommerce_order_items oi
-        LEFT JOIN wp_woocommerce_order_itemmeta oim ON oi.order_item_id = oim.order_item_id
+        FROM " . WP_DB . ".wp_woocommerce_order_items oi
+        LEFT JOIN " . WP_DB . ".wp_woocommerce_order_itemmeta oim ON oi.order_item_id = oim.order_item_id
         WHERE oi.order_id = :order_id
         AND oi.order_item_type = 'line_item'
         GROUP BY oi.order_item_id
