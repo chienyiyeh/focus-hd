@@ -141,6 +141,9 @@ $username = $_SESSION['username'] ?? 'User';
   .settings-btn { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); }
   .settings-btn:hover { background: var(--accent-week); color: white; }
   
+  /* 訂單按鈕特殊樣式 */
+  .orders-btn:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; border-color: transparent !important; }
+  
   .logout-btn { background: #FFF3F2; color: #991B1B; border-color: #FCA5A5; }
   .logout-btn:hover { background: #FEE2E2; }
   
@@ -820,7 +823,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
     <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?><a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a><?php endif; ?>
-    <a href="orders-dashboard.html" class="settings-btn" style="text-decoration:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;">📦 訂單</a>
+    <a href="orders-dashboard.html" class="settings-btn orders-btn" style="text-decoration:none;">📦 訂單</a>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
