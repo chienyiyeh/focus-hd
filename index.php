@@ -820,6 +820,7 @@ $username = $_SESSION['username'] ?? 'User';
     <div class="header-user">👤 <?php echo htmlspecialchars($username); ?></div>
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
     <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?><a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a><?php endif; ?>
+    <a href="orders-dashboard.html" class="settings-btn" style="text-decoration:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;">📦 訂單</a>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
