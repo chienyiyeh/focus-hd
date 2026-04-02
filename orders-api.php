@@ -8,7 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 // ============================================
-// 設定
+// WooCommerce API 設定
 // ============================================
 
 define('WC_API_URL', 'https://apple-print.com.tw/wp-json/wc/v3');
@@ -119,7 +119,7 @@ try {
     switch($action) {
         
         // ========================================
-        // 訂單列表（不快取，因為需要即時）
+        // 訂單列表（不快取，保持即時）
         // ========================================
         case 'list':
             $params = getDateParams($period);
@@ -138,6 +138,8 @@ try {
                     'order_date' => $order['date_created'],
                     'order_status' => 'wc-' . $order['status'],
                     'total' => (float)$order['total'],
+                    'first_name' => $order['billing']['first_name'] ?? '',
+                    'last_name' => $order['billing']['last_name'] ?? '',
                     'customer_name' => trim(($order['billing']['first_name'] ?? '') . ' ' . ($order['billing']['last_name'] ?? '')),
                     'company' => $order['billing']['company'] ?? '',
                     'customer_type' => !empty($order['billing']['company']) ? 'business' : 'personal',
@@ -330,6 +332,8 @@ try {
                 'order_date' => $order['date_created'],
                 'order_status' => 'wc-' . $order['status'],
                 'total' => (float)$order['total'],
+                'first_name' => $order['billing']['first_name'] ?? '',
+                'last_name' => $order['billing']['last_name'] ?? '',
                 'customer_name' => trim(($order['billing']['first_name'] ?? '') . ' ' . ($order['billing']['last_name'] ?? '')),
                 'company' => $order['billing']['company'] ?? '',
                 'customer_type' => !empty($order['billing']['company']) ? 'business' : 'personal',
