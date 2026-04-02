@@ -283,12 +283,24 @@ $username = $_SESSION['username'] ?? 'User';
   .add-checklist-item-btn { width: 100%; padding: 8px; border: 1px dashed var(--border-strong); background: none; border-radius: var(--radius); font-size: 12px; font-family: inherit; color: var(--text-muted); cursor: pointer; }
   .add-checklist-item-btn:hover { background: var(--surface2); color: var(--text-secondary); border-color: var(--text-secondary); }
   
+  /* 代辦事項拖曳排序 */
+  .checklist-item { position: relative; transition: transform 0.2s; }
+  .checklist-item.dragging { opacity: 0.4; }
+  .checklist-item .drag-handle { cursor: move; opacity: 0.2; user-select: none; margin-right: 4px; font-size: 12px; color: var(--text-muted); }
+  .checklist-item:hover .drag-handle { opacity: 0.5; }
+  
   .card-checklist { background: var(--surface2); border-radius: 6px; padding: 8px; margin-bottom: 8px; }
   .card-checklist-header { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
   .card-checklist-progress { font-size: 10px; color: var(--accent-lib); background: var(--accent-lib-bg); padding: 2px 6px; border-radius: 10px; }
   .card-checklist-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; }
   .card-checklist-item input[type="checkbox"] { cursor: pointer; width: 14px; height: 14px; }
   .card-checklist-item.checked label { text-decoration: line-through; color: var(--text-muted); }
+  
+  /* 卡片高度調整 */
+  .card { position: relative; }
+  .card-resize-handle { position: absolute; bottom: 4px; right: 4px; width: 16px; height: 16px; cursor: ns-resize; opacity: 0; font-size: 10px; line-height: 16px; text-align: center; color: var(--text-muted); user-select: none; z-index: 10; }
+  .card:hover .card-resize-handle { opacity: 0.3; }
+  .card-resize-handle:hover { opacity: 0.8 !important; }
   
   .card-preview { font-size: 12px; line-height: 1.5; margin-bottom: 8px; max-height: 48px; overflow: hidden; position: relative; }
   .card-preview p, .card-preview h1, .card-preview h2, .card-preview h3 { margin: 0; padding: 0; }
@@ -1676,6 +1688,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   });
+  
+  // 初始化卡片高度調整
+  initCardResize();
+  // 初始化代辦清單拖曳排序
+  initChecklistSort();
 });
 
 // ==========================================
@@ -4101,7 +4118,13 @@ function buildCard(card, col, cardNo) {
   // 批次選取勾選框
   const batchCb = cardBatchMode ? `<input type="checkbox" ${cardBatchSelected.has(card.id)?'checked':''} onclick="event.stopPropagation();toggleCardBatchSelect(${card.id})" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:#E24B4A;margin-right:2px;">` : '';
 
-  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="${cardBatchMode ? `toggleCardBatchSelect(${card.id});render()` : `(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this)`};event.stopPropagation()">${batchCb}<span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div>`;
+  div.innerHTML = `<div class="card-top" style="cursor:pointer;" onclick="${cardBatchMode ? `toggleCardBatchSelect(${card.id});render()` : `(function(el){const card=el.closest('.card');card.classList.toggle('open');localStorage.setItem('card_open_${card.id}', card.classList.contains('open')?'1':'0');})(this)`};event.stopPropagation()">${batchCb}<span class="drag-handle">⋮⋮</span>${noTag}<div class="card-title">${col === 'done' ? '✓ ' : ''}${escHtml(card.title)}</div>${col === 'done' && card.completedAt ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;margin-left:auto;padding-right:4px;flex-shrink:0;">${formatDateTime(card.completedAt)}</div>` : ''}${noteIndicator}${actsHTML}</div><div class="card-collapse-body">${metaHTML}${sourceHTML}${summaryHTML}${nsHTMLcornell}${timerHTML}${cornellHTML}</div><div class="card-resize-handle">⋮</div>`;
+  
+  // 套用自訂高度（如果有的話）
+  if (card.customHeight) {
+    div.style.height = card.customHeight;
+    div.style.minHeight = card.customHeight;
+  }
 
   // div.onclick 已移除，不攔截任何點擊事件
   // 筆記區選文字時停止拖移
@@ -4650,11 +4673,23 @@ function addChecklistItem(text = '', checked = false) {
   const item = document.createElement('div');
   item.className = 'checklist-item';
   item.dataset.id = id;
+  item.draggable = true; // 可拖曳
   item.innerHTML = `
+    <span class="drag-handle">⋮⋮</span>
     <input type="checkbox" ${checked ? 'checked' : ''}>
     <textarea placeholder="輸入待辦事項..." rows="1" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(text)}</textarea>
     <button class="checklist-item-delete" onclick="deleteChecklistItem('${id}'); event.stopPropagation();" style="padding:2px 6px;font-size:15px;background:none;border:none;color:#FCA5A5;cursor:pointer;">🗑</button>
   `;
+  
+  // 拖曳事件
+  item.addEventListener('dragstart', (e) => {
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  
+  item.addEventListener('dragend', () => {
+    item.classList.remove('dragging');
+  });
   
   container.appendChild(item);
 
@@ -5695,6 +5730,96 @@ function closeMobileMenu() { document.getElementById('mobile-dropdown').classLis
     </div>
   </div>
 </div>
+
+<script>
+// ==========================================
+// 卡片高度調整功能
+// ==========================================
+function initCardResize() {
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('card-resize-handle')) {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      
+      const startY = e.clientY;
+      const startHeight = card.offsetHeight;
+      
+      const onMouseMove = (moveEvent) => {
+        const deltaY = moveEvent.clientY - startY;
+        const newHeight = Math.max(100, startHeight + deltaY);
+        card.style.height = newHeight + 'px';
+        card.style.minHeight = newHeight + 'px';
+      };
+      
+      const onMouseUp = async () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        
+        // 儲存卡片高度到資料庫
+        const cardId = card.dataset.id;
+        const col = card.closest('.column').dataset.col;
+        const cardData = state[col]?.find(c => c.id == cardId);
+        
+        if (cardData) {
+          cardData.customHeight = card.style.height;
+          await saveCardToAPI(cardData);
+        }
+      };
+      
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      e.preventDefault();
+    }
+  });
+}
+
+// ==========================================
+// 代辦清單拖曳排序功能
+// ==========================================
+function initChecklistSort() {
+  // 使用事件委派監聽整個 document
+  document.addEventListener('dragover', (e) => {
+    const container = e.target.closest('#checklist-container');
+    if (!container) return;
+    
+    e.preventDefault();
+    const afterElement = getDragAfterElement(container, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    
+    if (!dragging) return;
+    
+    if (afterElement == null) {
+      container.appendChild(dragging);
+    } else {
+      container.insertBefore(dragging, afterElement);
+    }
+  });
+  
+  document.addEventListener('drop', (e) => {
+    const container = e.target.closest('#checklist-container');
+    if (!container) return;
+    
+    e.preventDefault();
+    // 拖曳完成後，順序已經改變，無需額外操作
+    // 儲存會在關閉 modal 時自動執行
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.checklist-item:not(.dragging)')];
+  
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+</script>
 
 </body>
 </html>
