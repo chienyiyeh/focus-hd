@@ -5974,6 +5974,259 @@ window.addEventListener('load', () => {
   setInterval(checkNewOrders, 5 * 60 * 1000);
 });
 </script>
+<!-- 
+  ============================================
+  AI 協作助手面板 - 崁入版本
+  檔案: 複製此代碼到 index.php 的 </body> 之前
+  日期: 2026-04-03
+  ============================================
+-->
 
+<!-- AI 助手面板容器 -->
+<div id="aiPanel" style="
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 380px;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  z-index: 1000;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+">
+  <!-- 頭部 -->
+  <div style="padding: 20px; border-bottom: 2px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">🤖 AI 協作</h2>
+    <button onclick="toggleAIPanel()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0;">×</button>
+  </div>
+
+  <!-- 內容區 -->
+  <div style="flex: 1; overflow-y: auto; padding: 20px;">
+    
+    <!-- 進度概覽 -->
+    <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; backdrop-filter: blur(10px);">
+      <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">📊 進度概覽</div>
+      <div id="progressStats">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+          <span style="font-size: 13px; opacity: 0.8;">完成度</span>
+          <span style="font-size: 16px; font-weight: 700;" id="completionRate">--%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+          <span style="font-size: 13px; opacity: 0.8;">進行中</span>
+          <span style="font-size: 16px; font-weight: 700;" id="inProgress">-</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <span style="font-size: 13px; opacity: 0.8;">待做</span>
+          <span style="font-size: 16px; font-weight: 700;" id="todoCount">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 待做清單 -->
+    <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; backdrop-filter: blur(10px);">
+      <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">✅ 待做清單</div>
+      <div id="todoList" style="font-size: 12px;">加載中...</div>
+    </div>
+
+    <!-- 建議 -->
+    <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; backdrop-filter: blur(10px);">
+      <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">💡 建議</div>
+      <div id="adviceList" style="font-size: 12px;">分析中...</div>
+    </div>
+
+    <!-- 進度筆記 -->
+    <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; backdrop-filter: blur(10px);">
+      <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">📝 筆記</div>
+      <textarea 
+        id="progressNote" 
+        placeholder="記錄今天的進度..."
+        style="width: 100%; padding: 10px; border: none; border-radius: 6px; font-family: inherit; font-size: 12px; margin-bottom: 8px; resize: vertical; min-height: 60px;"
+      ></textarea>
+      <button onclick="saveProgressNote()" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s ease;">💾 保存</button>
+    </div>
+  </div>
+
+  <!-- 頁腳 -->
+  <div style="padding: 15px 20px; border-top: 2px solid rgba(255, 255, 255, 0.2); font-size: 11px; opacity: 0.7;">
+    <div>✨ AI 協作助手</div>
+    <div style="margin-top: 5px;">最後更新: <span id="lastUpdate">-</span></div>
+  </div>
+</div>
+
+<!-- AI 助手開關按鈕 -->
+<button onclick="toggleAIPanel()" style="
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  z-index: 999;
+"
+  onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+  onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)';"
+>
+  🤖
+</button>
+
+<script>
+// ============================================
+// AI 助手控制邏輯
+// ============================================
+
+function toggleAIPanel() {
+  const panel = document.getElementById('aiPanel');
+  panel.style.transform = panel.style.transform === 'translateX(0px)' 
+    ? 'translateX(100%)'
+    : 'translateX(0px)';
+  
+  if (panel.style.transform === 'translateX(0px)') {
+    loadAIData();
+  }
+}
+
+function loadAIData() {
+  loadProgressSummary();
+  loadTodoList();
+  loadAdvice();
+  loadProgressNote();
+  updateLastUpdate();
+}
+
+function loadProgressSummary() {
+  fetch('api/ai-assistant.php?action=get_summary')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const summary = data.data;
+        document.getElementById('completionRate').textContent = 
+          summary.completion_rate + '%';
+        document.getElementById('inProgress').textContent = 
+          (summary.by_status.in_progress || 0);
+        document.getElementById('todoCount').textContent = 
+          (summary.by_status.todo || 0);
+      }
+    })
+    .catch(e => console.error('進度加載失敗:', e));
+}
+
+function loadTodoList() {
+  fetch('api/ai-assistant.php?action=get_todo')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const todos = data.data;
+        let html = '';
+        
+        if (todos.length === 0) {
+          html = '<div style="opacity: 0.6; font-size: 12px;">沒有待做項目！</div>';
+        } else {
+          todos.forEach(todo => {
+            const priorityClass = todo.priority === 'urgent_important' ? '🔴' : '🟡';
+            html += `<div style="background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid rgba(255, 255, 255, 0.3); font-size: 13px;">
+              ${priorityClass} ${todo.title}
+            </div>`;
+          });
+        }
+        
+        document.getElementById('todoList').innerHTML = html;
+      }
+    })
+    .catch(e => console.error('待做清單加載失敗:', e));
+}
+
+function loadAdvice() {
+  fetch('api/ai-assistant.php?action=get_advice')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const advices = data.advice;
+        let html = '';
+        
+        advices.forEach(advice => {
+          const borderColor = advice.type === 'success' ? '#51cf66' : (advice.type === 'warning' ? '#ffd93d' : '#4dabf7');
+          html += `<div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; line-height: 1.5; border-left: 3px solid ${borderColor};">
+            <div>${advice.message}</div>
+            <div style="margin-top: 8px; font-size: 11px; opacity: 0.7; font-style: italic;">→ ${advice.action}</div>
+          </div>`;
+        });
+        
+        document.getElementById('adviceList').innerHTML = html;
+      }
+    })
+    .catch(e => console.error('建議加載失敗:', e));
+}
+
+function loadProgressNote() {
+  fetch('api/ai-assistant.php?action=get_history&days=1')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.data.length > 0) {
+        document.getElementById('progressNote').value = data.data[0].body || '';
+      }
+    })
+    .catch(e => console.error('筆記加載失敗:', e));
+}
+
+function saveProgressNote() {
+  const content = document.getElementById('progressNote').value;
+  if (!content.trim()) {
+    alert('請輸入進度筆記');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('action', 'save_note');
+  formData.append('content', content);
+  
+  fetch('api/ai-assistant.php', {
+    method: 'POST',
+    body: formData
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        alert('✅ 進度筆記已保存！');
+        updateLastUpdate();
+      } else {
+        alert('❌ 保存失敗: ' + data.error);
+      }
+    })
+    .catch(e => {
+      console.error('保存失敗:', e);
+      alert('❌ 網路錯誤');
+    });
+}
+
+function updateLastUpdate() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('zh-TW');
+  document.getElementById('lastUpdate').textContent = time;
+}
+
+// 定期更新（每5分鐘）
+setInterval(() => {
+  if (document.getElementById('aiPanel').style.transform === 'translateX(0px)') {
+    loadAIData();
+  }
+}, 5 * 60 * 1000);
+</script>
+
+<!-- AI 助手集成完成 -->
 </body>
 </html>
