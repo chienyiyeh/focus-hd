@@ -1,99 +1,203 @@
 <?php
-/**
- * 登入頁面
- */
-require_once 'api/config.php';
+session_start();
 
-// 已登入 → 直接進主頁
-if (isset($_SESSION['user_id'])) {
+// 如果已登入，跳轉到首頁
+if (isset($_SESSION['username'])) {
     header('Location: index.php');
     exit;
+}
+
+// 檢查是否有記住登入的 Cookie
+if (isset($_COOKIE['remember_user']) && isset($_COOKIE['remember_token'])) {
+    $_SESSION['username'] = $_COOKIE['remember_user'];
+    $_SESSION['user_id'] = 1; // 這裡應該從資料庫查詢
+    header('Location: index.php');
+    exit;
+}
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once 'config.php';
+    
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $remember = isset($_POST['remember']);
+    
+    if (empty($username) || empty($password)) {
+        $error = '請輸入帳號和密碼';
+    } else {
+        try {
+            $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($user && password_verify($password, $user['password_hash'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['login_time'] = time();
+                
+                // 記住登入：設定 30 天 Cookie
+                if ($remember) {
+                    $token = bin2hex(random_bytes(32));
+                    $expiry = time() + (30 * 24 * 60 * 60); // 30 天
+                    
+                    setcookie('remember_token', $token, $expiry, '/', '', true, true);
+                    setcookie('remember_user', $user['username'], $expiry, '/', '', true, true);
+                }
+                
+                header('Location: index.php');
+                exit;
+            } else {
+                $error = '帳號或密碼錯誤';
+            }
+        } catch (Exception $e) {
+            $error = '登入失敗，請稍後再試';
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>登入 - 看板系統</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
-:root {
-  --bg: #F5F3EE; --surface: #FFFFFF;
-  --border-strong: rgba(0,0,0,0.15);
-  --text: #1A1A18; --text-secondary: #6B6B66;
-  --accent: #534AB7; --accent-hover: #423A95;
-  --error: #E24B4A; --radius: 10px;
-}
-body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.login-container { background: var(--surface); border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 40px; width: 100%; max-width: 400px; }
-.logo { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 10px; }
-.logo span { color: var(--accent); }
-.subtitle { text-align: center; font-size: 14px; color: var(--text-secondary); margin-bottom: 30px; }
-.form-group { margin-bottom: 20px; }
-.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
-.form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: inherit; color: var(--text); background: var(--surface); }
-.form-input:focus { outline: none; border-color: var(--accent); }
-.btn-login { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
-.btn-login:hover { background: var(--accent-hover); }
-.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
-.error-message { background: #FFF3F2; border: 1px solid var(--error); border-radius: var(--radius); color: var(--error); padding: 10px 12px; font-size: 13px; margin-bottom: 20px; display: none; }
-.error-message.show { display: block; }
-@media (max-width: 480px) { .login-container { padding: 30px 20px; } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入 - FOCUS 看板系統</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .remember-me label {
+            margin: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        }
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        .error {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid #FCA5A5;
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="login-container">
-  <div class="logo">看板<span>系統</span></div>
-  <div class="subtitle">專注管理，提升效率</div>
-  <div id="error-message" class="error-message"></div>
-  <form id="login-form">
-    <div class="form-group">
-      <label class="form-label">帳號</label>
-      <input type="text" id="username" class="form-input" placeholder="請輸入帳號" autocomplete="off" required>
+    <div class="login-container">
+        <div class="logo">🎯</div>
+        <h1>FOCUS 看板系統</h1>
+        
+        <?php if ($error): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="username">帳號</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密碼</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember" checked>
+                <label for="remember">記住我 30 天</label>
+            </div>
+            
+            <button type="submit" class="login-btn">登入</button>
+        </form>
     </div>
-    <div class="form-group">
-      <label class="form-label">密碼</label>
-      <input type="password" id="password" class="form-input" placeholder="請輸入密碼" autocomplete="off" required>
-    </div>
-    <button type="submit" class="btn-login" id="btn-submit">登入</button>
-  </form>
-</div>
-<script>
-const form = document.getElementById('login-form');
-const btn  = document.getElementById('btn-submit');
-const err  = document.getElementById('error-message');
-
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  if (!username || !password) { showErr('請輸入帳號和密碼'); return; }
-  btn.disabled = true; btn.textContent = '登入中...'; err.classList.remove('show');
-  try {
-    const res  = await fetch('api/auth.php?action=login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (data.success) {
-      window.location.href = 'index.php';
-    } else {
-      showErr(data.error || '登入失敗');
-      btn.disabled = false; btn.textContent = '登入';
-    }
-  } catch(e) {
-    showErr('連線錯誤，請稍後再試');
-    btn.disabled = false; btn.textContent = '登入';
-  }
-});
-function showErr(msg) { err.textContent = msg; err.classList.add('show'); }
-document.getElementById('password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
-});
-</script>
 </body>
 </html>
