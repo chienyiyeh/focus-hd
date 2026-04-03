@@ -625,6 +625,13 @@
                     modalTitle.textContent = `訂單 #${order.order_id}`;
                     
                     modalBody.innerHTML = `
+                        <!-- 建立工單按鈕 -->
+                        <div style="margin-bottom:20px;">
+                            <button onclick="createWorkOrder(${order.order_id})" style="width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.3);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 12px rgba(102,126,234,0.3)'">
+                                ✚ 建立工單到看板
+                            </button>
+                        </div>
+                        
                         <div class="detail-section">
                             <div class="detail-section-title">📋 訂單資訊</div>
                             <div class="detail-row">
@@ -684,12 +691,35 @@
                                     <div style="font-weight:600;margin-bottom:8px;">${item.product_name}</div>
                                     ${item.specs && item.specs.length > 0 ? `
                                         <div style="font-size:12px;color:#64748b;">
-                                            ${item.specs.map(spec => `
-                                                <div style="margin-bottom:4px;">
-                                                    <strong>${spec.label}:</strong> 
-                                                    ${spec.is_file ? `<a href="${spec.file_url}" target="_blank" style="color:#667eea;">📎 ${spec.value}</a>` : spec.value}
-                                                </div>
-                                            `).join('')}
+                                            ${item.specs.map(spec => {
+                                                if (spec.is_file) {
+                                                    // 檢查是否為圖片
+                                                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(spec.file_url);
+                                                    if (isImage) {
+                                                        return `
+                                                            <div style="margin-bottom:12px;">
+                                                                <strong>${spec.label}:</strong><br>
+                                                                <img src="${spec.file_url}" style="max-width:100%;height:auto;border-radius:8px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,0.1);" alt="${spec.value}">
+                                                                <div><a href="${spec.file_url}" target="_blank" style="color:#667eea;text-decoration:none;font-size:13px;">📎 ${spec.value}</a></div>
+                                                                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">點擊圖片或連結下載原圖</div>
+                                                            </div>
+                                                        `;
+                                                    } else {
+                                                        return `
+                                                            <div style="margin-bottom:4px;">
+                                                                <strong>${spec.label}:</strong> 
+                                                                <a href="${spec.file_url}" target="_blank" style="color:#667eea;">📎 ${spec.value}</a>
+                                                            </div>
+                                                        `;
+                                                    }
+                                                } else {
+                                                    return `
+                                                        <div style="margin-bottom:4px;">
+                                                            <strong>${spec.label}:</strong> ${spec.value}
+                                                        </div>
+                                                    `;
+                                                }
+                                            }).join('')}
                                         </div>
                                     ` : ''}
                                     <div style="margin-top:8px;font-weight:600;color:#10b981;">NT$ ${item.total.toLocaleString()}</div>
@@ -697,6 +727,9 @@
                             `).join('')}
                         </div>
                     `;
+                    
+                    // 儲存訂單資料供建立工單使用
+                    window.currentOrderData = order;
                 }
             } catch (error) {
                 modalBody.innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>載入失敗</div></div>';
@@ -705,6 +738,68 @@
         
         function closeOrderModal() {
             document.getElementById('orderModal').classList.remove('active');
+        }
+        
+        // 建立工單到看板
+        async function createWorkOrder(orderId) {
+            const order = window.currentOrderData;
+            if (!order) {
+                alert('訂單資料載入中，請稍後再試');
+                return;
+            }
+            
+            // 組合工單內容
+            let cardBody = `<h3>${order.items[0]?.product_name || '訂單商品'}</h3>\n\n`;
+            cardBody += `<p><strong>📋 商品規格</strong></p>\n<ul>\n`;
+            
+            if (order.items[0]?.specs) {
+                order.items[0].specs.forEach(spec => {
+                    if (spec.is_file) {
+                        cardBody += `<li><strong>${spec.label}:</strong> <a href="${spec.file_url}" target="_blank">${spec.value}</a></li>\n`;
+                    } else {
+                        cardBody += `<li><strong>${spec.label}:</strong> ${spec.value}</li>\n`;
+                    }
+                });
+            }
+            
+            cardBody += `</ul>\n\n`;
+            cardBody += `<p><strong>👤 客戶資訊</strong></p>\n<ul>\n`;
+            cardBody += `<li>客戶: ${order.customer_name}</li>\n`;
+            if (order.company) cardBody += `<li>公司: ${order.company}</li>\n`;
+            cardBody += `<li>電話: ${order.phone}</li>\n`;
+            cardBody += `<li>Email: ${order.email}</li>\n`;
+            cardBody += `</ul>\n\n`;
+            cardBody += `<p><strong>💰 訂單金額:</strong> NT$ ${order.total.toLocaleString()}</p>`;
+            
+            // 建立卡片資料
+            const cardData = {
+                title: `訂單 #${order.order_id} - ${order.customer_name}`,
+                body: cardBody,
+                col: 'lib', // 放到策略筆記區
+                tags: ['訂單', order.company ? '法人' : '個人']
+            };
+            
+            try {
+                // 呼叫看板 API 建立卡片
+                const response = await fetch('../api/cards.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cardData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✓ 工單已建立到看板！');
+                    // 跳轉到看板
+                    window.location.href = 'index.php';
+                } else {
+                    alert('建立失敗: ' + (result.error || '未知錯誤'));
+                }
+            } catch (error) {
+                console.error('建立工單失敗:', error);
+                alert('建立失敗，請稍後再試');
+            }
         }
     </script>
 </body>
