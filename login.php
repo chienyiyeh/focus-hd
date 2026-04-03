@@ -18,7 +18,11 @@ if (isset($_COOKIE['remember_user']) && isset($_COOKIE['remember_token'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once 'config.php';
+    // 直接使用資料庫資訊，避免 config.php 路徑問題
+    $db_host = 'localhost';
+    $db_name = 'zeyjsvrczr';
+    $db_user = 'zeyjsvrczr';
+    $db_pass = 'nrPBsleknr';
     
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -45,8 +49,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $token = bin2hex(random_bytes(32));
                     $expiry = time() + (30 * 24 * 60 * 60); // 30 天
                     
-                    setcookie('remember_token', $token, $expiry, '/', '', true, true);
-                    setcookie('remember_user', $user['username'], $expiry, '/', '', true, true);
+                    setcookie('remember_token', $token, [
+                        'expires' => $expiry,
+                        'path' => '/',
+                        'secure' => false, // Cloudways 可能沒有 HTTPS
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
+                    setcookie('remember_user', $user['username'], [
+                        'expires' => $expiry,
+                        'path' => '/',
+                        'secure' => false,
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
                 }
                 
                 header('Location: index.php');
@@ -54,8 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = '帳號或密碼錯誤';
             }
+        } catch (PDOException $e) {
+            $error = '資料庫連線失敗: ' . $e->getMessage();
         } catch (Exception $e) {
-            $error = '登入失敗，請稍後再試';
+            $error = '登入失敗: ' . $e->getMessage();
         }
     }
 }
