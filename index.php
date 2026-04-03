@@ -332,7 +332,7 @@ $username = $_SESSION['username'] ?? 'User';
   .act-btn.postpone { background: var(--accent-week-bg); color: var(--accent-week-text); border-color: var(--accent-week); }
   .act-btn.del { color: #E24B4A; }
 
-  .col-collapsible { overflow: hidden; max-height: 4000px; transition: max-height 0.35s ease; }
+  .col-collapsible { overflow: visible; max-height: none; transition: max-height 0.35s ease; }
   .col-collapsible.collapsed { max-height: 0 !important; overflow: hidden; }
   .col-resize-handle {
     text-align: center; font-size: 14px; color: var(--text-muted);
@@ -963,7 +963,7 @@ $username = $_SESSION['username'] ?? 'User';
       <div id="col-body-lib" class="col-collapsible">
         <div class="mobile-filter-bar" id="mobile-filter-bar"></div>
         <div style="padding: 0 16px 8px;"><button class="add-card-btn" onclick="openModal('lib');event.stopPropagation()">+ 新增筆記</button></div>
-        <div class="cards-area" id="cards-lib" style="overflow-y:auto;"></div>
+        <div class="cards-area" id="cards-lib"></div>
         <div class="col-resize-handle" onmousedown="startColResize(event,'lib')" title="拖曳調整高度">⋯</div>
       </div>
     </div>
@@ -982,7 +982,7 @@ $username = $_SESSION['username'] ?? 'User';
       </div>
       <div id="col-body-week" class="col-collapsible">
         <div style="padding: 0 16px 8px;"><button class="add-card-btn" id="add-week" onclick="openModal('week');event.stopPropagation()">+ 新增目標</button></div>
-        <div class="cards-area" id="cards-week" style="overflow-y:auto;"></div>
+        <div class="cards-area" id="cards-week"></div>
         <div class="col-resize-handle" onmousedown="startColResize(event,'week')" title="拖曳調整高度">⋯</div>
       </div>
     </div>
@@ -4910,6 +4910,7 @@ async function toggleNotifications() {
   } else {
     notificationPanel.classList.add('open');
     await loadNotifications();
+    await loadNewOrders(); // 載入新訂單
   }
 }
 
@@ -4921,8 +4922,21 @@ async function loadNotifications() {
     
     const list = document.getElementById('notification-list');
     
+    // 先清空
+    list.innerHTML = '';
+    
+    // === 新增：新訂單區塊 ===
+    const ordersSection = document.createElement('div');
+    ordersSection.id = 'orders-notification-section';
+    ordersSection.style.cssText = 'border-bottom:2px solid var(--border);';
+    list.appendChild(ordersSection);
+    
+    // === 原有通知列表 ===
+    const systemSection = document.createElement('div');
+    systemSection.id = 'system-notification-section';
+    
     if (data.success && data.notifications && data.notifications.length > 0) {
-      list.innerHTML = data.notifications.map(n => `
+      systemSection.innerHTML = data.notifications.map(n => `
         <div class="notification-item ${n.is_read ? '' : 'unread'}" onclick="handleNotificationClick(${n.id})">
           <div class="notification-item-header">
             <span class="notification-item-actor">${escHtml(n.actor_username)}</span>
@@ -4932,8 +4946,11 @@ async function loadNotifications() {
         </div>
       `).join('');
     } else {
-      list.innerHTML = '<div class="notification-empty">暫無通知</div>';
+      systemSection.innerHTML = '<div class="notification-empty">暫無系統通知</div>';
     }
+    
+    list.appendChild(systemSection);
+    
   } catch (err) {
     console.error('加载通知失败:', err);
   }
@@ -5819,6 +5836,143 @@ function getDragAfterElement(container, y) {
     }
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
+
+// ==========================================
+// 新訂單通知功能
+// ==========================================
+
+// 載入新訂單
+async function loadNewOrders() {
+  try {
+    const lastCheck = localStorage.getItem('last_order_check') || 0;
+    
+    const response = await fetch('orders-api.php?action=list&limit=20');
+    const result = await response.json();
+    
+    if (!result.success) return;
+    
+    // 篩選新訂單
+    const newOrders = result.data.orders.filter(order => {
+      const orderTime = new Date(order.order_date).getTime();
+      return orderTime > lastCheck;
+    });
+    
+    const section = document.getElementById('orders-notification-section');
+    if (!section) return;
+    
+    if (newOrders.length > 0) {
+      section.innerHTML = `
+        <div style="padding:14px 16px;background:linear-gradient(135deg,#667eea15,#764ba215);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="font-weight:700;color:var(--text);font-size:14px;">📦 新訂單 (${newOrders.length})</div>
+            <button onclick="markOrdersAsRead()" style="font-size:11px;color:var(--accent-lib);background:none;border:none;cursor:pointer;padding:4px 8px;">標記已讀</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+            ${newOrders.slice(0, 5).map(order => `
+              <div onclick="goToOrderDetail(${order.order_id})" style="padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px;">
+                  <div style="font-weight:600;font-size:13px;color:var(--text);">#${order.order_id}</div>
+                  <div style="font-size:11px;color:var(--text-muted);">${formatOrderTime(order.order_date)}</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${escHtml(order.customer_name || '訪客')}${order.company ? ' - ' + escHtml(order.company) : ''}</div>
+                <div style="font-weight:600;color:#10b981;font-size:13px;">NT$ ${order.total.toLocaleString()}</div>
+              </div>
+            `).join('')}
+          </div>
+          <button onclick="goToOrdersDashboard()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            查看所有訂單 →
+          </button>
+        </div>
+      `;
+    } else {
+      section.innerHTML = `
+        <div style="padding:12px 16px;background:var(--surface2);">
+          <div style="font-size:12px;color:var(--text-muted);text-align:center;">📦 目前沒有新訂單</div>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('載入新訂單失敗:', error);
+  }
+}
+
+// 檢查新訂單（更新紅點）
+async function checkNewOrders() {
+  try {
+    const lastCheck = localStorage.getItem('last_order_check') || 0;
+    
+    const response = await fetch('orders-api.php?action=list&limit=20');
+    const result = await response.json();
+    
+    if (!result.success) return;
+    
+    const newOrders = result.data.orders.filter(order => {
+      const orderTime = new Date(order.order_date).getTime();
+      return orderTime > lastCheck;
+    });
+    
+    // 更新鈴鐺紅點
+    const badge = document.getElementById('notification-badge');
+    if (badge && newOrders.length > 0) {
+      badge.textContent = newOrders.length;
+      badge.style.display = 'block';
+      badge.style.background = '#EF4444';
+    }
+  } catch (error) {
+    console.error('檢查新訂單失敗:', error);
+  }
+}
+
+// 標記訂單已讀
+function markOrdersAsRead() {
+  localStorage.setItem('last_order_check', Date.now());
+  
+  // 清除紅點
+  const badge = document.getElementById('notification-badge');
+  if (badge) {
+    badge.style.display = 'none';
+  }
+  
+  // 重新載入通知
+  loadNewOrders();
+  
+  toast('✓ 已標記訂單為已讀');
+}
+
+// 跳轉到訂單詳情
+function goToOrderDetail(orderId) {
+  markOrdersAsRead();
+  window.location.href = `orders-dashboard.html?order_id=${orderId}`;
+}
+
+// 跳轉到訂單管理
+function goToOrdersDashboard() {
+  markOrdersAsRead();
+  window.location.href = 'orders-dashboard.html';
+}
+
+// 格式化訂單時間
+function formatOrderTime(dateStr) {
+  const now = new Date();
+  const orderDate = new Date(dateStr);
+  const diffMs = now - orderDate;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return '剛剛';
+  if (diffMins < 60) return `${diffMins} 分鐘前`;
+  if (diffHours < 24) return `${diffHours} 小時前`;
+  if (diffDays < 7) return `${diffDays} 天前`;
+  return orderDate.toLocaleDateString('zh-TW');
+}
+
+// 頁面載入時檢查新訂單
+window.addEventListener('load', () => {
+  checkNewOrders();
+  // 每 5 分鐘自動檢查一次
+  setInterval(checkNewOrders, 5 * 60 * 1000);
+});
 </script>
 
 </body>
