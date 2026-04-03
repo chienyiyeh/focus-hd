@@ -1,44 +1,18 @@
 <?php
+// 使用和 index.php 相同的 session 設定
+session_name('KANBAN_SESSION');
 session_start();
 
 // 如果已登入，跳轉到首頁
-if (isset($_SESSION['username'])) {
+if (isset($_SESSION['user_id']) && isset($_SESSION['username'])) {
     header('Location: index.php');
     exit;
-}
-
-// 檢查是否有記住登入的 Cookie（並且還沒登入）
-if (isset($_COOKIE['remember_user']) && !isset($_SESSION['username'])) {
-    // 自動登入
-    $db_host = 'localhost';
-    $db_name = 'zeyjsvrczr';
-    $db_user = 'zeyjsvrczr';
-    $db_pass = 'nrPBsleknr';
-    
-    try {
-        $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
-        $stmt = $pdo->prepare("SELECT id, username FROM users WHERE username = ?");
-        $stmt->execute([$_COOKIE['remember_user']]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['login_time'] = time();
-            header('Location: index.php');
-            exit;
-        }
-    } catch (Exception $e) {
-        // Cookie 驗證失敗，繼續顯示登入頁面
-    }
 }
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 直接使用資料庫資訊，避免 config.php 路徑問題
+    // 直接使用資料庫資訊
     $db_host = 'localhost';
     $db_name = 'zeyjsvrczr';
     $db_user = 'zeyjsvrczr';
@@ -60,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($user && password_verify($password, $user['password_hash'])) {
+                // 設定 Session（和 index.php 一致）
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['login_time'] = time();
@@ -72,11 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     setcookie('remember_token', $token, [
                         'expires' => $expiry,
                         'path' => '/',
-                        'secure' => false, // Cloudways 可能沒有 HTTPS
+                        'secure' => false,
                         'httponly' => true,
                         'samesite' => 'Lax'
                     ]);
                     setcookie('remember_user', $user['username'], [
+                        'expires' => $expiry,
+                        'path' => '/',
+                        'secure' => false,
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
+                    setcookie('remember_user_id', $user['id'], [
                         'expires' => $expiry,
                         'path' => '/',
                         'secure' => false,
@@ -91,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = '帳號或密碼錯誤';
             }
         } catch (PDOException $e) {
-            $error = '資料庫連線失敗: ' . $e->getMessage();
+            $error = '資料庫連線失敗';
         } catch (Exception $e) {
-            $error = '登入失敗: ' . $e->getMessage();
+            $error = '登入失敗';
         }
     }
 }
@@ -102,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>登入 - FOCUS 看板系統</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -221,12 +203,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" action="">
             <div class="form-group">
                 <label for="username">帳號</label>
-                <input type="text" id="username" name="username" required autofocus>
+                <input type="text" id="username" name="username" required autofocus autocomplete="username">
             </div>
             
             <div class="form-group">
                 <label for="password">密碼</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
             
             <div class="remember-me">
