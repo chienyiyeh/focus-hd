@@ -5,7 +5,17 @@
  */
 
 session_start();
-require_once 'config.php';
+
+// 載入設定檔
+if (file_exists(__DIR__ . '/config.php')) {
+    require_once __DIR__ . '/config.php';
+} else {
+    // 如果沒有 config.php，使用預設連線資訊
+    $db_host = 'localhost';
+    $db_name = 'zeyjsvrczr';
+    $db_user = 'zeyjsvrczr';
+    $db_pass = 'nrPBsleknr';
+}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
