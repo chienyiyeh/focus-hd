@@ -1,0 +1,354 @@
+<?php
+/**
+ * FOCUS 看板系統 - AI 協作助手 API
+ * 檔案: api/ai-assistant.php
+ * 版本: 1.0 實戰版（已針對你的看板優化）
+ * 日期: 2026-04-03
+ * 
+ * 特點：
+ * - 完全獨立，無外部依賴
+ * - 支援你現有的 KANBAN_SESSION
+ * - 自動計算 work_orders 和 cards 的進度
+ * - 智能建議邏輯
+ * - 易於自定義和擴展
+ */
+
+require_once 'config.php';
+
+// ============================================
+// 核心 AI 助手類
+// ============================================
+
+class AIAssistant {
+    private $db;
+    private $user_id;
+    
+    public function __construct($db, $user_id) {
+        $this->db = $db;
+        $this->user_id = $user_id;
+    }
+    
+    /**
+     * 獲取項目進度（整合 cards 和 work_orders）
+     */
+    public function getProjectSummary() {
+        try {
+            // 獲取 cards 統計
+            $stmt = $this->db->prepare("
+                SELECT col, COUNT(*) as count
+                FROM cards
+                WHERE user_id = ?
+                GROUP BY col
+            ");
+            $stmt->execute([$this->user_id]);
+            $card_stats = [];
+            while ($row = $stmt->fetch()) {
+                $card_stats[$row['col']] = $row['count'];
+            }
+            
+            // 獲取 work_orders 統計（如果你有）
+            $work_order_count = 0;
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT COUNT(*) as count
+                    FROM work_orders
+                    WHERE created_by = ?
+                ");
+                $stmt->execute([$this->user_id]);
+                $row = $stmt->fetch();
+                $work_order_count = $row['count'] ?? 0;
+            } catch (Exception $e) {
+                // work_orders 表可能不存在，忽略
+            }
+            
+            // 計算進度
+            $total_cards = array_sum($card_stats);
+            $done = $card_stats['done'] ?? 0;
+            $completion_rate = $total_cards > 0 ? round(($done / $total_cards) * 100, 1) : 0;
+            
+            return [
+                'success' => true,
+                'data' => [
+                    'completion_rate' => $completion_rate,
+                    'card_stats' => [
+                        'lib' => $card_stats['lib'] ?? 0,
+                        'week' => $card_stats['week'] ?? 0,
+                        'focus' => $card_stats['focus'] ?? 0,
+                        'done' => $done,
+                    ],
+                    'work_orders_count' => $work_order_count,
+                    'total_cards' => $total_cards,
+                    'by_status' => [
+                        'todo' => ($card_stats['lib'] ?? 0) + ($card_stats['week'] ?? 0),
+                        'in_progress' => $card_stats['focus'] ?? 0,
+                        'completed' => $done,
+                    ]
+                ]
+            ];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * 獲取待做清單
+     */
+    public function getTodoList($limit = 10) {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    id, title, col, priority, project,
+                    updated_at
+                FROM cards
+                WHERE user_id = ? AND col IN ('lib', 'week')
+                ORDER BY 
+                    CASE WHEN priority = 'urgent_important' THEN 1
+                         WHEN priority = 'important_not_urgent' THEN 2
+                         ELSE 3 END,
+                    updated_at DESC
+                LIMIT ?
+            ");
+            $stmt->bindValue(1, $this->user_id, PDO::PARAM_INT);
+            $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            $todos = $stmt->fetchAll();
+            
+            return [
+                'success' => true,
+                'data' => $todos,
+                'count' => count($todos)
+            ];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * 智能建議（根據你的實際進度）
+     */
+    public function getNextStepAdvice() {
+        try {
+            $summary = $this->getProjectSummary();
+            
+            if (!$summary['success']) {
+                return ['success' => false, 'error' => '無法獲取進度數據'];
+            }
+            
+            $data = $summary['data'];
+            $focus_count = $data['by_status']['in_progress'];
+            $todo_count = $data['by_status']['todo'];
+            $completion_rate = $data['completion_rate'];
+            
+            $advice = [];
+            
+            // 根據實際情況生成建議
+            if ($focus_count == 0) {
+                $advice[] = [
+                    'type' => 'info',
+                    'message' => '💡 焦點欄是空的，建議從待做清單中選擇最重要的任務',
+                    'action' => '選擇1-3個高優先級任務放入焦點欄'
+                ];
+            } else if ($focus_count >= 5) {
+                $advice[] = [
+                    'type' => 'warning',
+                    'message' => '⚠️ 焦點欄有' . $focus_count . '個任務，可能過多',
+                    'action' => '建議先完成其中1個，再加新的任務'
+                ];
+            } else {
+                $advice[] = [
+                    'type' => 'success',
+                    'message' => '✅ 焦點欄有' . $focus_count . '個適量的任務',
+                    'action' => '專注完成當前的任務'
+                ];
+            }
+            
+            // 檢查待做清單
+            if ($todo_count > 10) {
+                $advice[] = [
+                    'type' => 'warning',
+                    'message' => '📋 待做清單有' . $todo_count . '個任務',
+                    'action' => '優先級調整可以幫助你更清楚地聚焦'
+                ];
+            } else if ($todo_count == 0) {
+                $advice[] = [
+                    'type' => 'success',
+                    'message' => '🎉 沒有新待做，可以開始一個新項目',
+                    'action' => '添加新的任務或項目'
+                ];
+            }
+            
+            // 根據完成度
+            if ($completion_rate >= 80) {
+                $advice[] = [
+                    'type' => 'success',
+                    'message' => '🌟 你已經完成了' . $completion_rate . '%，進度很好！',
+                    'action' => '繼續保持！'
+                ];
+            }
+            
+            return ['success' => true, 'advice' => $advice];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * 保存進度筆記
+     */
+    public function saveProgressNote($content, $date = null) {
+        try {
+            $date = $date ?? date('Y-m-d');
+            
+            // 檢查是否已有該日期的進度筆記
+            $stmt = $this->db->prepare("
+                SELECT id FROM cards
+                WHERE user_id = ? AND col = 'progress' AND DATE(created_at) = ?
+                LIMIT 1
+            ");
+            $stmt->execute([$this->user_id, $date]);
+            $existing = $stmt->fetch();
+            
+            if ($existing) {
+                // 更新現有筆記
+                $stmt = $this->db->prepare("
+                    UPDATE cards
+                    SET body = ?, updated_at = NOW()
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$content, $existing['id'], $this->user_id]);
+                return ['success' => true, 'id' => $existing['id'], 'action' => 'updated'];
+            } else {
+                // 創建新筆記
+                $stmt = $this->db->prepare("
+                    INSERT INTO cards (user_id, col, title, body, created_at, updated_at)
+                    VALUES (?, 'progress', ?, ?, NOW(), NOW())
+                ");
+                $stmt->execute([$this->user_id, $date . ' 進度', $content]);
+                return ['success' => true, 'id' => $this->db->lastInsertId(), 'action' => 'created'];
+            }
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * 獲取進度歷史
+     */
+    public function getProgressHistory($days = 7) {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, title, body, created_at, updated_at
+                FROM cards
+                WHERE user_id = ? AND col = 'progress'
+                ORDER BY created_at DESC
+                LIMIT ?
+            ");
+            $stmt->bindValue(1, $this->user_id, PDO::PARAM_INT);
+            $stmt->bindValue(2, $days, PDO::PARAM_INT);
+            $stmt->execute();
+            $history = $stmt->fetchAll();
+            
+            return ['success' => true, 'data' => $history];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * 生成周報
+     */
+    public function generateWeeklyReport() {
+        try {
+            $week_ago = date('Y-m-d', strtotime('-7 days'));
+            
+            // 獲取本周的進度筆記
+            $stmt = $this->db->prepare("
+                SELECT title, body, created_at
+                FROM cards
+                WHERE user_id = ? AND col = 'progress' AND DATE(created_at) >= ?
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute([$this->user_id, $week_ago]);
+            $notes = $stmt->fetchAll();
+            
+            // 獲取本周完成的卡片
+            $stmt = $this->db->prepare("
+                SELECT title, updated_at
+                FROM cards
+                WHERE user_id = ? AND col = 'done' AND DATE(updated_at) >= ?
+                ORDER BY updated_at DESC
+            ");
+            $stmt->execute([$this->user_id, $week_ago]);
+            $completed = $stmt->fetchAll();
+            
+            $report = [
+                'period' => '過去7天',
+                'notes_count' => count($notes),
+                'completed_count' => count($completed),
+                'notes' => array_slice($notes, 0, 10),
+                'completed_tasks' => array_slice($completed, 0, 10),
+            ];
+            
+            return ['success' => true, 'data' => $report];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+}
+
+// ============================================
+// 路由處理
+// ============================================
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    // 驗證用戶登入
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['success' => false, 'error' => '未登入']);
+        exit;
+    }
+    
+    try {
+        $db = getDB();
+        $user_id = $_SESSION['user_id'];
+        $assistant = new AIAssistant($db, $user_id);
+        
+        $action = $_GET['action'] ?? $_POST['action'] ?? '';
+        
+        switch ($action) {
+            case 'get_summary':
+                echo json_encode($assistant->getProjectSummary());
+                break;
+                
+            case 'get_todo':
+                echo json_encode($assistant->getTodoList());
+                break;
+                
+            case 'get_advice':
+                echo json_encode($assistant->getNextStepAdvice());
+                break;
+                
+            case 'save_note':
+                $content = $_POST['content'] ?? '';
+                echo json_encode($assistant->saveProgressNote($content));
+                break;
+                
+            case 'get_history':
+                $days = intval($_GET['days'] ?? 7);
+                echo json_encode($assistant->getProgressHistory($days));
+                break;
+                
+            case 'get_weekly_report':
+                echo json_encode($assistant->generateWeeklyReport());
+                break;
+                
+            default:
+                echo json_encode(['success' => false, 'error' => '未知的操作']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+?>
