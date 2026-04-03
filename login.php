@@ -7,12 +7,32 @@ if (isset($_SESSION['username'])) {
     exit;
 }
 
-// 檢查是否有記住登入的 Cookie
-if (isset($_COOKIE['remember_user']) && isset($_COOKIE['remember_token'])) {
-    $_SESSION['username'] = $_COOKIE['remember_user'];
-    $_SESSION['user_id'] = 1; // 這裡應該從資料庫查詢
-    header('Location: index.php');
-    exit;
+// 檢查是否有記住登入的 Cookie（並且還沒登入）
+if (isset($_COOKIE['remember_user']) && !isset($_SESSION['username'])) {
+    // 自動登入
+    $db_host = 'localhost';
+    $db_name = 'zeyjsvrczr';
+    $db_user = 'zeyjsvrczr';
+    $db_pass = 'nrPBsleknr';
+    
+    try {
+        $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        $stmt = $pdo->prepare("SELECT id, username FROM users WHERE username = ?");
+        $stmt->execute([$_COOKIE['remember_user']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['login_time'] = time();
+            header('Location: index.php');
+            exit;
+        }
+    } catch (Exception $e) {
+        // Cookie 驗證失敗，繼續顯示登入頁面
+    }
 }
 
 $error = '';
