@@ -16,8 +16,8 @@
 // ============================================
 
 define('GEMINI_API_KEY', 'AIzaSyDduxsE5i3A7k1YP5-uryUWuMmhk6heRho');  // ✅ 已設定
-define('GEMINI_MODEL', 'gemini-1.5-flash');  // 使用 Flash 版本，速度快且幾乎免費
-define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/' . GEMINI_MODEL . ':generateContent');
+define('GEMINI_MODEL', 'gemini-1.5-flash-latest');  // 修正為 latest 版本
+define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1/models/' . GEMINI_MODEL . ':generateContent');
 
 // ============================================
 // Claude API 設定 (高品質文案 - 轉單率高)
