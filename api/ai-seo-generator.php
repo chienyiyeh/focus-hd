@@ -16,7 +16,7 @@ require_once __DIR__ . '/../config.php';  // 上一層的 config.php
 require_once __DIR__ . '/ai-config.php';   // 同層的 ai-config.php
 
 // 檢查是否為管理員登入
-session_start();
+// session_start(); // config.php 已經啟動 session 了
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     // 先不驗證身份,方便測試
     // die('請先登入管理員帳號');
