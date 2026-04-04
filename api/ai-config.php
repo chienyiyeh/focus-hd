@@ -16,8 +16,8 @@
 // ============================================
 
 define('GEMINI_API_KEY', 'AIzaSyDduxsE5i3A7k1YP5-uryUWuMmhk6heRho');  // ✅ 已設定
-define('GEMINI_MODEL', 'gemini-1.5-flash');  // 使用正確的模型名稱
-define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent');
+define('GEMINI_MODEL', 'gemini-pro');  // 使用 Pro 版本
+define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent');
 
 // ============================================
 // Claude API 設定 (高品質文案 - 轉單率高)
@@ -77,8 +77,8 @@ function callGeminiAPI($prompt, $options = []) {
         ]
     ];
     
-    // 使用正確的端點格式
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . GEMINI_API_KEY;
+    // 使用正確的端點格式 - 改用 gemini-pro
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' . GEMINI_API_KEY;
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
