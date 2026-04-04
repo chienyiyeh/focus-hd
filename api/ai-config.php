@@ -77,8 +77,8 @@ function callGeminiAPI($prompt, $options = []) {
         ]
     ];
     
-    // 使用正確的端點格式 - 改用 gemini-pro
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' . GEMINI_API_KEY;
+    // 使用 v1 版本和新模型
+    $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-8b:generateContent?key=' . GEMINI_API_KEY;
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
