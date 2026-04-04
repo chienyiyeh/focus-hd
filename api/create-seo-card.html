@@ -1,99 +1,26 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新增專注卡片</title>
-    <style>
-        body {
-            font-family: "Microsoft JhengHei", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            width: 100%;
-        }
-        h1 {
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-weight: 600;
-        }
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-        }
-        button:hover {
-            opacity: 0.9;
-        }
-        pre {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📋 新增專注卡片</h1>
-        <p><strong>卡片標題:</strong> SEO 智能分析系統開發</p>
-        
-        <button onclick="createCard()">🚀 建立卡片</button>
-        
-        <div id="status"></div>
-    </div>
-    
-    <script>
-        async function createCard() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = '<div class="loading">建立中...</div>';
-            
-            const cardData = {
-                action: 'save',
-                col: 'focus',
-                title: 'SEO 智能分析系統開發',
-                project: 'custom_1774756965777',
-                priority: 'urgent_important',
-                summary: '完整的產品 SEO 分析與優化系統',
-                nextStep: '階段 1: 產品掃描功能開發',
-                body: `<h3>📊 系統目標</h3>
+<?php
+/**
+ * 建立 SEO 系統專注卡片
+ */
+
+require_once __DIR__ . '/../config.php';
+
+// 檢查登入
+if (!isset($_SESSION['user_id'])) {
+    die('請先登入系統');
+}
+
+$userId = $_SESSION['user_id'];
+
+// 準備卡片資料
+$cardData = [
+    'col' => 'focus',
+    'title' => 'SEO 智能分析系統開發',
+    'project' => 'custom_1774756965777',
+    'priority' => 'urgent_important',
+    'summary' => '完整的產品 SEO 分析與優化系統',
+    'nextStep' => '階段 1: 產品掃描功能開發',
+    'body' => '<h3>📊 系統目標</h3>
 <p>建立智能 SEO 分析系統，實現：</p>
 <ul>
 <li>✅ 自動掃描 WooCommerce 產品</li>
@@ -153,59 +80,130 @@
 <li>Google Search Console API</li>
 <li>Gemini AI (已串接 ✅)</li>
 <li>PHP + MySQL</li>
-</ul>`,
-                checklist: [
-                    { text: '產品掃描功能', checked: false },
-                    { text: 'SEO 資料表建立', checked: false },
-                    { text: 'Google Search Console 串接', checked: false },
-                    { text: 'AI 分析引擎', checked: false },
-                    { text: '前端介面開發', checked: false },
-                    { text: '測試與上線', checked: false }
-                ],
-                isPrivate: 1
-            };
-            
-            try {
-                const response = await fetch('https://phpstack-1553960-6296402.cloudwaysapps.com/api/cards.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(cardData),
-                    credentials: 'include'
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    statusDiv.innerHTML = `
-                        <div class="success">
-                            ✅ 卡片建立成功！<br>
-                            卡片 ID: ${result.data?.id || '已建立'}<br><br>
-                            <a href="https://phpstack-1553960-6296402.cloudwaysapps.com/" target="_blank">
-                                前往看板查看
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    statusDiv.innerHTML = `
-                        <div class="error">
-                            ❌ 建立失敗: ${result.error || '未知錯誤'}<br><br>
-                            可能原因: 需要先登入系統<br>
-                            請先到 <a href="https://phpstack-1553960-6296402.cloudwaysapps.com/login.php" target="_blank">登入頁面</a> 登入
-                        </div>
-                    `;
-                }
-                
-            } catch (error) {
-                statusDiv.innerHTML = `
-                    <div class="error">
-                        ❌ 發生錯誤: ${error.message}<br><br>
-                        <pre>${error.stack}</pre>
-                    </div>
-                `;
-            }
+</ul>',
+    'checklist' => json_encode([
+        ['text' => '產品掃描功能', 'checked' => false],
+        ['text' => 'SEO 資料表建立', 'checked' => false],
+        ['text' => 'Google Search Console 串接', 'checked' => false],
+        ['text' => 'AI 分析引擎', 'checked' => false],
+        ['text' => '前端介面開發', 'checked' => false],
+        ['text' => '測試與上線', 'checked' => false]
+    ]),
+    'isPrivate' => 1
+];
+
+try {
+    $db = getDB();
+    
+    // 插入卡片
+    $stmt = $db->prepare("
+        INSERT INTO cards (
+            user_id, col, title, project, priority, 
+            summary, next_step, body, checklist, is_private,
+            created_by, created_at, updated_at
+        ) VALUES (
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, NOW(), NOW()
+        )
+    ");
+    
+    $stmt->execute([
+        $userId,
+        $cardData['col'],
+        $cardData['title'],
+        $cardData['project'],
+        $cardData['priority'],
+        $cardData['summary'],
+        $cardData['nextStep'],
+        $cardData['body'],
+        $cardData['checklist'],
+        $cardData['isPrivate'],
+        $userId
+    ]);
+    
+    $cardId = $db->lastInsertId();
+    
+    echo "<!DOCTYPE html>
+<html lang='zh-TW'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>卡片建立成功</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-    </script>
+        .success-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .card-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class='success-box'>
+        <div class='success-icon'>✅</div>
+        <h1>卡片建立成功!</h1>
+        <p>SEO 智能分析系統開發卡片已加入「專注」清單</p>
+        
+        <div class='card-info'>
+            <strong>卡片 ID:</strong> {$cardId}<br>
+            <strong>標題:</strong> SEO 智能分析系統開發<br>
+            <strong>位置:</strong> 專注 (focus)<br>
+            <strong>檢查項目:</strong> 6 項
+        </div>
+        
+        <a href='https://phpstack-1553960-6296402.cloudwaysapps.com/' class='btn'>
+            📋 前往看板查看
+        </a>
+        <a href='https://phpstack-1553960-6296402.cloudwaysapps.com/api/create-seo-card-php.php' class='btn' style='background: #6c757d;'>
+            🔄 再建立一張
+        </a>
+    </div>
 </body>
-</html>
+</html>";
+    
+} catch (Exception $e) {
+    die("❌ 建立失敗: " . $e->getMessage());
+}
