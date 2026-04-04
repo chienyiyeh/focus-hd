@@ -281,12 +281,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
         
         <div class="content">
             <div class="tips">
-                <h3>💡 使用技巧</h3>
+                <h3>💡 快速上手</h3>
                 <ul>
-                    <li>填寫越詳細,AI 產出的文案越精準</li>
-                    <li>高毛利產品(如 A7+、尊爵款)會自動使用 Claude 產生高品質文案</li>
-                    <li>一般產品使用 Gemini,速度快且幾乎免費</li>
-                    <li>產出後挑選最好的標題,直接更新到 WordPress</li>
+                    <li>填寫產品資訊 → 點擊生成 → 複製文案到 WordPress</li>
+                    <li>高毛利產品會自動使用更好的 AI</li>
                 </ul>
             </div>
             
@@ -336,7 +334,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                     </select>
                 </div>
                 
-                <button type="submit" class="btn">🎯 一鍵生成 5 組文案</button>
+                <button type="submit" class="btn">🚀 生成文案</button>
             </form>
             
             <div class="loading" id="loading">
