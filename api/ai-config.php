@@ -15,7 +15,7 @@
 // Gemini API 設定 (大量文案生成 - 快速便宜)
 // ============================================
 
-define('GEMINI_API_KEY', 'AIzaSyDduxsE5i3A7k1YP5-uryUWuMmhk6heRho');  // ✅ 已設定
+define('GEMINI_API_KEY', 'AIzaSyCfg0-R3CS0Sy-_f7JKXG6-hGuoWrvL_D8');  // ✅ 已設定
 define('GEMINI_MODEL', 'gemini-pro');  // 使用 Pro 版本
 define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent');
 
