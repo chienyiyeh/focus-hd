@@ -144,6 +144,12 @@ $username = $_SESSION['username'] ?? 'User';
   /* 訂單按鈕特殊樣式 */
   .orders-btn:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; border-color: transparent !important; }
   
+  /* 媒體按鈕 hover 效果 */
+  a.settings-btn[href*="media-editor"]:hover { background: var(--accent-lib) !important; color: white !important; }
+  
+  /* SEO 按鈕 hover 效果 */
+  a.settings-btn[href*="seo-dashboard"]:hover { background: var(--accent-focus) !important; color: white !important; }
+  
   .logout-btn { background: #FFF3F2; color: #991B1B; border-color: #FCA5A5; }
   .logout-btn:hover { background: #FEE2E2; }
   
@@ -836,6 +842,8 @@ $username = $_SESSION['username'] ?? 'User';
     <button class="settings-btn" onclick="openProjectSettings()">⚙️ 設定</button>
     <?php if (in_array($_SESSION['username'] ?? '', ['admin', 'chienyi'])): ?><a href="users.php" class="settings-btn" style="text-decoration:none;">👥 使用者</a><?php endif; ?>
     <a href="orders-dashboard.html" class="settings-btn orders-btn" style="text-decoration:none;">📦 訂單</a>
+    <a href="api/media-editor-list.php" class="settings-btn" style="text-decoration:none; background: var(--accent-lib-bg); color: var(--accent-lib-text); border-color: var(--accent-lib);">🖼️ 媒體</a>
+    <a href="api/seo-dashboard.php" class="settings-btn" style="text-decoration:none; background: var(--accent-focus-bg); color: var(--accent-focus-text); border-color: var(--accent-focus);">📊 SEO</a>
     <div class="export-menu">
       <button class="export-btn" onclick="toggleExportMenu()">📥 匯出</button>
       <div class="export-dropdown" id="export-dropdown">
