@@ -1,9 +1,0 @@
-# Google Search Console 密鑰檔案 (不上傳到 GitHub)
-.gsc-env.php
-gsc-token.json
-
-# AI API 密鑰
-ai-config.php
-
-# WooCommerce API 密鑰
-.wc-env.php
